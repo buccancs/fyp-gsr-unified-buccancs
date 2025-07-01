@@ -1,0 +1,29 @@
+# Windows PC Controller App Dependencies
+
+# GUI Framework
+PyQt5==5.15.9
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.12.1
+
+# Networking
+socket.io-client==0.5.3
+websockets==11.0.3
+zeroconf==0.69.0  # For device discovery
+
+# Video Processing
+opencv-python==4.8.0.74
+numpy==1.24.3
+pillow==10.0.0
+
+# Data Handling
+pandas==2.0.3
+matplotlib==3.7.2
+pyqtgraph==0.13.3  # For real-time plotting
+
+# Sensor Integration
+pyserial==3.5  # For serial communication with sensors
+bleak==0.20.2  # For BLE communication
+
+# Utilities
+pyyaml==6.0.1  # For configuration files
+python-dateutil==2.8.2

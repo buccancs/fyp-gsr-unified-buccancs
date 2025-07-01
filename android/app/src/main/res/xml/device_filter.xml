@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Topdon TC001 Thermal Camera USB device filter -->
+    <!-- Note: These are placeholder values. Replace with actual vendor ID and product ID -->
+    <usb-device vendorId="4660" productId="22136" />
+</resources>
