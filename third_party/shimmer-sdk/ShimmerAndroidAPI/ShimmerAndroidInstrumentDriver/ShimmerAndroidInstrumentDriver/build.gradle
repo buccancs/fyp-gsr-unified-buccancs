@@ -1,0 +1,111 @@
+//JC: use gradlew install and then comment out install and use gradlew bintray
+
+apply plugin: 'com.android.library'
+//apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'maven-publish'
+
+android {
+    compileSdkVersion 33
+
+    lintOptions {
+        abortOnError false
+    }
+
+    defaultConfig {
+        // Enabling multidex support.
+        multiDexEnabled true
+        minSdkVersion 14
+        targetSdkVersion 33
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    sourceSets {
+        main {
+            res.srcDirs =
+                    [
+                            //GUI Utilities Fragments Layouts
+                            'src/main/res/layouts/fragments',
+                            //General layouts
+                            'src/main/res/layouts/general',
+                            'src/main/res/layouts',
+                            'src/main/res'
+                    ]
+        }
+    }
+
+    packagingOptions {
+        exclude 'APK META-INF/io.netty.versions.properties'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+    }
+    dexOptions {
+        javaMaxHeapSize "4g"
+        preDexLibraries = false
+        jumboMode = true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+
+
+/*
+publishing {
+    artifactoryPublish.dependsOn('build')
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'com.shimmersensing'
+            version = project.version
+            artifactId project.getName()
+            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+        }
+    }
+}
+*/
+
+def getArtificatId = { ->
+    return "ShimmerAndroidInstrumentDriver" // Replace with library name ID
+}
+/*
+publishing {
+    publications {
+        bar(MavenPublication) {
+            groupId = 'com.shimmerresearch' // Replace with your package's group/organization name
+            artifactId = 'shimmerandroidinstrumentdriver' // Replace with the name of your package
+            version = '3.2.2_beta' // Replace with your package version
+            artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ShimmerEngineering/ShimmerAndroidAPI")
+            credentials {
+                //Create github.properties in root project folder file with gpra.usr=GITHUB_USER_ID  & gpra.key=PERSONAL_ACCESS_TOKEN
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
+}
+*/
+dependencies {
+    implementation 'com.google.guava:guava:20.0'
+    implementation 'java3d:vecmath:1.3.1'
+    implementation files('libs/ShimmerBiophysicalProcessingLibrary_Rev_0_11.jar')
+    implementation files('libs/AndroidBluetoothLibrary.jar')
+    api files('libs/androidplot-core-0.5.0-release.jar')
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.github.Jasonchenlijian:FastBle:2.4.0'
+}

@@ -1,0 +1,6 @@
+[submodule "ShimmerAndroidAPI"]
+	path = ShimmerAndroidAPI
+	url = https://github.com/ShimmerEngineering/ShimmerAndroidAPI.git
+[submodule "Shimmer-Java-Android-API"]
+	path = Shimmer-Java-Android-API
+	url = https://github.com/ShimmerEngineering/Shimmer-Java-Android-API.git
