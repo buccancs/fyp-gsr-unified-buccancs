@@ -10,6 +10,7 @@ Pillow>=10.0.0
 requests>=2.31.0
 websockets>=11.0.0
 pybluez>=0.23
+pyshimmer>=0.4.0
 
 # Data Processing and Analysis
 pandas>=2.1.0

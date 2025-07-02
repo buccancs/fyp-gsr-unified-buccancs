@@ -24,12 +24,20 @@ except ImportError:
     LSL_AVAILABLE = False
     logger.warning("pylsl not available - LSL stream reception disabled")
 
+try:
+    import pyshimmer
+    PYSHIMMER_AVAILABLE = True
+except ImportError:
+    PYSHIMMER_AVAILABLE = False
+    logger.warning("pyshimmer not available - Shimmer API connection disabled")
+
 class GSRHandler:
     """
     Enhanced GSR handler supporting multiple data sources:
     1. Direct Shimmer device connection via serial/Bluetooth
     2. LSL stream reception from Android devices
-    3. Simulation mode for testing
+    3. PyShimmer API connection for Shimmer devices
+    4. Simulation mode for testing
     """
 
     def __init__(self):
@@ -41,7 +49,7 @@ class GSRHandler:
 
         # Configuration
         self.sampling_rate = 128  # Hz
-        self.capture_mode = "simulation"  # "simulation", "serial", "lsl"
+        self.capture_mode = "simulation"  # "simulation", "serial", "lsl", "pyshimmer"
 
         # Serial connection (for direct Shimmer connection)
         self.serial_connection = None
@@ -51,6 +59,10 @@ class GSRHandler:
         # LSL stream
         self.lsl_inlet = None
         self.lsl_stream_info = None
+
+        # PyShimmer connection
+        self.pyshimmer_device = None
+        self.pyshimmer_mac_address = None
 
         # Statistics
         self.total_samples = 0
@@ -69,15 +81,18 @@ class GSRHandler:
             self.data_callbacks.remove(callback)
 
     def set_capture_mode(self, mode: str):
-        """Set the capture mode: 'simulation', 'serial', or 'lsl'."""
-        if mode not in ["simulation", "serial", "lsl"]:
-            raise ValueError("Invalid capture mode. Must be 'simulation', 'serial', or 'lsl'")
+        """Set the capture mode: 'simulation', 'serial', 'lsl', or 'pyshimmer'."""
+        if mode not in ["simulation", "serial", "lsl", "pyshimmer"]:
+            raise ValueError("Invalid capture mode. Must be 'simulation', 'serial', 'lsl', or 'pyshimmer'")
 
         if mode == "serial" and not SERIAL_AVAILABLE:
             raise RuntimeError("Serial mode not available - pyserial not installed")
 
         if mode == "lsl" and not LSL_AVAILABLE:
             raise RuntimeError("LSL mode not available - pylsl not installed")
+
+        if mode == "pyshimmer" and not PYSHIMMER_AVAILABLE:
+            raise RuntimeError("PyShimmer mode not available - pyshimmer not installed")
 
         self.capture_mode = mode
         logger.info(f"GSR capture mode set to: {mode}")
@@ -88,6 +103,12 @@ class GSRHandler:
             self.serial_port = port
         self.serial_baudrate = baudrate
         logger.info(f"Serial configuration: port={self.serial_port}, baudrate={self.serial_baudrate}")
+
+    def configure_pyshimmer(self, mac_address: str = None):
+        """Configure PyShimmer connection parameters."""
+        if mac_address:
+            self.pyshimmer_mac_address = mac_address
+        logger.info(f"PyShimmer configuration: mac_address={self.pyshimmer_mac_address}")
 
     def discover_shimmer_devices(self) -> List[str]:
         """Discover available Shimmer devices on serial ports."""
@@ -150,6 +171,8 @@ class GSRHandler:
                 return self._start_serial_capture()
             elif self.capture_mode == "lsl":
                 return self._start_lsl_capture()
+            elif self.capture_mode == "pyshimmer":
+                return self._start_pyshimmer_capture()
             else:  # simulation
                 return self._start_simulation_capture()
         except Exception as e:
@@ -235,6 +258,40 @@ class GSRHandler:
         self.capture_thread.start()
 
         return True
+
+    def _start_pyshimmer_capture(self) -> bool:
+        """Start PyShimmer-based GSR capture from Shimmer device."""
+        if not PYSHIMMER_AVAILABLE:
+            logger.error("PyShimmer not available")
+            return False
+
+        try:
+            # Initialize PyShimmer device
+            if not self.pyshimmer_mac_address:
+                logger.error("No MAC address specified for PyShimmer device")
+                return False
+
+            # Connect to Shimmer device using PyShimmer
+            self.pyshimmer_device = pyshimmer.ShimmerBluetooth(self.pyshimmer_mac_address)
+            self.pyshimmer_device.connect()
+
+            # Configure GSR sensor
+            self.pyshimmer_device.set_sensors([pyshimmer.SENSOR_GSR])
+            self.pyshimmer_device.set_sampling_rate(self.sampling_rate)
+
+            logger.info(f"Connected to Shimmer device via PyShimmer: {self.pyshimmer_mac_address}")
+
+            # Start capture thread
+            self.is_capturing = True
+            self.start_time = time.time()
+            self.capture_thread = threading.Thread(target=self._pyshimmer_capture_loop, daemon=True)
+            self.capture_thread.start()
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to start PyShimmer capture: {e}")
+            return False
 
     def _serial_capture_loop(self):
         """Serial capture loop for Shimmer device."""
@@ -357,6 +414,60 @@ class GSRHandler:
         finally:
             logger.info("GSR simulation loop stopped")
 
+    def _pyshimmer_capture_loop(self):
+        """PyShimmer capture loop for Shimmer device."""
+        logger.info("Starting PyShimmer GSR capture loop")
+
+        try:
+            # Start streaming from Shimmer device
+            self.pyshimmer_device.start_streaming()
+
+            while self.is_capturing and self.pyshimmer_device:
+                try:
+                    # Get data from PyShimmer device
+                    if self.pyshimmer_device.is_streaming():
+                        # Read data packet from Shimmer
+                        data_packet = self.pyshimmer_device.read_data_packet()
+
+                        if data_packet:
+                            # Extract GSR data from packet
+                            gsr_data = data_packet.get('GSR', {})
+
+                            if gsr_data:
+                                conductance = gsr_data.get('conductance', 0)
+                                resistance = gsr_data.get('resistance', 0)
+
+                                data = {
+                                    'timestamp': time.time(),
+                                    'shimmer_timestamp': data_packet.get('timestamp', time.time()),
+                                    'conductance': conductance,
+                                    'resistance': resistance,
+                                    'unit': 'microsiemens',
+                                    'source': 'pyshimmer',
+                                    'quality': 100
+                                }
+
+                                self._process_gsr_data(data)
+
+                    # Maintain sampling rate
+                    time.sleep(1.0 / self.sampling_rate)
+
+                except Exception as e:
+                    logger.error(f"Error in PyShimmer capture loop: {e}")
+                    time.sleep(0.1)
+
+        except Exception as e:
+            logger.error(f"PyShimmer capture loop error: {e}")
+        finally:
+            # Stop streaming and disconnect
+            try:
+                if self.pyshimmer_device:
+                    self.pyshimmer_device.stop_streaming()
+                    self.pyshimmer_device.disconnect()
+            except Exception as e:
+                logger.error(f"Error stopping PyShimmer device: {e}")
+            logger.info("PyShimmer GSR capture loop stopped")
+
     def _process_gsr_data(self, data: Dict[str, Any]):
         """Process and distribute GSR data."""
         try:
@@ -414,6 +525,14 @@ class GSRHandler:
                 logger.error(f"Error closing LSL inlet: {e}")
             self.lsl_inlet = None
 
+        if self.pyshimmer_device:
+            try:
+                self.pyshimmer_device.stop_streaming()
+                self.pyshimmer_device.disconnect()
+            except Exception as e:
+                logger.error(f"Error disconnecting PyShimmer device: {e}")
+            self.pyshimmer_device = None
+
         logger.info("GSR capture stopped")
 
     def get_latest_gsr_data(self) -> Optional[Dict[str, Any]]:
@@ -445,7 +564,9 @@ class GSRHandler:
             'last_sample_time': self.last_sample_time,
             'queue_size': self.data_queue.qsize(),
             'serial_port': self.serial_port,
-            'lsl_stream_name': self.lsl_stream_info.name() if self.lsl_stream_info else None
+            'lsl_stream_name': self.lsl_stream_info.name() if self.lsl_stream_info else None,
+            'pyshimmer_mac_address': self.pyshimmer_mac_address,
+            'pyshimmer_connected': self.pyshimmer_device is not None
         }
 
     def is_capturing_data(self) -> bool:

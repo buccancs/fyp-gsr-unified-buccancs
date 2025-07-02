@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package gsrmultimodal;
+package fpygsrunified;
 
 // Common timestamp message
 message Timestamp {
@@ -31,7 +31,7 @@ message Command {
     SYNC_TIME = 10;
     GET_STATUS = 11;
   }
-  
+
   CommandType type = 1;
   string device_id = 2;
   Timestamp timestamp = 3;
@@ -46,7 +46,7 @@ message CommandResponse {
     NOT_SUPPORTED = 2;
     DEVICE_BUSY = 3;
   }
-  
+
   Status status = 1;
   string message = 2;
   string device_id = 3;

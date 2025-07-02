@@ -1,6 +1,7 @@
 # GSR Multimodal System - Unified Repository
 
-A comprehensive multimodal data collection system for synchronized GSR (Galvanic Skin Response), dual-video (RGB + thermal), and audio recording using Android devices and PC coordination.
+A comprehensive multimodal data collection system for synchronized GSR (Galvanic Skin Response), dual-video (RGB +
+thermal), and audio recording using Android devices and PC coordination.
 
 ## Project Overview
 
@@ -12,6 +13,7 @@ This monorepo contains both Android and PC applications for a synchronized multi
 ## Features
 
 ### Android Application
+
 - **RGB Video Recording**: High-quality video capture with CameraX
 - **Thermal Camera Integration**: Topdon TC001 thermal camera support via USB-C
 - **GSR Sensor Data**: Shimmer3 GSR+ sensor integration via Bluetooth
@@ -21,10 +23,12 @@ This monorepo contains both Android and PC applications for a synchronized multi
 - **Data Synchronization**: Timestamp-based multi-modal sync
 
 ### PC Controller Application
+
 - **Device Management**: Discovery and connection to multiple Android devices
 - **Synchronized Recording**: Coordinated start/stop across all devices
 - **Live Monitoring**: Real-time preview of camera feeds and GSR data
 - **Data Analysis**: Real-time GSR signal processing and analysis
+- **GSR Sensor Integration**: Direct Shimmer device connection via PyShimmer library
 - **Session Management**: Organized data storage and session tracking
 - **Multi-device Support**: Support for up to 2 Android devices simultaneously
 
@@ -53,15 +57,16 @@ This monorepo contains both Android and PC applications for a synchronized multi
 ## Quick Start
 
 ### Prerequisites
-- **Hardware**: 
-  - 1-2 Android phones with USB-C port
-  - Windows PC with Bluetooth and WiFi
-  - Topdon TC001 thermal camera(s)
-  - Shimmer3 GSR+ sensor(s)
+
+- **Hardware**:
+    - 1-2 Android phones with USB-C port
+    - Windows PC with Bluetooth and WiFi
+    - Topdon TC001 thermal camera(s)
+    - Shimmer3 GSR+ sensor(s)
 - **Software**:
-  - IntelliJ IDEA Ultimate Edition
-  - Android SDK (API 26+)
-  - Python 3.8+
+    - IntelliJ IDEA Ultimate Edition
+    - Android SDK (API 26+)
+    - Python 3.8+
 
 ### Setup Instructions
 
@@ -72,13 +77,13 @@ This monorepo contains both Android and PC applications for a synchronized multi
    ```
 
 2. **Open in IntelliJ IDEA**:
-   - File → Open → Select project root folder
-   - IntelliJ will detect both Android and Python modules
+    - File → Open → Select project root folder
+    - IntelliJ will detect both Android and Python modules
 
 3. **Configure Android Module**:
-   - Sync Gradle project
-   - Connect Android device
-   - Build and install app
+    - Sync Gradle project
+    - Connect Android device
+    - Build and install app
 
 4. **Configure Python Module**:
    ```bash
@@ -88,8 +93,14 @@ This monorepo contains both Android and PC applications for a synchronized multi
    ```
 
 5. **Network Setup**:
-   - Ensure all devices are on the same WiFi network
-   - Configure firewall to allow communication on port 8080
+    - Ensure all devices are on the same WiFi network
+    - Configure firewall to allow communication on port 8080
+
+6. **GSR Sensor Configuration** (Optional):
+    - Install pyshimmer library: `pip install pyshimmer>=0.4.0`
+    - Pair Shimmer3 GSR+ device with PC via Bluetooth
+    - Configure MAC address in PC application settings
+    - Supports multiple capture modes: PyShimmer API, LSL streams, serial connection, or simulation
 
 ## Project Structure
 
@@ -98,7 +109,7 @@ fyp-gsr-unified-buccancs/
 ├── android-app/                 # Android application module
 │   ├── app/
 │   │   ├── src/main/
-│   │   │   ├── java/com/gsrmultimodal/android/
+│   │   │   ├── java/com/fpygsrunified/android/
 │   │   │   │   └── MainActivity.kt
 │   │   │   ├── res/layout/
 │   │   │   │   └── activity_main.xml
@@ -129,18 +140,21 @@ fyp-gsr-unified-buccancs/
 ## Development Workflow
 
 ### Android Development
+
 - Use Kotlin for all Android code
 - Follow Android Architecture Components patterns
 - Implement proper permission handling
 - Test on physical devices with sensors
 
 ### Python Development
+
 - Use PySide6 for GUI development
 - Follow async patterns for network communication
 - Implement proper error handling and logging
 - Use type hints for better code documentation
 
 ### Integration Testing
+
 - Test device discovery and connection
 - Verify synchronized recording across devices
 - Validate data integrity and timestamps
@@ -149,6 +163,7 @@ fyp-gsr-unified-buccancs/
 ## Data Output
 
 Each recording session generates:
+
 - **RGB Videos**: MP4 files with embedded audio
 - **Thermal Data**: Image sequences or encoded video
 - **GSR Data**: CSV files with timestamps and values

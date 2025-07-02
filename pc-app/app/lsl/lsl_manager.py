@@ -14,7 +14,7 @@ import queue
 
 # Import protobuf messages (will be generated from proto files)
 # TODO: Update imports once protobuf Python files are generated
-# from gsrmultimodal import messages_pb2
+# from fpygsrunified import messages_pb2
 
 logger = logging.getLogger(__name__)
 

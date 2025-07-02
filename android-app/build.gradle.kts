@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("com.android.application") version "8.2.0" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.10" apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
     // SonarQube for the whole build
     alias(libs.plugins.sonarqube)
 
@@ -44,8 +44,8 @@ sonarqube {
         )
 
         // Language settings
-        property("sonar.java.source", "8")
-        property("sonar.kotlin.source", "1.9")
+        property("sonar.java.source", "24")
+        property("sonar.kotlin.source", "2.2.0")
 
         // Exclusions for generated code and third-party libraries
         property(

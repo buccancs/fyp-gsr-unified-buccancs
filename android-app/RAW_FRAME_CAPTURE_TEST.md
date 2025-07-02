@@ -2,17 +2,20 @@
 
 ## Overview
 
-This document provides testing procedures for the newly implemented RGB raw frame capture and visual sync marker functionality in the GSR Multimodal Android app.
+This document provides testing procedures for the newly implemented RGB raw frame capture and visual sync marker
+functionality in the GSR Multimodal Android app.
 
 ## New Features Implemented
 
 ### 1. RGB Raw Frame Capture
+
 - **ImageAnalysis Use Case**: Added to CameraHandler.kt for real-time frame access
 - **RawFrameCallback Interface**: Provides callbacks for frame processing events
 - **Frame Metadata Logging**: CSV logging of frame data (frame number, timestamp, dimensions, size)
 - **Concurrent Operation**: Works alongside existing video recording
 
 ### 2. Visual Sync Markers
+
 - **Screen Flash Sync**: Full-screen white flash for visual synchronization
 - **Camera Flash Sync**: Camera torch flash for cross-device synchronization
 - **Combined Sync**: Both screen and camera flash simultaneously
@@ -25,6 +28,7 @@ This document provides testing procedures for the newly implemented RGB raw fram
 **Objective**: Verify RGB raw frame capture functionality
 
 **Steps**:
+
 1. Launch the GSR Multimodal app
 2. Grant all required permissions (camera, storage, etc.)
 3. Start recording by pressing the record button
@@ -34,6 +38,7 @@ This document provides testing procedures for the newly implemented RGB raw fram
 7. Check device storage for CSV file: `{sessionId}_{deviceId}_rgb_frames.csv`
 
 **Expected Results**:
+
 - Status shows "RGB frame capture started" and "RGB frame capture stopped"
 - CSV file contains frame metadata with columns: frame_number, timestamp_ms, width, height, frame_size_bytes
 - Frame numbers increment sequentially
@@ -41,9 +46,11 @@ This document provides testing procedures for the newly implemented RGB raw fram
 - No frame drops or errors in logs
 
 **Log Verification**:
+
 ```
 adb logcat | grep "RGB raw frame received"
 ```
+
 Should show periodic frame reception logs (every 30th frame).
 
 ### Test 2: Visual Sync Markers
@@ -51,6 +58,7 @@ Should show periodic frame reception logs (every 30th frame).
 **Objective**: Verify sync marker functionality
 
 **Steps**:
+
 1. Set up multiple recording devices (phones, cameras) pointing at the test device
 2. Start recording on all devices
 3. Start recording on the test device (triggers automatic sync markers)
@@ -60,12 +68,14 @@ Should show periodic frame reception logs (every 30th frame).
 7. Observe final screen and camera flash
 
 **Expected Results**:
+
 - Screen flashes bright white for 200ms at start and stop
 - Camera flash activates for 200ms at start and stop (if available)
 - Sync markers are visible in recordings from other devices
 - CSV file contains SYNC_MARKER entries
 
 **CSV Sync Marker Entries**:
+
 ```
 SYNC_MARKER,SCREEN_FLASH,{timestamp},200
 SYNC_MARKER,CAMERA_FLASH,{timestamp},200
@@ -79,16 +89,18 @@ TIMESTAMP_MARKER,RECORDING_STOP,{timestamp},Session: {sessionId}
 **Objective**: Verify synchronization across all data streams
 
 **Steps**:
+
 1. Connect GSR sensor via Bluetooth
 2. Connect thermal camera via USB-C
 3. Start recording (all modalities)
 4. Perform synchronized actions:
-   - Clap hands (audio sync)
-   - Wave hand in front of thermal camera
-   - Touch GSR sensor
+    - Clap hands (audio sync)
+    - Wave hand in front of thermal camera
+    - Touch GSR sensor
 5. Stop recording
 
 **Expected Results**:
+
 - All data streams start within 100ms of each other
 - Sync markers appear in all relevant data files
 - Timestamps are aligned across modalities
@@ -99,6 +111,7 @@ TIMESTAMP_MARKER,RECORDING_STOP,{timestamp},Session: {sessionId}
 **Objective**: Verify system performance with raw frame capture
 
 **Steps**:
+
 1. Monitor CPU and memory usage before recording
 2. Start recording with all features enabled
 3. Record for 5 minutes
@@ -106,6 +119,7 @@ TIMESTAMP_MARKER,RECORDING_STOP,{timestamp},Session: {sessionId}
 5. Stop recording and check final file sizes
 
 **Expected Results**:
+
 - CPU usage remains reasonable (<80%)
 - Memory usage stable (no leaks)
 - Frame rate maintained (~30 FPS for raw frames)
@@ -113,12 +127,13 @@ TIMESTAMP_MARKER,RECORDING_STOP,{timestamp},Session: {sessionId}
 - File sizes are reasonable
 
 **Performance Monitoring**:
+
 ```bash
 # Monitor CPU usage
-adb shell top | grep com.gsrmultimodal.android
+adb shell top | grep com.fpygsrunified.android
 
 # Monitor memory usage
-adb shell dumpsys meminfo com.gsrmultimodal.android
+adb shell dumpsys meminfo com.fpygsrunified.android
 ```
 
 ### Test 5: Error Handling
@@ -126,6 +141,7 @@ adb shell dumpsys meminfo com.gsrmultimodal.android
 **Objective**: Verify robust error handling
 
 **Test Cases**:
+
 1. **Storage Full**: Fill device storage, attempt recording
 2. **Camera Busy**: Use camera in another app, then test
 3. **Permission Denied**: Revoke camera permission during recording
@@ -133,6 +149,7 @@ adb shell dumpsys meminfo com.gsrmultimodal.android
 5. **Network Issues**: Test with poor WiFi connectivity
 
 **Expected Results**:
+
 - Graceful error messages displayed
 - No app crashes
 - Partial data saved when possible
@@ -150,6 +167,7 @@ adb shell dumpsys meminfo com.gsrmultimodal.android
 ### CSV File Format Examples
 
 **RGB Frames CSV**:
+
 ```csv
 frame_number,timestamp_ms,width,height,frame_size_bytes
 1,1703123456789,1920,1080,6220800
@@ -163,28 +181,28 @@ TIMESTAMP_MARKER,RECORDING_START,1703123456500,Session: session_20231221_143056
 ### Common Issues
 
 1. **No Raw Frames Captured**
-   - Check camera permissions
-   - Verify ImageAnalysis binding in logs
-   - Ensure sufficient storage space
+    - Check camera permissions
+    - Verify ImageAnalysis binding in logs
+    - Ensure sufficient storage space
 
 2. **Sync Markers Not Visible**
-   - Check window parameter in CameraHandler initialization
-   - Verify camera flash availability
-   - Check screen brightness settings
+    - Check window parameter in CameraHandler initialization
+    - Verify camera flash availability
+    - Check screen brightness settings
 
 3. **Performance Issues**
-   - Reduce frame processing frequency
-   - Check device specifications
-   - Monitor background apps
+    - Reduce frame processing frequency
+    - Check device specifications
+    - Monitor background apps
 
 ### Debug Commands
 
 ```bash
 # View all app logs
-adb logcat | grep GSRMultimodal
+adb logcat | grep fpygsrunified
 
 # Check file creation
-adb shell ls -la /sdcard/Android/data/com.gsrmultimodal.android/files/
+adb shell ls -la /sdcard/Android/data/com.fpygsrunified.android/files/
 
 # Monitor frame capture
 adb logcat | grep "RGB raw frame\|Frame capture\|Sync marker"

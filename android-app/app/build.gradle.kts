@@ -1,8 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.protobuf") version "0.9.4"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20"
+    alias(libs.plugins.protobuf)
+    alias(libs.plugins.kotlin.serialization)
     id("jacoco")
     alias(libs.plugins.sonarqube)
 }
@@ -72,8 +72,8 @@ sonar {
         )
 
         // Language-specific settings
-        property("sonar.java.source", "8")
-        property("sonar.kotlin.source", "1.9")
+        property("sonar.java.source", "24")
+        property("sonar.kotlin.source", "2.2")
 
         // Additional quality settings
         property("sonar.sourceEncoding", "UTF-8")
@@ -82,13 +82,14 @@ sonar {
 }
 
 android {
-    namespace = "com.gsrmultimodal.android"
-    compileSdk = 34
+    namespace = "com.fpygsrunified.android"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.gsrmultimodal.android"
+        applicationId = "com.fpygsrunified.android"
         minSdk = 26
-        targetSdk = 34
+        //noinspection EditedTargetSdkVersion
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -145,11 +146,13 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_24
+        targetCompatibility = JavaVersion.VERSION_24
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_24)
+        }
     }
     buildFeatures {
         viewBinding = true
@@ -217,10 +220,10 @@ dependencies {
     implementation(libs.protobuf.kotlin.lite)
     implementation(libs.protobuf.java.util)
 
-    // Lab Streaming Layer (LSL) for Android - Temporarily commented out due to dependency issues
+    // Lab Streaming Layer (LSL) for Android - Temporarily commented out due to dependency resolution issues
     // implementation(libs.lsl)
 
-    // MediaPipe for hand detection and pose estimation - Temporarily commented out due to dependency issues
+    // MediaPipe for hand detection and pose estimation - Temporarily commented out due to dependency resolution issues
     // implementation(libs.mediapipe.java)
     // implementation(libs.mediapipe.android)
 
@@ -236,18 +239,18 @@ dependencies {
 
     // Testing dependencies
     testImplementation(libs.junit)
-    testImplementation("org.mockito:mockito-core:5.7.0")
-    testImplementation("org.mockito:mockito-inline:5.2.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
-    testImplementation("org.robolectric:robolectric:4.11.1")
-    testImplementation("androidx.test:core:1.5.0")
-    testImplementation("androidx.test.ext:junit:1.1.5")
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.core)
+    testImplementation(libs.androidx.junit.v115)
 
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
-    androidTestImplementation("androidx.test:runner:1.5.2")
-    androidTestImplementation("androidx.test:rules:1.5.0")
-    androidTestImplementation("org.mockito:mockito-android:5.7.0")
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.androidx.rules)
+    androidTestImplementation(libs.mockito.android)
 }
