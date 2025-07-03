@@ -104,7 +104,6 @@ class NetworkHandler(private val activity: MainActivity) {
                 put("rgb_camera", true)
                 put("thermal_camera", true)
                 put("gsr_sensor", true)
-                put("audio_recording", true)
             })
             put("ip_address", activity.getDeviceIPAddress())
         }

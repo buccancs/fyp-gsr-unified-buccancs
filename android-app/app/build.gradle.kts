@@ -220,8 +220,8 @@ dependencies {
     implementation(libs.protobuf.kotlin.lite)
     implementation(libs.protobuf.java.util)
 
-    // Lab Streaming Layer (LSL) for Android - Temporarily commented out due to dependency resolution issues
-    // implementation(libs.lsl)
+    // Lab Streaming Layer (LSL) for Android
+    implementation(libs.lsl)
 
     // MediaPipe for hand detection and pose estimation - Temporarily commented out due to dependency resolution issues
     // implementation(libs.mediapipe.java)

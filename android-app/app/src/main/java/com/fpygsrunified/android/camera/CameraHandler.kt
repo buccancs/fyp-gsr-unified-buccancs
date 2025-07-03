@@ -255,12 +255,6 @@ class CameraHandler(
 
         currentRecording = videoCapture.output
             .prepareRecording(context, mediaStoreOutputOptions)
-            .apply {
-                if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) 
-                    == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                    withAudioEnabled()
-                }
-            }
             .start(ContextCompat.getMainExecutor(context)) { recordEvent ->
                 when (recordEvent) {
                     is VideoRecordEvent.Start -> {
@@ -341,6 +335,46 @@ class CameraHandler(
 
         timestampMarkers.add(marker)
         logger.i(TAG, "Timestamp marker added: $description at $timestamp (frame: $currentFrame)")
+    }
+
+    /**
+     * Trigger a combined visual and timestamp sync marker
+     * This creates a visual flash effect that can be captured by all cameras for synchronization
+     */
+    fun triggerCombinedSyncMarker(durationMs: Long = 200) {
+        try {
+            val timestamp = System.currentTimeMillis()
+            val currentFrame = if (isCapturingFrames.get()) frameCount.get() else null
+
+            // Add timestamp marker
+            val marker = TimestampMarker(timestamp, "VISUAL_SYNC_MARKER", currentFrame)
+            timestampMarkers.add(marker)
+
+            // Create visual sync marker by briefly changing preview background
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    // Store original background
+                    val originalBackground = previewView.background
+
+                    // Set white background for flash effect
+                    previewView.setBackgroundColor(android.graphics.Color.WHITE)
+
+                    // Wait for specified duration
+                    kotlinx.coroutines.delay(durationMs)
+
+                    // Restore original background
+                    previewView.background = originalBackground
+
+                    logger.i(TAG, "Visual sync marker triggered at $timestamp (duration: ${durationMs}ms, frame: $currentFrame)")
+
+                } catch (e: Exception) {
+                    logger.e(TAG, "Error during visual sync marker", e)
+                }
+            }
+
+        } catch (e: Exception) {
+            logger.e(TAG, "Error triggering combined sync marker", e)
+        }
     }
 
     /**

@@ -12,7 +12,6 @@ After comprehensive analysis of the codebase, the **GSR & Dual-Video Recording S
 - **RGB Video Capture** ✅ - `CameraHandler.kt` provides HD video recording with Camera2 API
 - **Thermal Video Capture** ✅ - `ThermalCameraHandler.kt` integrates Topdon TC001 via USB-C
 - **GSR Sensor Data Capture** ✅ - `GsrHandler.kt` connects to Shimmer3 GSR+ via BLE at 128Hz
-- **Audio Recording** ✅ - Integrated in `CameraHandler.kt` with synchronized audio
 - **Real-time Preview & Mode Toggle** ✅ - Live preview for both RGB and thermal in `MainActivity.kt`
 - **Unified Recording Control** ✅ - Single start/stop interface in `MainActivity.kt`
 - **Local Data Storage** ✅ - Comprehensive file management with session-based naming

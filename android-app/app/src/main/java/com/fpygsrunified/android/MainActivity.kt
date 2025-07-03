@@ -66,6 +66,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var networkHandler: NetworkHandler
     private lateinit var handAnalysisHandler: HandAnalysisHandler
 
+    // LSL (Lab Streaming Layer) components
+    private lateinit var lslStreamManager: LslStreamManager
+    private lateinit var lslCommandInlet: LslCommandInlet
+
     private lateinit var cameraExecutor: ExecutorService
 
     // Video frame streaming variables
@@ -131,7 +135,6 @@ class MainActivity : AppCompatActivity() {
 
         private val REQUIRED_PERMISSIONS = mutableListOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.BLUETOOTH,
@@ -164,10 +167,10 @@ class MainActivity : AppCompatActivity() {
         initializeViews()
 
         // Initialize USB manager
-        usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+        usbManager = getSystemService(USB_SERVICE) as UsbManager
 
         // Initialize Bluetooth manager
-        bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager?.adapter
 
         // Initialize USB receiver
@@ -198,7 +201,7 @@ class MainActivity : AppCompatActivity() {
             addAction(ACTION_USB_PERMISSION)
         }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(usbReceiver, filter, RECEIVER_NOT_EXPORTED)
         } else {
             registerReceiver(usbReceiver, filter)
         }
@@ -520,6 +523,51 @@ class MainActivity : AppCompatActivity() {
             }
         })
         handAnalysisHandler.initialize()
+
+        // Initialize LSL components
+        initializeLslComponents()
+    }
+
+    private fun initializeLslComponents() {
+        try {
+            Log.d(TAG, "Initializing LSL components")
+
+            // Initialize LSL Stream Manager
+            lslStreamManager = LslStreamManager(deviceId)
+            val initResult = lslStreamManager.initialize()
+
+            if (initResult) {
+                // Create LSL streams for all data types
+                lslStreamManager.createGsrStream()
+                lslStreamManager.createThermalStream()
+                lslStreamManager.createCommandResponseStream()
+
+                Log.d(TAG, "LSL streams created successfully")
+                updateStatus("LSL streams initialized")
+            } else {
+                Log.w(TAG, "Failed to initialize LSL Stream Manager")
+                updateStatus("LSL initialization failed")
+            }
+
+            // Initialize LSL Command Inlet with integrated command handler
+            val commandHandler = IntegratedCommandHandler(
+                deviceId = deviceId,
+                cameraHandler = cameraHandler,
+                gsrHandler = gsrHandler,
+                thermalCameraHandler = thermalCameraHandler,
+                lslStreamManager = lslStreamManager
+            )
+
+            lslCommandInlet = LslCommandInlet(deviceId, commandHandler)
+            lslCommandInlet.start()
+
+            Log.d(TAG, "LSL Command Inlet started")
+            updateStatus("LSL command inlet started")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing LSL components", e)
+            updateStatus("LSL initialization error: ${e.message}")
+        }
     }
 
     private fun startRecording() {
@@ -539,6 +587,13 @@ class MainActivity : AppCompatActivity() {
             gsrHandler.setSessionInfo(currentSessionId!!, deviceId)
             thermalCameraHandler.setSessionInfo(currentSessionId!!, deviceId)
 
+            // Set session info for LSL components if initialized
+            if (::lslStreamManager.isInitialized) {
+                // LSL streams are already created, just ensure they're ready
+                Log.d(TAG, "LSL streams ready for session: $currentSessionId")
+                updateStatus("LSL streams ready for recording")
+            }
+
             // Start frame capture for raw RGB frames
             cameraHandler.startFrameCapture()
 
@@ -547,8 +602,7 @@ class MainActivity : AppCompatActivity() {
 
             // Wait a moment then trigger visual sync marker
             Handler(Looper.getMainLooper()).postDelayed({
-                // Note: triggerCombinedSyncMarker method doesn't exist in CameraHandler
-                // cameraHandler.triggerCombinedSyncMarker(200) // 200ms flash duration
+                cameraHandler.triggerCombinedSyncMarker(200) // 200ms flash duration
             }, 500) // 500ms delay to ensure all systems are recording
 
             // Start recording on all handlers
@@ -581,8 +635,7 @@ class MainActivity : AppCompatActivity() {
         try {
             // Trigger final sync marker before stopping
             cameraHandler.addTimestampMarker("RECORDING_STOP")
-            // Note: triggerCombinedSyncMarker method doesn't exist in CameraHandler
-            // cameraHandler.triggerCombinedSyncMarker(200) // 200ms flash duration
+            cameraHandler.triggerCombinedSyncMarker(200) // 200ms flash duration
 
             // Wait a moment for sync marker to complete, then stop recording
             Handler(Looper.getMainLooper()).postDelayed({
@@ -710,7 +763,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(bluetoothDiscoveryReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(bluetoothDiscoveryReceiver, filter, RECEIVER_NOT_EXPORTED)
         } else {
             registerReceiver(bluetoothDiscoveryReceiver, filter)
         }
@@ -1016,7 +1069,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             else -> {
-                val t = (temp - 0.75f) * 4
+                (temp - 0.75f) * 4
                 android.graphics.Color.rgb(255, 255, 255)
             }
         }
@@ -1464,7 +1517,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getDeviceIPAddress(): String {
         try {
-            val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
             val wifiInfo = wifiManager.connectionInfo
             val ipAddress = wifiInfo.ipAddress
 
@@ -1571,6 +1624,25 @@ class MainActivity : AppCompatActivity() {
 
         // Shutdown camera executor
         cameraExecutor.shutdown()
+
+        // Cleanup LSL components
+        try {
+            if (::lslCommandInlet.isInitialized) {
+                lslCommandInlet.stop()
+                Log.d(TAG, "LSL Command Inlet stopped")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error stopping LSL Command Inlet", e)
+        }
+
+        try {
+            if (::lslStreamManager.isInitialized) {
+                lslStreamManager.cleanup()
+                Log.d(TAG, "LSL Stream Manager cleaned up")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error cleaning up LSL Stream Manager", e)
+        }
 
         Log.d(TAG, "MainActivity destroyed and resources cleaned up")
     }
