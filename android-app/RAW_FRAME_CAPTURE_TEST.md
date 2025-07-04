@@ -130,10 +130,10 @@ TIMESTAMP_MARKER,RECORDING_STOP,{timestamp},Session: {sessionId}
 
 ```bash
 # Monitor CPU usage
-adb shell top | grep com.fpygsrunified.android
+adb shell top | grep com.gsrunified.android
 
 # Monitor memory usage
-adb shell dumpsys meminfo com.fpygsrunified.android
+adb shell dumpsys meminfo com.gsrunified.android
 ```
 
 ### Test 5: Error Handling
@@ -199,10 +199,10 @@ TIMESTAMP_MARKER,RECORDING_START,1703123456500,Session: session_20231221_143056
 
 ```bash
 # View all app logs
-adb logcat | grep fpygsrunified
+adb logcat | grep gsrunified
 
 # Check file creation
-adb shell ls -la /sdcard/Android/data/com.fpygsrunified.android/files/
+adb shell ls -la /sdcard/Android/data/com.gsrunified.android/files/
 
 # Monitor frame capture
 adb logcat | grep "RGB raw frame\|Frame capture\|Sync marker"

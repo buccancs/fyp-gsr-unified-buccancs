@@ -1,6 +1,6 @@
 [versions]
 # Plugin versions
-android-gradle = "8.10.0"
+android-gradle = "8.7.2"
 core-testing = "2.2.0"
 junit-version = "1.1.5"
 kotlin = "2.2.0"

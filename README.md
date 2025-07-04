@@ -1,6 +1,7 @@
 # GSR Multimodal System - Unified Repository
 
-A comprehensive multimodal data collection system for synchronized GSR (Galvanic Skin Response), dual-video (RGB + thermal), and hand analysis using Android devices and PC coordination with Lab Streaming Layer (LSL) integration.
+A comprehensive multimodal data collection system for synchronized GSR (Galvanic Skin Response), dual-video (RGB +
+thermal), and hand analysis using Android devices and PC coordination with Lab Streaming Layer (LSL) integration.
 
 ## Project Overview
 
@@ -14,12 +15,14 @@ This monorepo contains both Android and PC applications for a synchronized multi
 ### Android Application
 
 #### Core Recording Capabilities
+
 - **RGB Video Recording**: High-quality video capture with CameraX (1080p at 30fps)
 - **Raw Frame Capture**: Synchronized RGB frame extraction with timestamp markers
 - **Thermal Camera Integration**: Topdon TC001 thermal camera support via USB-C
 - **GSR Sensor Data**: Shimmer3 GSR+ sensor integration via Bluetooth (128 Hz sampling)
 
 #### Advanced Features
+
 - **Hand Analysis**: Post-recording hand detection and pose estimation using ML Kit
 - **Visual Sync Markers**: Combined timestamp and visual flash synchronization
 - **LSL Integration**: Lab Streaming Layer support for real-time data streaming
@@ -27,6 +30,7 @@ This monorepo contains both Android and PC applications for a synchronized multi
 - **Network Communication**: TCP/IP and LSL-based remote control
 
 #### Data Management
+
 - **Session Management**: Organized data storage with consistent naming conventions
 - **Multi-modal Synchronization**: Unified timestamp schema across all data streams
 - **Real-time Preview**: Live preview of RGB and thermal camera feeds
@@ -35,18 +39,21 @@ This monorepo contains both Android and PC applications for a synchronized multi
 ### PC Controller Application
 
 #### Device Coordination
+
 - **Multi-Device Management**: Discovery and connection to multiple Android devices
 - **Synchronized Recording**: Coordinated start/stop across all devices via LSL
 - **Live Monitoring**: Real-time preview of camera feeds and sensor data
 - **Command Distribution**: LSL-based command distribution to Android devices
 
 #### Data Processing
+
 - **GSR Analysis**: Real-time GSR signal processing and analysis
 - **Session Orchestration**: Centralized session management and metadata generation
 - **Data Aggregation**: Collection and organization of multi-device recordings
 - **LSL Stream Management**: Central LSL stream coordination and monitoring
 
 #### Integration Capabilities
+
 - **LSL Ecosystem**: Full integration with Lab Streaming Layer infrastructure
 - **Shimmer Integration**: Direct Shimmer device connection via multiple protocols
 - **Multi-device Support**: Support for multiple Android devices simultaneously
@@ -107,12 +114,14 @@ Hardware Integration:
 ### Setup Instructions
 
 #### 1. Repository Setup
+
 ```bash
 git clone <repository-url>
 cd fyp-gsr-unified-buccancs
 ```
 
 #### 2. Android Application Setup
+
 ```bash
 # Open in IntelliJ IDEA or Android Studio
 # File → Open → Select project root folder
@@ -127,6 +136,7 @@ cd fyp-gsr-unified-buccancs
 ```
 
 #### 3. PC Controller Setup
+
 ```bash
 cd pc-app
 
@@ -142,6 +152,7 @@ python main.py
 ```
 
 #### 4. LSL Environment Setup
+
 ```bash
 # Install LSL runtime (if not included in requirements)
 # Windows: Download from https://github.com/sccn/liblsl/releases
@@ -153,15 +164,17 @@ python -c "import pylsl; print('LSL version:', pylsl.library_version())"
 ```
 
 #### 5. Network Configuration
+
 - Ensure all devices are on the same WiFi network
 - Configure firewall to allow:
-  - TCP communication on port 8080 (legacy networking)
-  - LSL multicast traffic (UDP ports 16571-16604)
+    - TCP communication on port 8080 (legacy networking)
+    - LSL multicast traffic (UDP ports 16571-16604)
 - For advanced setups, configure LSL network settings
 
 #### 6. Hardware Integration
 
 **GSR Sensor Setup:**
+
 ```bash
 # Pair Shimmer3 GSR+ device with Android via Bluetooth
 # Configure in Android app settings or use PC direct connection
@@ -169,6 +182,7 @@ python -c "import pylsl; print('LSL version:', pylsl.library_version())"
 ```
 
 **Thermal Camera Setup:**
+
 ```bash
 # Connect Topdon TC001 to Android device via USB-C
 # Grant USB permissions when prompted
@@ -182,7 +196,7 @@ fyp-gsr-unified-buccancs/
 ├── android-app/                 # Android application module
 │   ├── app/
 │   │   ├── src/main/
-│   │   │   ├── java/com/fpygsrunified/android/
+│   │   │   ├── java/com/gsrunified/android/
 │   │   │   │   ├── MainActivity.kt           # Main activity with LSL integration
 │   │   │   │   ├── GsrHandler.kt            # Shimmer GSR sensor management
 │   │   │   │   ├── ThermalCameraHandler.kt  # Topdon thermal camera integration
@@ -274,24 +288,28 @@ fyp-gsr-unified-buccancs/
 Each recording session generates comprehensive multimodal data:
 
 ### Core Recording Data
+
 - **RGB Videos**: MP4 files with H.264 encoding (1080p at 30fps)
 - **Raw RGB Frames**: Individual frame captures with precise timestamps for analysis
 - **Thermal Data**: Processed thermal frames with temperature metadata and visual representations
 - **GSR Data**: High-frequency sensor data (128 Hz) with conductance, resistance, and quality metrics
 
 ### Analysis and Synchronization
+
 - **Hand Analysis Results**: JSON files with detected hand landmarks and pose data from ML Kit
 - **Timestamp Markers**: Synchronization events and visual markers for multi-device alignment
 - **Performance Metrics**: Detailed logging of system performance and data quality
 - **Session Metadata**: Comprehensive JSON manifests with device info, timing, and configuration
 
 ### LSL Stream Data
+
 - **Real-time GSR Streams**: Live conductance and resistance data via LSL
 - **Thermal Stream Data**: Frame metadata and temperature statistics
 - **Command Responses**: Device status and command acknowledgments
 - **Synchronization Events**: Cross-device timing markers and sync verification
 
 ### File Organization
+
 ```
 session_YYYYMMDD_HHMMSS/
 ├── device_1/
@@ -317,6 +335,7 @@ session_YYYYMMDD_HHMMSS/
 ```
 
 ### Data Formats and Standards
+
 - **Video**: MP4 container with H.264 video codec
 - **Images**: JPEG for RGB frames, PNG for thermal visualizations
 - **Sensor Data**: CSV with ISO 8601 timestamps and metric units

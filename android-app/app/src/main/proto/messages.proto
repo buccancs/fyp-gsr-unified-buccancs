@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package fpygsrunified;
+package gsrunified;
 
 // Common timestamp message
 message Timestamp {

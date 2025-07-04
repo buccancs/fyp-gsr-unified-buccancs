@@ -16,8 +16,8 @@ analysis. All previously identified gaps have been successfully addressed and im
 
 **Files Modified**:
 
-- `android-app/app/src/main/java/com/fpygsrunified/android/CameraHandler.kt`
-- `android-app/app/src/main/java/com/fpygsrunified/android/MainActivity.kt`
+- `android-app/app/src/main/java/com/gsrunified/android/CameraHandler.kt`
+- `android-app/app/src/main/java/com/gsrunified/android/MainActivity.kt`
 
 **Key Features Added**:
 

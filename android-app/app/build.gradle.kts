@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("jacoco")
     alias(libs.plugins.sonarqube)
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
 }
 
 sonar {
@@ -18,22 +19,23 @@ sonar {
         property("sonar.sources", "src/main/java,src/main/kotlin")
         property(
             "sonar.tests",
-            "src/test/java,src/test/kotlin,src/androidTest/java,src/androidTest/kotlin"
+            "src/test/java,src/test/kotlin,src/androidTest/java,src/androidTest/kotlin",
         )
 
         // Binary directories for analysis
         property(
             "sonar.java.binaries",
-            "${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug"
+            "${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug",
         )
         property(
             "sonar.kotlin.binaries",
-            "${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug"
+            "${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug",
         )
 
         // Exclude generated code and files not relevant for analysis
         property(
-            "sonar.exclusions", listOf(
+            "sonar.exclusions",
+            listOf(
                 "**/generated/**",
                 "**/build/**",
                 "**/*Test*.*",
@@ -57,22 +59,22 @@ sonar {
                 "**/*\$ModuleAdapter.class",
                 "**/*\$ViewInjector.class",
                 "**/third_party/**",
-                "**/libs/**"
-            ).joinToString(",")
+                "**/libs/**",
+            ).joinToString(","),
         )
 
         // Coverage and lint reports
         property(
             "sonar.coverage.jacoco.xmlReportPaths",
-            "${layout.buildDirectory.get().asFile}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+            "${layout.buildDirectory.get().asFile}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml",
         )
         property(
             "sonar.android.lint.reportPaths",
-            "${layout.buildDirectory.get().asFile}/reports/lint-results-debug.xml"
+            "${layout.buildDirectory.get().asFile}/reports/lint-results-debug.xml",
         )
 
         // Language-specific settings
-        property("sonar.java.source", "24")
+        property("sonar.java.source", "21")
         property("sonar.kotlin.source", "2.2")
 
         // Additional quality settings
@@ -82,11 +84,11 @@ sonar {
 }
 
 android {
-    namespace = "com.fpygsrunified.android"
+    namespace = "com.gsrunified.android"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.fpygsrunified.android"
+        applicationId = "com.gsrunified.android"
         minSdk = 26
         //noinspection EditedTargetSdkVersion
         targetSdk = 36
@@ -119,7 +121,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             // signingConfig = signingConfigs.getByName("release")
 
@@ -134,7 +136,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
@@ -146,12 +148,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_24
-        targetCompatibility = JavaVersion.VERSION_24
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_24)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
     buildFeatures {
@@ -178,10 +180,6 @@ android {
     }
 }
 
-
-
-
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -201,13 +199,15 @@ dependencies {
     // Coroutines for background processing
     implementation(libs.kotlinx.coroutines.android)
 
-    // Shimmer SDK for GSR sensor - Local files from third_party/shimmer-sdk
-    implementation(files("../../third_party/shimmer-sdk/shimmerandroidinstrumentdriver-3.2.2_beta.aar"))
-    implementation(files("../../third_party/shimmer-sdk/shimmerbluetoothmanager-0.11.3_beta.jar"))
-    implementation(files("../../third_party/shimmer-sdk/shimmerdriver-0.11.3_beta.jar"))
+    // Shimmer SDK for GSR sensor - Local files from libs directory
+    // Using beta versions for stability
+    implementation(files("libs/shimmerandroidinstrumentdriver-3.2.2_beta.aar"))
+    implementation(files("libs/shimmerbluetoothmanager-0.11.3_beta.jar"))
+    implementation(files("libs/shimmerdriver-0.11.3_beta.jar"))
+    implementation(files("libs/shimmerdriverpc-0.11.3_beta.jar"))
 
-    // Topdon SDK (placeholder - actual implementation files should be placed in libs/)
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
+    // Topdon SDK - Local files from libs directory
+    implementation(files("libs/TopdonSDK.aar"))
 
     // Networking and data streaming
     implementation(libs.okhttp)
@@ -220,10 +220,12 @@ dependencies {
     implementation(libs.protobuf.kotlin.lite)
     implementation(libs.protobuf.java.util)
 
-    // Lab Streaming Layer (LSL) for Android
-    implementation(libs.lsl)
+    // Lab Streaming Layer (LSL) for Android - Temporarily disabled due to dependency availability
+    // TODO: Enable when LSL Android library is available in Maven repositories
+    // implementation(libs.lsl)
 
-    // MediaPipe for hand detection and pose estimation - Temporarily commented out due to dependency resolution issues
+    // MediaPipe for hand detection and pose estimation - Temporarily disabled due to dependency availability
+    // TODO: Enable when MediaPipe libraries are available in Maven repositories or use local AAR files
     // implementation(libs.mediapipe.java)
     // implementation(libs.mediapipe.android)
 
@@ -234,8 +236,6 @@ dependencies {
     // OpenCV for image processing - Temporarily commented out due to dependency issues
     // implementation(libs.opencv.android)
 
-    // Topdon SDK (placeholder - actual implementation files should be placed in libs/)
-    implementation(fileTree(mapOf("dir" to "../../third_party/topdon-sdk", "include" to listOf("*.jar", "*.aar"))))
 
     // Testing dependencies
     testImplementation(libs.junit)

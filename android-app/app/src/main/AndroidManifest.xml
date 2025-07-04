@@ -38,7 +38,7 @@
     <uses-feature android:name="android.hardware.usb.host" android:required="true"/>
 
     <application
-            android:label="GSR Multimodal"
+            android:label="GSR Unified"
             android:usesCleartextTraffic="true"
             tools:replace="android:label">
 

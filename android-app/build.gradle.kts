@@ -44,7 +44,7 @@ sonarqube {
         )
 
         // Language settings
-        property("sonar.java.source", "24")
+        property("sonar.java.source", "21")
         property("sonar.kotlin.source", "2.2.0")
 
         // Exclusions for generated code and third-party libraries

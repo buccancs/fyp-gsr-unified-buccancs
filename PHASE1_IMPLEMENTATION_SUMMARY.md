@@ -196,8 +196,8 @@ protoc --python_out=. --proto_path=../proto ../proto/messages.proto
 
 - `proto/messages.proto` - Shared protocol definitions
 - `android-app/app/src/main/proto/messages.proto` - Android proto copy
-- `android-app/app/src/main/java/com/fpygsrunified/android/LslStreamManager.kt`
-- `android-app/app/src/main/java/com/fpygsrunified/android/LslCommandInlet.kt`
+- `android-app/app/src/main/java/com/gsrunified/android/LslStreamManager.kt`
+- `android-app/app/src/main/java/com/gsrunified/android/LslCommandInlet.kt`
 - `pc-app/app/lsl/lsl_manager.py`
 
 ### Modified Files:
