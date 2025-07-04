@@ -322,6 +322,10 @@ class Device(QObject):
             return False
 
         try:
+            # Create device directory
+            device_dir = os.path.join(destination_dir, self.id)
+            os.makedirs(device_dir, exist_ok=True)
+
             # Send file collection request to the device
             success = self.send_command("COLLECT_FILES", {
                 "session_id": self.session_id,
@@ -329,29 +333,8 @@ class Device(QObject):
             })
 
             if success:
-                # Create device directory
-                device_dir = os.path.join(destination_dir, self.id)
-                os.makedirs(device_dir, exist_ok=True)
-
-                # For now, simulate creating some files
-                # In a real implementation, files would be transferred from the device
-                if "rgb" in self.capabilities:
-                    with open(os.path.join(device_dir, f"{self.session_id}_{self.id}_rgb.mp4"), "w") as f:
-                        f.write("Simulated RGB video file")
-
-                if "thermal" in self.capabilities:
-                    with open(os.path.join(device_dir, f"{self.session_id}_{self.id}_thermal.mp4"), "w") as f:
-                        f.write("Simulated thermal video file")
-
-                if "gsr" in self.capabilities:
-                    with open(os.path.join(device_dir, f"{self.session_id}_{self.id}_gsr.csv"), "w") as f:
-                        f.write("timestamp,gsr_value\n")
-                        f.write("0,100\n")
-                        f.write("1000,110\n")
-                        f.write("2000,120\n")
-
-                self.logger.info(f"Files collected from device: {self.name} ({self.id})")
-                return True
+                # Wait for and handle file transfer
+                return self._handle_file_transfer(device_dir)
             else:
                 self.logger.error(f"Failed to send file collection command to device {self.id}")
                 return False
@@ -360,6 +343,125 @@ class Device(QObject):
             self.logger.error(f"Failed to collect files from device {self.id}: {str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
+            return False
+
+    def _handle_file_transfer(self, device_dir):
+        """
+        Handle file transfer from the device.
+
+        Args:
+            device_dir: Directory to save files to
+
+        Returns:
+            True if all files were transferred successfully
+        """
+        try:
+            files_received = 0
+            total_files = 0
+
+            # Set a timeout for file transfer
+            transfer_timeout = 300  # 5 minutes
+            start_time = time.time()
+
+            while time.time() - start_time < transfer_timeout:
+                try:
+                    # Read response from device
+                    if self.socket and self.socket.fileno() != -1:
+                        self.socket.settimeout(10.0)  # 10 second timeout for each read
+                        response = self.socket.recv(4096).decode('utf-8')
+
+                        if not response:
+                            break
+
+                        # Parse JSON response
+                        data = json.loads(response)
+                        msg_type = data.get("type")
+
+                        if msg_type == "FILE_LIST":
+                            total_files = data.get("count", 0)
+                            files_info = data.get("files", [])
+                            self.logger.info(f"Expecting {total_files} files from device {self.id}")
+
+                            for file_info in files_info:
+                                self.logger.info(f"  - {file_info.get('name')} ({file_info.get('size')} bytes)")
+
+                        elif msg_type == "FILE_TRANSFER":
+                            # Receive file
+                            filename = data.get("name")
+                            file_size = data.get("size", 0)
+
+                            if self._receive_file(device_dir, filename, file_size):
+                                files_received += 1
+                                self.logger.info(f"Received file {files_received}/{total_files}: {filename}")
+                            else:
+                                self.logger.error(f"Failed to receive file: {filename}")
+
+                        elif msg_type == "FILE_COLLECTION_RESPONSE":
+                            success = data.get("success", False)
+                            message = data.get("message", "")
+                            self.logger.info(f"File collection completed: {message}")
+                            return success and files_received == total_files
+
+                except socket.timeout:
+                    continue
+                except json.JSONDecodeError as e:
+                    self.logger.warning(f"Invalid JSON received: {e}")
+                    continue
+                except Exception as e:
+                    self.logger.error(f"Error during file transfer: {e}")
+                    break
+
+            # Check if we received all expected files
+            if total_files > 0 and files_received == total_files:
+                self.logger.info(f"Successfully received all {files_received} files from device {self.id}")
+                return True
+            else:
+                self.logger.warning(f"File transfer incomplete: received {files_received}/{total_files} files")
+                return False
+
+        except Exception as e:
+            self.logger.error(f"Error handling file transfer from device {self.id}: {e}")
+            return False
+
+    def _receive_file(self, device_dir, filename, file_size):
+        """
+        Receive a single file from the device.
+
+        Args:
+            device_dir: Directory to save the file
+            filename: Name of the file
+            file_size: Expected size of the file
+
+        Returns:
+            True if file was received successfully
+        """
+        try:
+            file_path = os.path.join(device_dir, filename)
+            bytes_received = 0
+
+            with open(file_path, 'wb') as f:
+                while bytes_received < file_size:
+                    chunk_size = min(8192, file_size - bytes_received)
+                    chunk = self.socket.recv(chunk_size)
+
+                    if not chunk:
+                        break
+
+                    f.write(chunk)
+                    bytes_received += len(chunk)
+
+            if bytes_received == file_size:
+                self.logger.info(f"Successfully received file: {filename} ({bytes_received} bytes)")
+                return True
+            else:
+                self.logger.error(f"File size mismatch for {filename}: expected {file_size}, got {bytes_received}")
+                # Remove incomplete file
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                return False
+
+        except Exception as e:
+            self.logger.error(f"Error receiving file {filename}: {e}")
             return False
 
     def get_status(self):

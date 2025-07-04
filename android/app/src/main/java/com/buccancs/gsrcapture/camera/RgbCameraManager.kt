@@ -8,6 +8,8 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recording
 import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
@@ -61,7 +63,7 @@ class RgbCameraManager(
 
             // Video Capture
             val recorder = Recorder.Builder()
-                .setQualitySelector(VideoCapture.QualitySelector.from(VideoCapture.QualitySelector.QUALITY_FHD))
+                .setQualitySelector(QualitySelector.from(Quality.FHD))
                 .build()
             videoCapture = VideoCapture.withOutput(recorder)
 

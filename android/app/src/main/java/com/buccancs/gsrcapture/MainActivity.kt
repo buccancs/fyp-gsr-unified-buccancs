@@ -13,6 +13,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.buccancs.gsrcapture.controller.RecordingController
 import com.buccancs.gsrcapture.network.NetworkClient
+import com.buccancs.gsrcapture.network.CommandProtocolClient
 
 /**
  * MainActivity for the GSR Capture app.
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     // Network client for remote control
     private lateinit var networkClient: NetworkClient
+    private lateinit var commandProtocolClient: CommandProtocolClient
 
     // Permission request codes
     companion object {
@@ -69,6 +71,9 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize network client
         networkClient = NetworkClient(this)
+
+        // Initialize CommandProtocol client for PC integration
+        commandProtocolClient = CommandProtocolClient(this)
 
         // Request permissions
         if (allPermissionsGranted()) {
@@ -114,6 +119,9 @@ class MainActivity : AppCompatActivity() {
 
         // Start network client
         networkClient.start()
+
+        // Start CommandProtocol client for PC integration
+        commandProtocolClient.start()
     }
 
     private fun setupCallbacks() {
@@ -125,11 +133,15 @@ class MainActivity : AppCompatActivity() {
         // Set up GSR value callback
         recordingController.setGsrValueCallback { value ->
             gsrStatusText.text = getString(R.string.gsr_value, value)
+            // Stream GSR data to PC controller
+            networkClient.streamGsrData(value, System.currentTimeMillis())
         }
 
         // Set up heart rate callback
         recordingController.setHeartRateCallback { value ->
             heartRateText.text = getString(R.string.heart_rate, value)
+            // Stream heart rate data to PC controller
+            networkClient.streamHeartRateData(value, System.currentTimeMillis())
         }
 
         // Set up error callback
@@ -140,6 +152,28 @@ class MainActivity : AppCompatActivity() {
         // Set up network command callback
         networkClient.setCommandCallback { command ->
             handleNetworkCommand(command)
+        }
+
+        // Set up CommandProtocol client callbacks
+        commandProtocolClient.setCommandCallback { command ->
+            handleNetworkCommand(command)
+        }
+
+        commandProtocolClient.setConnectionStateCallback { isConnected ->
+            // Update UI to show connection status
+            runOnUiThread {
+                if (isConnected) {
+                    Toast.makeText(this, "Connected to PC Controller", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Disconnected from PC Controller", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        commandProtocolClient.setErrorCallback { error, exception ->
+            runOnUiThread {
+                Toast.makeText(this, "Network error: $error", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -185,6 +219,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleNetworkCommand(command: String) {
         when (command) {
+            // JSON-based commands (existing)
             "START_RECORDING" -> {
                 if (recordingStatusText.text != getString(R.string.status_recording)) {
                     recordingController.startRecording()
@@ -205,8 +240,32 @@ class MainActivity : AppCompatActivity() {
                     toggleCameraMode()
                 }
             }
+
+            // CommandProtocol commands (new)
+            "CMD_START" -> {
+                if (recordingStatusText.text != getString(R.string.status_recording)) {
+                    val success = recordingController.startRecording()
+                    if (success) {
+                        Toast.makeText(this, "Recording started via remote command", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this, "Failed to start recording", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            "CMD_STOP" -> {
+                if (recordingStatusText.text == getString(R.string.status_recording)) {
+                    recordingController.stopRecording()
+                    Toast.makeText(this, "Recording stopped via remote command", Toast.LENGTH_SHORT).show()
+                }
+            }
+            "CMD_STATUS" -> {
+                // Send device status back to the PC controller
+                commandProtocolClient.sendDeviceStatus()
+            }
+
             else -> {
                 // Handle other commands
+                Toast.makeText(this, "Unknown command: $command", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -237,5 +296,6 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         recordingController.shutdown()
         networkClient.stop()
+        commandProtocolClient.stop()
     }
 }

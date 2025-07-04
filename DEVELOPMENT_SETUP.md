@@ -117,7 +117,7 @@ The repository includes comprehensive VS Code configurations:
 - **Kotlin 2.0.0** - Updated from 1.8.0 for enhanced performance
 - **CameraX 1.3.1** - Updated from 1.2.2 with enhanced capabilities
 - **Java 24** - Updated from Java 1.8 for latest language features
-- **Gradle 8.5** - Updated build system
+- **Gradle 8.14** - Updated build system
 - Various sensor and networking libraries (see `android/app/build.gradle`)
 
 #### Build Commands:

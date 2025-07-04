@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * NetworkManager coordinates multiple device connections and ensures commands
@@ -20,7 +22,7 @@ import java.util.concurrent.Executors;
  * scalability requirement of the system.
  */
 public class NetworkManager implements NetworkTransport.Listener, ConnectionMonitor.Listener {
-    
+
     /**
      * Listener interface for network manager events.
      */
@@ -31,7 +33,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
          * @param deviceId The ID of the connected device
          */
         void onDeviceConnected(String deviceId);
-        
+
         /**
          * Called when a device disconnects.
          * 
@@ -39,7 +41,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
          * @param reason The reason for disconnection
          */
         void onDeviceDisconnected(String deviceId, String reason);
-        
+
         /**
          * Called when a message is received from a device.
          * 
@@ -47,7 +49,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
          * @param deviceId The ID of the device that sent the message
          */
         void onMessageReceived(CommandProtocol.Message message, String deviceId);
-        
+
         /**
          * Called when a synchronization event occurs.
          * 
@@ -56,7 +58,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
          * @param roundTripTime The measured round-trip time in milliseconds
          */
         void onSyncEvent(String deviceId, long offset, long roundTripTime);
-        
+
         /**
          * Called when an error occurs.
          * 
@@ -66,22 +68,23 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
          */
         void onError(String deviceId, String error, Exception exception);
     }
-    
+
     private final String serverId;
     private final NetworkTransport transport;
     private final Listener listener;
     private final ExecutorService executorService;
+    private final ScheduledExecutorService syncExecutor;
     private final ConnectionMonitor connectionMonitor;
-    
+
     // Map of device IDs to their TimeSync instances
     private final Map<String, TimeSync> timeSyncs = new ConcurrentHashMap<>();
-    
+
     // Map of device IDs to their last known status
     private final Map<String, DeviceStatus> deviceStatuses = new ConcurrentHashMap<>();
-    
+
     // Flag to indicate if the manager is running
     private boolean running;
-    
+
     /**
      * Creates a new NetworkManager.
      * 
@@ -94,9 +97,10 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         this.transport = transport;
         this.listener = listener;
         this.executorService = Executors.newCachedThreadPool();
+        this.syncExecutor = Executors.newScheduledThreadPool(1);
         this.connectionMonitor = new ConnectionMonitor(transport, serverId, this);
     }
-    
+
     /**
      * Starts the network manager.
      * 
@@ -106,19 +110,22 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         if (running) {
             return;
         }
-        
+
         running = true;
-        
+
         // Initialize and start the transport
         transport.initialize(serverId, this);
         transport.start();
-        
+
         // Start the connection monitor
         connectionMonitor.start();
-        
+
+        // Start periodic time synchronization checking
+        startPeriodicTimeSync();
+
         System.out.println("Network manager started");
     }
-    
+
     /**
      * Stops the network manager.
      */
@@ -126,27 +133,30 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         if (!running) {
             return;
         }
-        
+
         running = false;
-        
+
         // Stop the connection monitor
         connectionMonitor.stop();
-        
+
         // Stop the transport
         transport.stop();
-        
-        // Shutdown the executor service
+
+        // Shutdown the executor services
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
         }
-        
+        if (syncExecutor != null && !syncExecutor.isShutdown()) {
+            syncExecutor.shutdown();
+        }
+
         // Clear all maps
         timeSyncs.clear();
         deviceStatuses.clear();
-        
+
         System.out.println("Network manager stopped");
     }
-    
+
     /**
      * Sends a command to a specific device.
      * 
@@ -161,7 +171,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         CommandProtocol.CommandMessage message = new CommandProtocol.CommandMessage(command, serverId, sessionId, parameters);
         return transport.sendMessage(message, deviceId);
     }
-    
+
     /**
      * Broadcasts a command to all connected devices.
      * 
@@ -175,7 +185,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         CommandProtocol.CommandMessage message = new CommandProtocol.CommandMessage(command, serverId, sessionId, parameters);
         return transport.broadcastMessage(message);
     }
-    
+
     /**
      * Initiates time synchronization with a specific device.
      * 
@@ -187,7 +197,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         CommandProtocol.SyncMessage pingMessage = timeSync.createSyncPing();
         transport.sendMessage(pingMessage, deviceId);
     }
-    
+
     /**
      * Initiates time synchronization with all connected devices.
      * 
@@ -198,7 +208,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             syncWithDevice(deviceId);
         }
     }
-    
+
     /**
      * Gets the clock offset for a specific device.
      * 
@@ -209,7 +219,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         TimeSync timeSync = timeSyncs.get(deviceId);
         return timeSync != null ? timeSync.getOffsetToMaster() : 0;
     }
-    
+
     /**
      * Gets the status of a specific device.
      * 
@@ -219,7 +229,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
     public DeviceStatus getDeviceStatus(String deviceId) {
         return deviceStatuses.get(deviceId);
     }
-    
+
     /**
      * Gets the IDs of all connected devices.
      * 
@@ -228,7 +238,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
     public List<String> getConnectedDevices() {
         return new ArrayList<>(deviceStatuses.keySet());
     }
-    
+
     /**
      * Checks if a device is connected.
      * 
@@ -238,7 +248,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
     public boolean isDeviceConnected(String deviceId) {
         return deviceStatuses.containsKey(deviceId) && transport.isConnected(deviceId);
     }
-    
+
     /**
      * Gets or creates a TimeSync instance for a device.
      * 
@@ -248,22 +258,52 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
     private TimeSync getOrCreateTimeSync(String deviceId) {
         return timeSyncs.computeIfAbsent(deviceId, id -> new TimeSync(serverId, id));
     }
-    
+
+    /**
+     * Starts periodic time synchronization checking.
+     * This method schedules a task that runs every 10 seconds to check if any
+     * connected devices need time synchronization based on their isSyncNeeded() status.
+     */
+    private void startPeriodicTimeSync() {
+        syncExecutor.scheduleAtFixedRate(() -> {
+            if (!running) {
+                return;
+            }
+
+            try {
+                // Check each connected device for sync needs
+                for (String deviceId : transport.getConnectedDevices()) {
+                    TimeSync timeSync = timeSyncs.get(deviceId);
+                    if (timeSync != null && timeSync.isSyncNeeded()) {
+                        System.out.println("Time sync needed for device: " + deviceId + 
+                                         ", initiating synchronization");
+                        syncWithDevice(deviceId);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error during periodic time sync check: " + e.getMessage());
+                if (listener != null) {
+                    listener.onError("SYSTEM", "Periodic time sync error", e);
+                }
+            }
+        }, 10, 10, TimeUnit.SECONDS); // Check every 10 seconds, starting after 10 seconds
+    }
+
     // NetworkTransport.Listener implementation
-    
+
     @Override
     public void onConnected(String deviceId) {
         // Register the device with the connection monitor
         connectionMonitor.registerDevice(deviceId);
-        
+
         // Create a new device status
         deviceStatuses.put(deviceId, new DeviceStatus(deviceId));
-        
+
         // Notify the listener
         if (listener != null) {
             listener.onDeviceConnected(deviceId);
         }
-        
+
         // Initiate time synchronization
         executorService.submit(() -> {
             try {
@@ -274,31 +314,31 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             }
         });
     }
-    
+
     @Override
     public void onDisconnected(String deviceId, String reason) {
         // Unregister the device from the connection monitor
         connectionMonitor.unregisterDevice(deviceId);
-        
+
         // Remove the device status
         deviceStatuses.remove(deviceId);
-        
+
         // Remove the TimeSync instance
         timeSyncs.remove(deviceId);
-        
+
         // Notify the listener
         if (listener != null) {
             listener.onDeviceDisconnected(deviceId, reason);
         }
     }
-    
+
     @Override
     public void onMessageReceived(CommandProtocol.Message message) {
         String deviceId = message.getDeviceId();
-        
+
         // Update the heartbeat time
         connectionMonitor.updateHeartbeat(deviceId);
-        
+
         // Handle the message based on its type
         if (message.getType() == CommandProtocol.CommandType.HEARTBEAT) {
             // Just update the heartbeat, no need to notify the listener
@@ -307,20 +347,20 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             // Process the sync pong message
             TimeSync timeSync = getOrCreateTimeSync(deviceId);
             long offset = timeSync.processSyncPong((CommandProtocol.SyncMessage) message);
-            
+
             // Notify the listener
             if (listener != null) {
                 listener.onSyncEvent(deviceId, offset, timeSync.getRoundTripTime());
             }
-            
+
             return;
         }
-        
+
         // For other message types, notify the listener
         if (listener != null) {
             listener.onMessageReceived(message, deviceId);
         }
-        
+
         // If it's a status message, update the device status
         if (message.getType() == CommandProtocol.CommandType.CMD_STATUS && message instanceof CommandProtocol.ResponseMessage) {
             CommandProtocol.ResponseMessage responseMessage = (CommandProtocol.ResponseMessage) message;
@@ -330,7 +370,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             }
         }
     }
-    
+
     @Override
     public void onError(String deviceId, String error, Exception exception) {
         // Notify the listener
@@ -338,9 +378,9 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             listener.onError(deviceId, error, exception);
         }
     }
-    
+
     // ConnectionMonitor.Listener implementation
-    
+
     @Override
     public void onConnectionLost(String deviceId) {
         // Update the device status
@@ -348,13 +388,13 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         if (status != null) {
             status.setConnected(false);
         }
-        
+
         // Notify the listener
         if (listener != null) {
             listener.onError(deviceId, "Connection lost, attempting to recover", null);
         }
     }
-    
+
     @Override
     public void onConnectionRecovered(String deviceId) {
         // Update the device status
@@ -362,12 +402,12 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         if (status != null) {
             status.setConnected(true);
         }
-        
+
         // Notify the listener
         if (listener != null) {
             listener.onDeviceConnected(deviceId);
         }
-        
+
         // Initiate time synchronization
         executorService.submit(() -> {
             try {
@@ -377,21 +417,21 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             }
         });
     }
-    
+
     @Override
     public void onConnectionPermanentlyLost(String deviceId) {
         // Remove the device status
         deviceStatuses.remove(deviceId);
-        
+
         // Remove the TimeSync instance
         timeSyncs.remove(deviceId);
-        
+
         // Notify the listener
         if (listener != null) {
             listener.onDeviceDisconnected(deviceId, "Connection permanently lost");
         }
     }
-    
+
     /**
      * Represents the status of a connected device.
      */
@@ -402,7 +442,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         private String storageRemaining;
         private Map<String, Boolean> activeStreams = new HashMap<>();
         private long lastUpdateTime;
-        
+
         /**
          * Creates a new DeviceStatus.
          * 
@@ -413,7 +453,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             this.connected = true;
             this.lastUpdateTime = System.currentTimeMillis();
         }
-        
+
         /**
          * Updates the status from a response message.
          * 
@@ -423,7 +463,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             if (response.getData().length >= 3) {
                 this.batteryLevel = response.getData()[0];
                 this.storageRemaining = response.getData()[1];
-                
+
                 // Parse active streams (format: "stream1:true,stream2:false,...")
                 String streamsStr = response.getData()[2];
                 String[] streams = streamsStr.split(",");
@@ -434,10 +474,10 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
                     }
                 }
             }
-            
+
             this.lastUpdateTime = System.currentTimeMillis();
         }
-        
+
         /**
          * Gets the device ID.
          * 
@@ -446,7 +486,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         public String getDeviceId() {
             return deviceId;
         }
-        
+
         /**
          * Checks if the device is connected.
          * 
@@ -455,7 +495,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         public boolean isConnected() {
             return connected;
         }
-        
+
         /**
          * Sets the connected status.
          * 
@@ -464,7 +504,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         public void setConnected(boolean connected) {
             this.connected = connected;
         }
-        
+
         /**
          * Gets the battery level.
          * 
@@ -473,7 +513,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         public String getBatteryLevel() {
             return batteryLevel;
         }
-        
+
         /**
          * Gets the storage remaining.
          * 
@@ -482,7 +522,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         public String getStorageRemaining() {
             return storageRemaining;
         }
-        
+
         /**
          * Checks if a stream is active.
          * 
@@ -493,7 +533,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
             Boolean active = activeStreams.get(streamName);
             return active != null && active;
         }
-        
+
         /**
          * Gets the last update time.
          * 
@@ -502,7 +542,7 @@ public class NetworkManager implements NetworkTransport.Listener, ConnectionMoni
         public long getLastUpdateTime() {
             return lastUpdateTime;
         }
-        
+
         /**
          * Gets a map of all active streams.
          * 

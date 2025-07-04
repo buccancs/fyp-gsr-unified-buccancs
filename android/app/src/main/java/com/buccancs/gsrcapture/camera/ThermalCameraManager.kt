@@ -191,8 +191,10 @@ class ThermalCameraManager(
         // Update the texture view on the main thread
         textureView?.post {
             val canvas = textureView?.lockCanvas()
-            canvas?.drawBitmap(thermalFrame, 0f, 0f, null)
-            textureView?.unlockCanvasAndPost(canvas)
+            canvas?.let {
+                it.drawBitmap(thermalFrame, 0f, 0f, null)
+                textureView?.unlockCanvasAndPost(it)
+            }
 
             // Call the frame callback if set
             frameCallback?.invoke(thermalFrame)

@@ -18,27 +18,27 @@ import java.util.concurrent.Executors;
  * for the Windows PC server. It can handle multiple client connections simultaneously.
  */
 public class TcpServerTransport implements NetworkTransport {
-    
+
     private static final int DEFAULT_PORT = 8080;
     private static final int THREAD_POOL_SIZE = 10;
-    
+
     private String serverId;
     private int port;
     private ServerSocket serverSocket;
     private boolean running;
     private Listener listener;
     private ExecutorService executorService;
-    
+
     // Map of connected clients (deviceId -> ClientHandler)
     private Map<String, ClientHandler> clients = new ConcurrentHashMap<>();
-    
+
     /**
      * Creates a new TcpServerTransport with the default port.
      */
     public TcpServerTransport() {
         this(DEFAULT_PORT);
     }
-    
+
     /**
      * Creates a new TcpServerTransport with the specified port.
      * 
@@ -47,41 +47,41 @@ public class TcpServerTransport implements NetworkTransport {
     public TcpServerTransport(int port) {
         this.port = port;
     }
-    
+
     @Override
     public void initialize(String deviceId, Listener listener) throws IOException {
         this.serverId = deviceId;
         this.listener = listener;
         this.executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     }
-    
+
     @Override
     public void start() throws IOException {
         if (running) {
             return;
         }
-        
+
         serverSocket = new ServerSocket(port);
         running = true;
-        
+
         // Start the connection acceptor thread
         Thread acceptorThread = new Thread(this::acceptConnections);
         acceptorThread.setDaemon(true);
         acceptorThread.start();
-        
+
         System.out.println("TCP server started on port " + port);
     }
-    
+
     @Override
     public void stop() {
         running = false;
-        
+
         // Close all client connections
         for (ClientHandler handler : clients.values()) {
             handler.close();
         }
         clients.clear();
-        
+
         // Close the server socket
         if (serverSocket != null && !serverSocket.isClosed()) {
             try {
@@ -90,15 +90,15 @@ public class TcpServerTransport implements NetworkTransport {
                 System.err.println("Error closing server socket: " + e.getMessage());
             }
         }
-        
+
         // Shutdown the executor service
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
         }
-        
+
         System.out.println("TCP server stopped");
     }
-    
+
     @Override
     public boolean sendMessage(CommandProtocol.Message message, String targetDeviceId) throws IOException {
         ClientHandler handler = clients.get(targetDeviceId);
@@ -107,7 +107,7 @@ public class TcpServerTransport implements NetworkTransport {
         }
         return false;
     }
-    
+
     @Override
     public int broadcastMessage(CommandProtocol.Message message) throws IOException {
         int count = 0;
@@ -118,23 +118,23 @@ public class TcpServerTransport implements NetworkTransport {
         }
         return count;
     }
-    
+
     @Override
     public boolean isConnected(String deviceId) {
         ClientHandler handler = clients.get(deviceId);
         return handler != null && handler.isConnected();
     }
-    
+
     @Override
     public String[] getConnectedDevices() {
         return clients.keySet().toArray(new String[0]);
     }
-    
+
     @Override
     public String getTransportType() {
         return "TCP";
     }
-    
+
     /**
      * Accepts incoming client connections.
      */
@@ -153,7 +153,7 @@ public class TcpServerTransport implements NetworkTransport {
             }
         }
     }
-    
+
     /**
      * Handles a new client connection.
      * 
@@ -163,20 +163,20 @@ public class TcpServerTransport implements NetworkTransport {
         try {
             // Perform initial handshake to get the client's device ID
             String deviceId = performHandshake(clientSocket);
-            
+
             if (deviceId != null) {
                 // Create a new client handler
                 ClientHandler handler = new ClientHandler(deviceId, clientSocket);
                 clients.put(deviceId, handler);
-                
+
                 // Start the client handler
                 handler.start();
-                
+
                 // Notify the listener
                 if (listener != null) {
                     listener.onConnected(deviceId);
                 }
-                
+
                 System.out.println("Client connected: " + deviceId);
             } else {
                 // Failed handshake, close the socket
@@ -191,7 +191,7 @@ public class TcpServerTransport implements NetworkTransport {
             }
         }
     }
-    
+
     /**
      * Performs the initial handshake with a client to get its device ID.
      * 
@@ -199,29 +199,97 @@ public class TcpServerTransport implements NetworkTransport {
      * @return The client's device ID, or null if the handshake failed
      */
     private String performHandshake(Socket clientSocket) throws IOException {
-        // This is a simplified handshake. In a real implementation, you would
-        // exchange more information and possibly authenticate the client.
-        
-        // Read the CONNECT message from the client
-        InputStream inputStream = clientSocket.getInputStream();
-        byte[] buffer = new byte[1024];
-        int bytesRead = inputStream.read(buffer);
-        
-        if (bytesRead > 0) {
-            // Parse the message (simplified)
-            // In a real implementation, you would use proper serialization/deserialization
-            String message = new String(buffer, 0, bytesRead);
-            
-            // Extract the device ID (simplified)
-            // Format: "CONNECT:deviceId"
-            if (message.startsWith("CONNECT:")) {
-                return message.substring(8);
+        try {
+            InputStream inputStream = clientSocket.getInputStream();
+            OutputStream outputStream = clientSocket.getOutputStream();
+
+            // Read the CONNECT message from the client
+            byte[] buffer = new byte[4096];
+            int bytesRead = inputStream.read(buffer);
+
+            if (bytesRead > 0) {
+                // Create a copy of the received data
+                byte[] data = new byte[bytesRead];
+                System.arraycopy(buffer, 0, data, 0, bytesRead);
+
+                // Deserialize the message
+                CommandProtocol.Message message = CommandProtocol.Message.deserialize(data);
+
+                // Check if it's a CONNECT command
+                if (message instanceof CommandProtocol.CommandMessage) {
+                    CommandProtocol.CommandMessage connectMsg = (CommandProtocol.CommandMessage) message;
+
+                    if (connectMsg.getType() == CommandProtocol.CommandType.CONNECT) {
+                        String deviceId = connectMsg.getDeviceId();
+
+                        // Validate the device ID (basic validation)
+                        if (deviceId != null && !deviceId.trim().isEmpty()) {
+                            // Send ACK response
+                            CommandProtocol.ResponseMessage ackResponse = new CommandProtocol.ResponseMessage(
+                                CommandProtocol.CommandType.ACK,
+                                "server",
+                                CommandProtocol.StatusCode.OK,
+                                "Connection accepted",
+                                deviceId
+                            );
+
+                            byte[] responseData = ackResponse.serialize();
+                            outputStream.write(responseData);
+                            outputStream.flush();
+
+                            return deviceId;
+                        } else {
+                            // Send NACK response for invalid device ID
+                            CommandProtocol.ResponseMessage nackResponse = new CommandProtocol.ResponseMessage(
+                                CommandProtocol.CommandType.NACK,
+                                "server",
+                                CommandProtocol.StatusCode.ERROR_INVALID_CMD,
+                                "Invalid device ID"
+                            );
+
+                            byte[] responseData = nackResponse.serialize();
+                            outputStream.write(responseData);
+                            outputStream.flush();
+                        }
+                    } else {
+                        // Send NACK response for wrong command type
+                        CommandProtocol.ResponseMessage nackResponse = new CommandProtocol.ResponseMessage(
+                            CommandProtocol.CommandType.NACK,
+                            "server",
+                            CommandProtocol.StatusCode.ERROR_INVALID_CMD,
+                            "Expected CONNECT command"
+                        );
+
+                        byte[] responseData = nackResponse.serialize();
+                        outputStream.write(responseData);
+                        outputStream.flush();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error during handshake: " + e.getMessage());
+
+            // Try to send NACK response if possible
+            try {
+                OutputStream outputStream = clientSocket.getOutputStream();
+                CommandProtocol.ResponseMessage nackResponse = new CommandProtocol.ResponseMessage(
+                    CommandProtocol.CommandType.NACK,
+                    "server",
+                    CommandProtocol.StatusCode.ERROR_GENERAL,
+                    "Handshake error: " + e.getMessage()
+                );
+
+                byte[] responseData = nackResponse.serialize();
+                outputStream.write(responseData);
+                outputStream.flush();
+            } catch (Exception ex) {
+                // Ignore if we can't send the error response
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * Handles communication with a connected client.
      */
@@ -232,7 +300,7 @@ public class TcpServerTransport implements NetworkTransport {
         private OutputStream outputStream;
         private boolean connected;
         private Thread receiveThread;
-        
+
         /**
          * Creates a new ClientHandler.
          * 
@@ -247,7 +315,7 @@ public class TcpServerTransport implements NetworkTransport {
             this.outputStream = socket.getOutputStream();
             this.connected = true;
         }
-        
+
         /**
          * Starts the client handler.
          */
@@ -256,13 +324,13 @@ public class TcpServerTransport implements NetworkTransport {
             receiveThread.setDaemon(true);
             receiveThread.start();
         }
-        
+
         /**
          * Closes the client handler.
          */
         public void close() {
             connected = false;
-            
+
             try {
                 if (socket != null && !socket.isClosed()) {
                     socket.close();
@@ -270,16 +338,16 @@ public class TcpServerTransport implements NetworkTransport {
             } catch (IOException e) {
                 System.err.println("Error closing client socket: " + e.getMessage());
             }
-            
+
             // Remove from the clients map
             clients.remove(deviceId);
-            
+
             // Notify the listener
             if (listener != null) {
                 listener.onDisconnected(deviceId, "Connection closed");
             }
         }
-        
+
         /**
          * Sends a message to the client.
          * 
@@ -290,48 +358,48 @@ public class TcpServerTransport implements NetworkTransport {
             if (!connected) {
                 return false;
             }
-            
+
             try {
                 // Serialize the message
                 byte[] data = message.serialize();
-                
+
                 // Send the message
                 synchronized (outputStream) {
                     outputStream.write(data);
                     outputStream.flush();
                 }
-                
+
                 return true;
             } catch (IOException e) {
                 System.err.println("Error sending message to client " + deviceId + ": " + e.getMessage());
-                
+
                 // Notify the listener
                 if (listener != null) {
                     listener.onError(deviceId, "Error sending message", e);
                 }
-                
+
                 // Close the connection
                 close();
-                
+
                 return false;
             }
         }
-        
+
         /**
          * Receives messages from the client.
          */
         private void receiveMessages() {
             byte[] buffer = new byte[4096];
-            
+
             while (connected) {
                 try {
                     int bytesRead = inputStream.read(buffer);
-                    
+
                     if (bytesRead == -1) {
                         // End of stream, client disconnected
                         break;
                     }
-                    
+
                     if (bytesRead > 0) {
                         // Process the received data
                         processReceivedData(buffer, bytesRead);
@@ -339,24 +407,24 @@ public class TcpServerTransport implements NetworkTransport {
                 } catch (IOException e) {
                     if (connected) {
                         System.err.println("Error receiving message from client " + deviceId + ": " + e.getMessage());
-                        
+
                         // Notify the listener
                         if (listener != null) {
                             listener.onError(deviceId, "Error receiving message", e);
                         }
-                        
+
                         // Close the connection
                         break;
                     }
                 }
             }
-            
+
             // Close the connection if not already closed
             if (connected) {
                 close();
             }
         }
-        
+
         /**
          * Processes received data from the client.
          * 
@@ -368,24 +436,24 @@ public class TcpServerTransport implements NetworkTransport {
                 // Create a copy of the received data
                 byte[] data = new byte[bytesRead];
                 System.arraycopy(buffer, 0, data, 0, bytesRead);
-                
+
                 // Deserialize the message
                 CommandProtocol.Message message = CommandProtocol.Message.deserialize(data);
-                
+
                 // Notify the listener
                 if (listener != null) {
                     listener.onMessageReceived(message);
                 }
             } catch (Exception e) {
                 System.err.println("Error processing received data from client " + deviceId + ": " + e.getMessage());
-                
+
                 // Notify the listener
                 if (listener != null) {
                     listener.onError(deviceId, "Error processing received data", e);
                 }
             }
         }
-        
+
         /**
          * Checks if the client is connected.
          * 
