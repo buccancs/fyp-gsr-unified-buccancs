@@ -28,7 +28,9 @@ import java.util.*
  * HandAnalysisHandler provides post-recording hand analysis capabilities
  * using MediaPipe for hand detection and ML Kit for pose estimation.
  */
-class HandAnalysisHandler(private val context: Context) {
+class HandAnalysisHandler(
+    private val context: Context,
+) {
     companion object {
         private const val TAG = "HandAnalysisHandler"
         private const val FRAME_EXTRACTION_INTERVAL_MS = 100L // Extract frame every 100ms (10 FPS)
@@ -124,12 +126,14 @@ class HandAnalysisHandler(private val context: Context) {
         try {
             // MediaPipe Hand Landmarker initialization
             val baseOptions =
-                BaseOptions.builder()
+                BaseOptions
+                    .builder()
                     .setModelAssetPath("hand_landmarker.task")
                     .build()
 
             val handLandmarkerOptions =
-                HandLandmarkerOptions.builder()
+                HandLandmarkerOptions
+                    .builder()
                     .setBaseOptions(baseOptions)
                     .setRunningMode(RunningMode.IMAGE)
                     .setNumHands(2)
@@ -138,21 +142,20 @@ class HandAnalysisHandler(private val context: Context) {
                     .setMinTrackingConfidence(0.5f)
                     .setResultListener { result, inputImage ->
                         processHandLandmarkerResult(result)
-                    }
-                    .setErrorListener { error ->
+                    }.setErrorListener { error ->
                         Log.e(TAG, "MediaPipe HandLandmarker error: ${error.message}", error)
                         analysisCallback?.onAnalysisError(
                             "MediaPipe error: ${error.message}",
-                            System.currentTimeMillis()
+                            System.currentTimeMillis(),
                         )
-                    }
-                    .build()
+                    }.build()
 
             handLandmarker = HandLandmarker.createFromOptions(context, handLandmarkerOptions)
 
             // Initialize ML Kit Pose Detector
             val poseDetectorOptions =
-                AccuratePoseDetectorOptions.Builder()
+                AccuratePoseDetectorOptions
+                    .Builder()
                     .setDetectorMode(AccuratePoseDetectorOptions.SINGLE_IMAGE_MODE)
                     .build()
             poseDetector = PoseDetection.getClient(poseDetectorOptions)
@@ -279,7 +282,10 @@ class HandAnalysisHandler(private val context: Context) {
             // Process with MediaPipe HandLandmarker
             handLandmarker?.let { landmarker ->
                 try {
-                    val mpImage = com.google.mediapipe.framework.image.BitmapImageBuilder(bitmap).build()
+                    val mpImage =
+                        com.google.mediapipe.framework.image
+                            .BitmapImageBuilder(bitmap)
+                            .build()
                     val result = landmarker.detect(mpImage)
                     processHandLandmarkerResult(result)
                 } catch (e: Exception) {
@@ -289,11 +295,11 @@ class HandAnalysisHandler(private val context: Context) {
 
             // Process with ML Kit Pose Detection
             val inputImage = InputImage.fromBitmap(bitmap, 0)
-            poseDetector?.process(inputImage)
+            poseDetector
+                ?.process(inputImage)
                 ?.addOnSuccessListener { pose ->
                     processPoseResult(pose, frameNumber, timestampMs, resultsWriter)
-                }
-                ?.addOnFailureListener { e ->
+                }?.addOnFailureListener { e ->
                     Log.e(TAG, "Pose detection failed for frame $frameNumber", e)
                 }
         } catch (e: Exception) {
@@ -475,9 +481,7 @@ class HandAnalysisHandler(private val context: Context) {
     /**
      * Check if analysis is currently running
      */
-    fun isAnalyzing(): Boolean {
-        return isAnalyzing
-    }
+    fun isAnalyzing(): Boolean = isAnalyzing
 
     /**
      * Release resources and cleanup

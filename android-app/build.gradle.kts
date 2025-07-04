@@ -30,7 +30,7 @@ sonarqube {
         // Binary directories for analysis
         property(
             "sonar.java.binaries",
-            "app/build/intermediates/javac/debug/classes,app/build/tmp/kotlin-classes/debug"
+            "app/build/intermediates/javac/debug/classes,app/build/tmp/kotlin-classes/debug",
         )
         property("sonar.kotlin.binaries", "app/build/tmp/kotlin-classes/debug")
 
@@ -40,7 +40,7 @@ sonarqube {
         // Code coverage integration
         property(
             "sonar.coverage.jacoco.xmlReportPaths",
-            "app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+            "app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml",
         )
 
         // Language settings
@@ -51,12 +51,12 @@ sonarqube {
         property(
             "sonar.exclusions",
             "**/R.java," +
-                    "**/BuildConfig.java," +
-                    "**/Manifest*.*," +
-                    "**/*Test*.*," +
-                    "**/libs/**," +
-                    "**/third_party/**," +
-                    "**/build/**"
+                "**/BuildConfig.java," +
+                "**/Manifest*.*," +
+                "**/*Test*.*," +
+                "**/libs/**," +
+                "**/third_party/**," +
+                "**/build/**",
         )
 
         // Test exclusions

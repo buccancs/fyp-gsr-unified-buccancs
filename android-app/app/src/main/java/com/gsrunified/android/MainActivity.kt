@@ -50,7 +50,6 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
-
     private lateinit var previewView: PreviewView
     private lateinit var thermalImageView: ImageView
     private lateinit var gsrValueText: TextView
@@ -119,39 +118,40 @@ class MainActivity : AppCompatActivity() {
     data class GSRDataPoint(
         val timestamp: Long,
         val gsrValue: Double,
-        val quality: Int
+        val quality: Int,
     )
 
     // Frame analyzer for video streaming
-
 
     companion object {
         private const val TAG = "gsrunified"
         private const val ACTION_USB_PERMISSION = "com.gsrunified.android.USB_PERMISSION"
 
         // Topdon TC001 USB identifiers (these may need to be adjusted based on actual device)
-        private const val TOPDON_VENDOR_ID = 0x1234  // Replace with actual vendor ID
-        private const val TOPDON_PRODUCT_ID = 0x5678  // Replace with actual product ID
+        private const val TOPDON_VENDOR_ID = 0x1234 // Replace with actual vendor ID
+        private const val TOPDON_PRODUCT_ID = 0x5678 // Replace with actual product ID
 
-        private val REQUIRED_PERMISSIONS = mutableListOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.BLUETOOTH,
-            Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ).toTypedArray()
+        private val REQUIRED_PERMISSIONS =
+            mutableListOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            ).toTypedArray()
     }
 
     private val activityResultLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             var permissionGranted = true
             permissions.entries.forEach {
-                if (it.key in REQUIRED_PERMISSIONS && !it.value)
+                if (it.key in REQUIRED_PERMISSIONS && !it.value) {
                     permissionGranted = false
+                }
             }
             if (!permissionGranted) {
                 Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_SHORT).show()
@@ -174,32 +174,37 @@ class MainActivity : AppCompatActivity() {
         bluetoothAdapter = bluetoothManager?.adapter
 
         // Initialize USB receiver
-        usbReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                when (intent?.action) {
-                    UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
-                        Log.d(TAG, "USB device attached")
-                        updateStatus("USB device attached")
-                    }
+        usbReceiver =
+            object : BroadcastReceiver() {
+                override fun onReceive(
+                    context: Context?,
+                    intent: Intent?,
+                ) {
+                    when (intent?.action) {
+                        UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
+                            Log.d(TAG, "USB device attached")
+                            updateStatus("USB device attached")
+                        }
 
-                    UsbManager.ACTION_USB_DEVICE_DETACHED -> {
-                        Log.d(TAG, "USB device detached")
-                        updateStatus("USB device detached")
-                    }
+                        UsbManager.ACTION_USB_DEVICE_DETACHED -> {
+                            Log.d(TAG, "USB device detached")
+                            updateStatus("USB device detached")
+                        }
 
-                    ACTION_USB_PERMISSION -> {
-                        Log.d(TAG, "USB permission received")
+                        ACTION_USB_PERMISSION -> {
+                            Log.d(TAG, "USB permission received")
+                        }
                     }
                 }
             }
-        }
 
         // Register USB receiver
-        val filter = IntentFilter().apply {
-            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
-            addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
-            addAction(ACTION_USB_PERMISSION)
-        }
+        val filter =
+            IntentFilter().apply {
+                addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+                addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+                addAction(ACTION_USB_PERMISSION)
+            }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(usbReceiver, filter, RECEIVER_NOT_EXPORTED)
         } else {
@@ -303,12 +308,10 @@ class MainActivity : AppCompatActivity() {
                     Log.w(TAG, "Unknown command: $commandType")
                 }
             }
-
         } catch (e: Exception) {
             Log.e(TAG, "Error handling command: $command", e)
         }
     }
-
 
     private fun initializeViews() {
         previewView = findViewById(R.id.previewView)
@@ -350,178 +353,220 @@ class MainActivity : AppCompatActivity() {
     private fun initializeHandlers() {
         // Initialize camera handler
         cameraHandler = CameraHandler(this, previewView, this)
-        cameraHandler.setRecordingCallback(object : CameraHandler.RecordingCallback {
-            override fun onRecordingStarted(filePath: String) {
-                runOnUiThread {
-                    updateStatus("RGB video recording started: $filePath")
+        cameraHandler.setRecordingCallback(
+            object : CameraHandler.RecordingCallback {
+                override fun onRecordingStarted(filePath: String) {
+                    runOnUiThread {
+                        updateStatus("RGB video recording started: $filePath")
+                    }
                 }
-            }
 
-            override fun onRecordingStopped(filePath: String) {
-                runOnUiThread {
-                    updateStatus("RGB video recording stopped: $filePath")
+                override fun onRecordingStopped(filePath: String) {
+                    runOnUiThread {
+                        updateStatus("RGB video recording stopped: $filePath")
+                    }
                 }
-            }
 
-            override fun onRecordingError(error: String) {
-                runOnUiThread {
-                    updateStatus("RGB video recording error: $error")
+                override fun onRecordingError(error: String) {
+                    runOnUiThread {
+                        updateStatus("RGB video recording error: $error")
+                    }
                 }
-            }
-        })
+            },
+        )
 
         // Set raw frame callback for RGB frame capture
-        cameraHandler.setRawFrameCallback(object : CameraHandler.RawFrameCallback {
-            override fun onFrameCaptureStarted() {
-                runOnUiThread {
-                    updateStatus("RGB frame capture started")
+        cameraHandler.setRawFrameCallback(
+            object : CameraHandler.RawFrameCallback {
+                override fun onFrameCaptureStarted() {
+                    runOnUiThread {
+                        updateStatus("RGB frame capture started")
+                    }
                 }
-            }
 
-            override fun onFrameCaptured(bitmap: Bitmap, timestamp: Long, frameNumber: Int) {
-                // Raw RGB frame processing can be added here if needed
-                // For now, just log frame reception for debugging
-                if (frameNumber % 30 == 0) { // Log every 30th frame to avoid spam
-                    Log.d(
-                        "MainActivity",
-                        "RGB frame captured: ${bitmap.width}x${bitmap.height}, frame #${frameNumber}"
-                    )
+                override fun onFrameCaptured(
+                    bitmap: Bitmap,
+                    timestamp: Long,
+                    frameNumber: Int,
+                ) {
+                    // Raw RGB frame processing can be added here if needed
+                    // For now, just log frame reception for debugging
+                    if (frameNumber % 30 == 0) { // Log every 30th frame to avoid spam
+                        Log.d(
+                            "MainActivity",
+                            "RGB frame captured: ${bitmap.width}x${bitmap.height}, frame #$frameNumber",
+                        )
+                    }
                 }
-            }
 
-            override fun onFrameCaptureStopped() {
-                runOnUiThread {
-                    updateStatus("RGB frame capture stopped")
+                override fun onFrameCaptureStopped() {
+                    runOnUiThread {
+                        updateStatus("RGB frame capture stopped")
+                    }
                 }
-            }
 
-            override fun onFrameCaptureError(error: String) {
-                runOnUiThread {
-                    updateStatus("RGB frame capture error: $error")
+                override fun onFrameCaptureError(error: String) {
+                    runOnUiThread {
+                        updateStatus("RGB frame capture error: $error")
+                    }
                 }
-            }
-        })
+            },
+        )
 
         // Initialize GSR handler
         gsrHandler = GsrHandler(this, gsrValueText)
-        gsrHandler.setGsrCallback(object : GsrHandler.GsrDataCallback {
-            override fun onGsrDataReceived(conductance: Double, resistance: Double, timestamp: Long) {
-                // GSR data is already handled by the handler's UI update
-            }
+        gsrHandler.setGsrCallback(
+            object : GsrHandler.GsrDataCallback {
+                override fun onGsrDataReceived(
+                    conductance: Double,
+                    resistance: Double,
+                    timestamp: Long,
+                ) {
+                    // GSR data is already handled by the handler's UI update
+                }
 
-            override fun onConnectionStateChanged(connected: Boolean, deviceAddress: String?) {
-                gsrConnected = connected
-                runOnUiThread {
-                    if (connected) {
-                        updateStatus("GSR sensor connected: $deviceAddress")
-                    } else {
-                        updateStatus("GSR sensor disconnected")
+                override fun onConnectionStateChanged(
+                    connected: Boolean,
+                    deviceAddress: String?,
+                ) {
+                    gsrConnected = connected
+                    runOnUiThread {
+                        if (connected) {
+                            updateStatus("GSR sensor connected: $deviceAddress")
+                        } else {
+                            updateStatus("GSR sensor disconnected")
+                        }
                     }
                 }
-            }
 
-            override fun onStreamingStateChanged(streaming: Boolean) {
-                runOnUiThread {
-                    updateStatus("GSR streaming: ${if (streaming) "started" else "stopped"}")
+                override fun onStreamingStateChanged(streaming: Boolean) {
+                    runOnUiThread {
+                        updateStatus("GSR streaming: ${if (streaming) "started" else "stopped"}")
+                    }
                 }
-            }
 
-            override fun onError(error: String) {
-                runOnUiThread {
-                    updateStatus("GSR error: $error")
+                override fun onError(error: String) {
+                    runOnUiThread {
+                        updateStatus("GSR error: $error")
+                    }
                 }
-            }
-        })
+            },
+        )
         gsrHandler.initialize()
 
         // Initialize thermal camera handler
         thermalCameraHandler = ThermalCameraHandler(this, thermalImageView)
-        thermalCameraHandler.setThermalCallback(object : ThermalCameraHandler.ThermalDataCallback {
-            override fun onThermalFrameReceived(
-                frameData: ByteArray,
-                width: Int,
-                height: Int,
-                timestamp: Long,
-                frameNumber: Int
-            ) {
-                // Thermal frame processing can be added here if needed
-            }
+        thermalCameraHandler.setThermalCallback(
+            object : ThermalCameraHandler.ThermalDataCallback {
+                override fun onThermalFrameReceived(
+                    frameData: ByteArray,
+                    width: Int,
+                    height: Int,
+                    timestamp: Long,
+                    frameNumber: Int,
+                ) {
+                    // Thermal frame processing can be added here if needed
+                }
 
-            override fun onConnectionStateChanged(connected: Boolean, deviceInfo: String?) {
-                thermalCameraConnected = connected
-                runOnUiThread {
-                    if (connected) {
-                        updateStatus("Thermal camera connected: $deviceInfo")
-                    } else {
-                        updateStatus("Thermal camera disconnected")
+                override fun onConnectionStateChanged(
+                    connected: Boolean,
+                    deviceInfo: String?,
+                ) {
+                    thermalCameraConnected = connected
+                    runOnUiThread {
+                        if (connected) {
+                            updateStatus("Thermal camera connected: $deviceInfo")
+                        } else {
+                            updateStatus("Thermal camera disconnected")
+                        }
                     }
                 }
-            }
 
-            override fun onRecordingStateChanged(recording: Boolean) {
-                runOnUiThread {
-                    updateStatus("Thermal recording: ${if (recording) "started" else "stopped"}")
+                override fun onRecordingStateChanged(recording: Boolean) {
+                    runOnUiThread {
+                        updateStatus("Thermal recording: ${if (recording) "started" else "stopped"}")
+                    }
                 }
-            }
 
-            override fun onError(error: String) {
-                runOnUiThread {
-                    updateStatus("Thermal camera error: $error")
+                override fun onError(error: String) {
+                    runOnUiThread {
+                        updateStatus("Thermal camera error: $error")
+                    }
                 }
-            }
-        })
+            },
+        )
         thermalCameraHandler.initialize()
 
         // Initialize hand analysis handler
         handAnalysisHandler = HandAnalysisHandler(this)
-        handAnalysisHandler.setAnalysisCallback(object : HandAnalysisHandler.HandAnalysisCallback {
-            override fun onAnalysisStarted(videoPath: String, timestamp: Long) {
-                runOnUiThread {
-                    updateStatus("Hand analysis started on: $videoPath")
-                    analyzeHandsButton.isEnabled = false
-                    stopAnalysisButton.isEnabled = true
+        handAnalysisHandler.setAnalysisCallback(
+            object : HandAnalysisHandler.HandAnalysisCallback {
+                override fun onAnalysisStarted(
+                    videoPath: String,
+                    timestamp: Long,
+                ) {
+                    runOnUiThread {
+                        updateStatus("Hand analysis started on: $videoPath")
+                        analyzeHandsButton.isEnabled = false
+                        stopAnalysisButton.isEnabled = true
+                    }
                 }
-            }
 
-            override fun onAnalysisProgress(progress: Float, frameNumber: Int, totalFrames: Int) {
-                runOnUiThread {
-                    val progressPercent = (progress * 100).toInt()
-                    updateStatus("Hand analysis progress: $progressPercent% (frame $frameNumber/$totalFrames)")
+                override fun onAnalysisProgress(
+                    progress: Float,
+                    frameNumber: Int,
+                    totalFrames: Int,
+                ) {
+                    runOnUiThread {
+                        val progressPercent = (progress * 100).toInt()
+                        updateStatus("Hand analysis progress: $progressPercent% (frame $frameNumber/$totalFrames)")
+                    }
                 }
-            }
 
-            override fun onHandDetected(
-                frameNumber: Int,
-                timestamp: Long,
-                handLandmarks: List<HandAnalysisHandler.HandLandmark>
-            ) {
-                runOnUiThread {
-                    updateStatus("Hand detected in frame $frameNumber with ${handLandmarks.size} landmarks")
+                override fun onHandDetected(
+                    frameNumber: Int,
+                    timestamp: Long,
+                    handLandmarks: List<HandAnalysisHandler.HandLandmark>,
+                ) {
+                    runOnUiThread {
+                        updateStatus("Hand detected in frame $frameNumber with ${handLandmarks.size} landmarks")
+                    }
                 }
-            }
 
-            override fun onPoseDetected(frameNumber: Int, timestamp: Long, pose: HandAnalysisHandler.PoseData) {
-                runOnUiThread {
-                    updateStatus("Pose detected in frame $frameNumber with confidence ${pose.confidence}")
+                override fun onPoseDetected(
+                    frameNumber: Int,
+                    timestamp: Long,
+                    pose: HandAnalysisHandler.PoseData,
+                ) {
+                    runOnUiThread {
+                        updateStatus("Pose detected in frame $frameNumber with confidence ${pose.confidence}")
+                    }
                 }
-            }
 
-            override fun onAnalysisCompleted(videoPath: String, resultsPath: String, timestamp: Long) {
-                runOnUiThread {
-                    updateStatus("Hand analysis completed. Results saved to: $resultsPath")
-                    analyzeHandsButton.isEnabled = true
-                    stopAnalysisButton.isEnabled = false
+                override fun onAnalysisCompleted(
+                    videoPath: String,
+                    resultsPath: String,
+                    timestamp: Long,
+                ) {
+                    runOnUiThread {
+                        updateStatus("Hand analysis completed. Results saved to: $resultsPath")
+                        analyzeHandsButton.isEnabled = true
+                        stopAnalysisButton.isEnabled = false
+                    }
                 }
-            }
 
-            override fun onAnalysisError(error: String, timestamp: Long) {
-                runOnUiThread {
-                    updateStatus("Hand analysis error: $error")
-                    analyzeHandsButton.isEnabled = true
-                    stopAnalysisButton.isEnabled = false
+                override fun onAnalysisError(
+                    error: String,
+                    timestamp: Long,
+                ) {
+                    runOnUiThread {
+                        updateStatus("Hand analysis error: $error")
+                        analyzeHandsButton.isEnabled = true
+                        stopAnalysisButton.isEnabled = false
+                    }
                 }
-            }
-        })
+            },
+        )
         handAnalysisHandler.initialize()
 
         // Initialize LSL components
@@ -550,20 +595,20 @@ class MainActivity : AppCompatActivity() {
             }
 
             // Initialize LSL Command Inlet with integrated command handler
-            val commandHandler = IntegratedCommandHandler(
-                deviceId = deviceId,
-                cameraHandler = cameraHandler,
-                gsrHandler = gsrHandler,
-                thermalCameraHandler = thermalCameraHandler,
-                lslStreamManager = lslStreamManager
-            )
+            val commandHandler =
+                IntegratedCommandHandler(
+                    deviceId = deviceId,
+                    cameraHandler = cameraHandler,
+                    gsrHandler = gsrHandler,
+                    thermalCameraHandler = thermalCameraHandler,
+                    lslStreamManager = lslStreamManager,
+                )
 
             lslCommandInlet = LslCommandInlet(deviceId, commandHandler)
             lslCommandInlet.start()
 
             Log.d(TAG, "LSL Command Inlet started")
             updateStatus("LSL command inlet started")
-
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing LSL components", e)
             updateStatus("LSL initialization error: ${e.message}")
@@ -619,7 +664,6 @@ class MainActivity : AppCompatActivity() {
             isRecording = true
             updateStatus("Recording started - Session: $currentSessionId")
             updateStatus("RGB frame capture and sync markers enabled")
-
         } catch (e: Exception) {
             Log.e(TAG, "Error starting recording", e)
             updateStatus("Error starting recording: ${e.message}")
@@ -657,13 +701,11 @@ class MainActivity : AppCompatActivity() {
 
                     // Enable hand analysis button after recording is complete
                     analyzeHandsButton.isEnabled = true
-
                 } catch (e: Exception) {
                     Log.e(TAG, "Error in delayed stop recording", e)
                     updateStatus("Error stopping recording: ${e.message}")
                 }
             }, 300) // 300ms delay to allow sync marker to complete
-
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping recording", e)
             updateStatus("Error stopping recording: ${e.message}")
@@ -708,9 +750,10 @@ class MainActivity : AppCompatActivity() {
         try {
             val externalFilesDir = getExternalFilesDir(null)
             if (externalFilesDir != null && externalFilesDir.exists()) {
-                val videoFiles = externalFilesDir.listFiles { file ->
-                    file.name.endsWith(".mp4") && file.name.contains("rgb_video")
-                }
+                val videoFiles =
+                    externalFilesDir.listFiles { file ->
+                        file.name.endsWith(".mp4") && file.name.contains("rgb_video")
+                    }
 
                 if (videoFiles != null && videoFiles.isNotEmpty()) {
                     // Sort by last modified time and return the most recent
@@ -732,35 +775,40 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBluetoothDiscoveryReceiver() {
-        bluetoothDiscoveryReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                when (intent?.action) {
-                    BluetoothDevice.ACTION_FOUND -> {
-                        val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                        device?.let {
-                            Log.d(TAG, "Bluetooth device found: ${it.name} - ${it.address}")
-                            updateStatus("Bluetooth device found: ${it.name}")
+        bluetoothDiscoveryReceiver =
+            object : BroadcastReceiver() {
+                override fun onReceive(
+                    context: Context?,
+                    intent: Intent?,
+                ) {
+                    when (intent?.action) {
+                        BluetoothDevice.ACTION_FOUND -> {
+                            val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                            device?.let {
+                                Log.d(TAG, "Bluetooth device found: ${it.name} - ${it.address}")
+                                updateStatus("Bluetooth device found: ${it.name}")
+                            }
                         }
-                    }
 
-                    BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
-                        Log.d(TAG, "Bluetooth discovery started")
-                        updateStatus("Bluetooth discovery started")
-                    }
+                        BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
+                            Log.d(TAG, "Bluetooth discovery started")
+                            updateStatus("Bluetooth discovery started")
+                        }
 
-                    BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
-                        Log.d(TAG, "Bluetooth discovery finished")
-                        updateStatus("Bluetooth discovery finished")
+                        BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                            Log.d(TAG, "Bluetooth discovery finished")
+                            updateStatus("Bluetooth discovery finished")
+                        }
                     }
                 }
             }
-        }
 
-        val filter = IntentFilter().apply {
-            addAction(BluetoothDevice.ACTION_FOUND)
-            addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
-            addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-        }
+        val filter =
+            IntentFilter().apply {
+                addAction(BluetoothDevice.ACTION_FOUND)
+                addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+                addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+            }
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(bluetoothDiscoveryReceiver, filter, RECEIVER_NOT_EXPORTED)
@@ -779,7 +827,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     // Removed startShimmerDataStreaming() - GSR streaming is now handled by GsrHandler
 
     // Removed generateRealisticGSRValue() - GSR data is now provided by GsrHandler
@@ -788,13 +835,14 @@ class MainActivity : AppCompatActivity() {
         // Send GSR data to PC using NetworkHandler
         if (::networkHandler.isInitialized && networkHandler.isConnected()) {
             try {
-                val gsrData = JSONObject().apply {
-                    put("timestamp", dataPoint.timestamp)
-                    put("gsr_value", dataPoint.gsrValue)
-                    put("quality", dataPoint.quality)
-                    put("sampling_rate", 128)
-                    put("unit", "microsiemens")
-                }
+                val gsrData =
+                    JSONObject().apply {
+                        put("timestamp", dataPoint.timestamp)
+                        put("gsr_value", dataPoint.gsrValue)
+                        put("quality", dataPoint.quality)
+                        put("sampling_rate", 128)
+                        put("unit", "microsiemens")
+                    }
 
                 networkHandler.sendDataStream("gsr", gsrData)
             } catch (e: Exception) {
@@ -817,14 +865,15 @@ class MainActivity : AppCompatActivity() {
                         val jpegBytes = stream.toByteArray()
 
                         // Create frame metadata
-                        val frameData = JSONObject().apply {
-                            put("timestamp", System.currentTimeMillis())
-                            put("frame_number", frameCounter)
-                            put("frame_size", jpegBytes.size)
-                            put("format", "jpeg")
-                            put("quality", 50)
-                            put("resolution", "${bitmap.width}x${bitmap.height}")
-                        }
+                        val frameData =
+                            JSONObject().apply {
+                                put("timestamp", System.currentTimeMillis())
+                                put("frame_number", frameCounter)
+                                put("frame_size", jpegBytes.size)
+                                put("format", "jpeg")
+                                put("quality", 50)
+                                put("resolution", "${bitmap.width}x${bitmap.height}")
+                            }
 
                         networkHandler.sendDataStream("video_frame", frameData)
                         frameCounter++
@@ -836,8 +885,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
-        return try {
+    private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? =
+        try {
             val buffer: ByteBuffer = imageProxy.planes[0].buffer
             val bytes = ByteArray(buffer.remaining())
             buffer.get(bytes)
@@ -846,10 +895,8 @@ class MainActivity : AppCompatActivity() {
             Log.e(TAG, "Error converting ImageProxy to Bitmap: ${e.message}")
             null
         }
-    }
 
     // Removed onShimmerDataReceived() - GSR data is now handled by GsrHandler callbacks
-
 
     // Removed startThermalFrameCapture() - Thermal capture is now handled by ThermalCameraHandler
 
@@ -859,21 +906,25 @@ class MainActivity : AppCompatActivity() {
 
     // Removed temperatureToColor() - Color mapping is now handled by ThermalCameraHandler
 
-    private fun sendThermalDataToPC(thermalData: ThermalFrameData, frameNumber: Int) {
+    private fun sendThermalDataToPC(
+        thermalData: ThermalFrameData,
+        frameNumber: Int,
+    ) {
         // Send thermal data to PC using NetworkHandler
         if (::networkHandler.isInitialized && networkHandler.isConnected()) {
             try {
-                val thermalMessage = JSONObject().apply {
-                    put("timestamp", thermalData.timestamp)
-                    put("frame_number", frameNumber)
-                    put("min_temp", thermalData.minTemp)
-                    put("max_temp", thermalData.maxTemp)
-                    put("width", thermalData.width)
-                    put("height", thermalData.height)
-                    put("camera_model", "Topdon TC001")
-                    put("resolution", "${thermalData.width}x${thermalData.height}")
-                    put("temperature_unit", "celsius")
-                }
+                val thermalMessage =
+                    JSONObject().apply {
+                        put("timestamp", thermalData.timestamp)
+                        put("frame_number", frameNumber)
+                        put("min_temp", thermalData.minTemp)
+                        put("max_temp", thermalData.maxTemp)
+                        put("width", thermalData.width)
+                        put("height", thermalData.height)
+                        put("camera_model", "Topdon TC001")
+                        put("resolution", "${thermalData.width}x${thermalData.height}")
+                        put("temperature_unit", "celsius")
+                    }
 
                 networkHandler.sendDataStream("thermal", thermalMessage)
             } catch (e: Exception) {
@@ -889,9 +940,8 @@ class MainActivity : AppCompatActivity() {
         val height: Int,
         val minTemp: Float,
         val maxTemp: Float,
-        val timestamp: Long
+        val timestamp: Long,
     )
-
 
     private fun startGSRRecording() {
         if (!gsrConnected) {
@@ -903,59 +953,58 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "Starting GSR recording")
 
         // Start GSR recording thread
-        gsrRecordingThread = Thread {
-            val sessionDir = createGSRSessionDirectory()
-            val csvFile = File(sessionDir, "gsr_data.csv")
-            var recordedSamples = 0
+        gsrRecordingThread =
+            Thread {
+                val sessionDir = createGSRSessionDirectory()
+                val csvFile = File(sessionDir, "gsr_data.csv")
+                var recordedSamples = 0
 
-            try {
-                csvFile.bufferedWriter().use { writer ->
-                    // Write CSV header
-                    writer.write("timestamp,gsr_value_us,quality,session_time_ms\n")
+                try {
+                    csvFile.bufferedWriter().use { writer ->
+                        // Write CSV header
+                        writer.write("timestamp,gsr_value_us,quality,session_time_ms\n")
 
-                    val recordingStartTime = System.currentTimeMillis()
+                        val recordingStartTime = System.currentTimeMillis()
 
-                    while (isGSRRecording && gsrConnected) {
-                        try {
-                            // Get recent GSR data from buffer
-                            val dataToRecord = mutableListOf<GSRDataPoint>()
-                            synchronized(gsrDataBuffer) {
-                                // Copy new data points that haven't been recorded yet
-                                if (gsrDataBuffer.isNotEmpty()) {
-                                    dataToRecord.addAll(gsrDataBuffer.takeLast(10)) // Take last 10 samples
+                        while (isGSRRecording && gsrConnected) {
+                            try {
+                                // Get recent GSR data from buffer
+                                val dataToRecord = mutableListOf<GSRDataPoint>()
+                                synchronized(gsrDataBuffer) {
+                                    // Copy new data points that haven't been recorded yet
+                                    if (gsrDataBuffer.isNotEmpty()) {
+                                        dataToRecord.addAll(gsrDataBuffer.takeLast(10)) // Take last 10 samples
+                                    }
                                 }
+
+                                // Write data points to CSV
+                                for (dataPoint in dataToRecord) {
+                                    val sessionTime = dataPoint.timestamp - recordingStartTime
+                                    writer.write("${dataPoint.timestamp},${dataPoint.gsrValue},${dataPoint.quality},$sessionTime\n")
+                                    recordedSamples++
+                                }
+
+                                // Flush data periodically
+                                if (recordedSamples % 100 == 0) {
+                                    writer.flush()
+                                }
+
+                                // Sleep briefly to avoid overwhelming the file system
+                                Thread.sleep(50)
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error writing GSR data", e)
+                                break
                             }
-
-                            // Write data points to CSV
-                            for (dataPoint in dataToRecord) {
-                                val sessionTime = dataPoint.timestamp - recordingStartTime
-                                writer.write("${dataPoint.timestamp},${dataPoint.gsrValue},${dataPoint.quality},$sessionTime\n")
-                                recordedSamples++
-                            }
-
-                            // Flush data periodically
-                            if (recordedSamples % 100 == 0) {
-                                writer.flush()
-                            }
-
-                            // Sleep briefly to avoid overwhelming the file system
-                            Thread.sleep(50)
-
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error writing GSR data", e)
-                            break
                         }
+
+                        writer.flush()
                     }
 
-                    writer.flush()
+                    Log.d(TAG, "GSR recording completed. Recorded $recordedSamples samples to ${csvFile.absolutePath}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error during GSR recording", e)
                 }
-
-                Log.d(TAG, "GSR recording completed. Recorded $recordedSamples samples to ${csvFile.absolutePath}")
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Error during GSR recording", e)
             }
-        }
 
         gsrRecordingThread?.start()
     }
@@ -999,7 +1048,7 @@ class MainActivity : AppCompatActivity() {
                     "data_format": "CSV",
                     "columns": ["timestamp", "gsr_value_us", "quality", "session_time_ms"]
                 }
-            """.trimIndent()
+                """.trimIndent(),
             )
         } catch (e: Exception) {
             Log.w(TAG, "Failed to create GSR metadata file", e)
@@ -1020,42 +1069,42 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "Starting thermal recording")
 
         // Start thermal recording thread
-        thermalRecordingThread = Thread {
-            val sessionDir = createThermalSessionDirectory()
-            var frameCount = 0
+        thermalRecordingThread =
+            Thread {
+                val sessionDir = createThermalSessionDirectory()
+                var frameCount = 0
 
-            while (isThermalRecording && thermalCameraConnected) {
-                try {
-                    // TODO: Replace with actual thermal frame capture from SDK when available
-                    // For now, use enhanced thermal simulation
-                    val thermalData = generateRealisticThermalFrame(frameCount)
-                    val thermalBitmap = createThermalBitmapFromData(thermalData)
+                while (isThermalRecording && thermalCameraConnected) {
+                    try {
+                        // TODO: Replace with actual thermal frame capture from SDK when available
+                        // For now, use enhanced thermal simulation
+                        val thermalData = generateRealisticThermalFrame(frameCount)
+                        val thermalBitmap = createThermalBitmapFromData(thermalData)
 
-                    // Save frame to buffer
-                    synchronized(thermalFrameBuffer) {
-                        thermalFrameBuffer.add(thermalData)
+                        // Save frame to buffer
+                        synchronized(thermalFrameBuffer) {
+                            thermalFrameBuffer.add(thermalData)
 
-                        // Keep buffer size manageable (last 100 frames)
-                        if (thermalFrameBuffer.size > 100) {
-                            thermalFrameBuffer.removeAt(0)
+                            // Keep buffer size manageable (last 100 frames)
+                            if (thermalFrameBuffer.size > 100) {
+                                thermalFrameBuffer.removeAt(0)
+                            }
                         }
+
+                        // Save thermal frame and temperature data to files
+                        saveThermalFrameWithData(thermalBitmap, thermalData, sessionDir, frameCount)
+                        frameCount++
+
+                        // Record at ~25 FPS
+                        Thread.sleep(40)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error during thermal recording", e)
+                        break
                     }
-
-                    // Save thermal frame and temperature data to files
-                    saveThermalFrameWithData(thermalBitmap, thermalData, sessionDir, frameCount)
-                    frameCount++
-
-                    // Record at ~25 FPS
-                    Thread.sleep(40)
-
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error during thermal recording", e)
-                    break
                 }
-            }
 
-            Log.d(TAG, "Thermal recording thread stopped. Recorded $frameCount frames")
-        }
+                Log.d(TAG, "Thermal recording thread stopped. Recorded $frameCount frames")
+            }
 
         thermalRecordingThread?.start()
     }
@@ -1082,7 +1131,7 @@ class MainActivity : AppCompatActivity() {
                     "data_format": "PNG + CSV",
                     "color_palette": "ironbow"
                 }
-            """.trimIndent()
+                """.trimIndent(),
             )
         } catch (e: Exception) {
             Log.w(TAG, "Failed to create thermal metadata file", e)
@@ -1095,7 +1144,7 @@ class MainActivity : AppCompatActivity() {
         thermalBitmap: Bitmap,
         thermalData: ThermalFrameData,
         sessionDir: File,
-        frameNumber: Int
+        frameNumber: Int,
     ) {
         try {
             // Save thermal image
@@ -1125,15 +1174,14 @@ class MainActivity : AppCompatActivity() {
                 val isNewFile = !summaryFile.exists()
 
                 summaryFile.appendText(
-                    if (isNewFile) "frame_number,timestamp,min_temp,max_temp,avg_temp\n" else ""
+                    if (isNewFile) "frame_number,timestamp,min_temp,max_temp,avg_temp\n" else "",
                 )
 
                 val avgTemp = thermalData.temperatureMatrix.flatMap { it.toList() }.average()
                 summaryFile.appendText(
-                    "$frameNumber,${thermalData.timestamp},${thermalData.minTemp},${thermalData.maxTemp},$avgTemp\n"
+                    "$frameNumber,${thermalData.timestamp},${thermalData.minTemp},${thermalData.maxTemp},$avgTemp\n",
                 )
             }
-
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save thermal frame $frameNumber", e)
         }
@@ -1170,7 +1218,11 @@ class MainActivity : AppCompatActivity() {
         return sessionDir
     }
 
-    private fun saveThermalFrame(frame: Bitmap, sessionDir: File, frameNumber: Int) {
+    private fun saveThermalFrame(
+        frame: Bitmap,
+        sessionDir: File,
+        frameNumber: Int,
+    ) {
         try {
             val filename = String.format("thermal_frame_%06d.png", frameNumber)
             val file = File(sessionDir, filename)
@@ -1178,7 +1230,6 @@ class MainActivity : AppCompatActivity() {
             FileOutputStream(file).use { out ->
                 frame.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
-
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save thermal frame $frameNumber", e)
         }
@@ -1221,7 +1272,7 @@ class MainActivity : AppCompatActivity() {
             height = height,
             minTemp = minTemp,
             maxTemp = maxTemp,
-            timestamp = System.currentTimeMillis()
+            timestamp = System.currentTimeMillis(),
         )
     }
 
@@ -1230,22 +1281,24 @@ class MainActivity : AppCompatActivity() {
      * TODO: Replace with actual thermal visualization
      */
     private fun createThermalBitmapFromData(thermalData: ThermalFrameData): Bitmap {
-        val bitmap = Bitmap.createBitmap(
-            thermalData.width,
-            thermalData.height,
-            Bitmap.Config.ARGB_8888
-        )
+        val bitmap =
+            Bitmap.createBitmap(
+                thermalData.width,
+                thermalData.height,
+                Bitmap.Config.ARGB_8888,
+            )
 
         val tempRange = thermalData.maxTemp - thermalData.minTemp
 
         for (y in 0 until thermalData.height) {
             for (x in 0 until thermalData.width) {
                 val temp = thermalData.temperatureMatrix[y][x]
-                val normalized = if (tempRange > 0) {
-                    (temp - thermalData.minTemp) / tempRange
-                } else {
-                    0.5f
-                }
+                val normalized =
+                    if (tempRange > 0) {
+                        (temp - thermalData.minTemp) / tempRange
+                    } else {
+                        0.5f
+                    }
 
                 // Simple thermal color mapping (blue to red)
                 val red = (normalized * 255).toInt().coerceIn(0, 255)
@@ -1260,7 +1313,6 @@ class MainActivity : AppCompatActivity() {
         return bitmap
     }
 
-
     private fun getRecordedFilesList(): JSONArray {
         val fileList = JSONArray()
         try {
@@ -1269,12 +1321,13 @@ class MainActivity : AppCompatActivity() {
                 val files = externalFilesDir.listFiles()
                 files?.forEach { file ->
                     if (file.isFile) {
-                        val fileInfo = JSONObject().apply {
-                            put("filename", file.name)
-                            put("size", file.length())
-                            put("last_modified", file.lastModified())
-                            put("file_type", getFileType(file.name))
-                        }
+                        val fileInfo =
+                            JSONObject().apply {
+                                put("filename", file.name)
+                                put("size", file.length())
+                                put("last_modified", file.lastModified())
+                                put("file_type", getFileType(file.name))
+                            }
                         fileList.put(fileInfo)
                     }
                 }
@@ -1298,17 +1351,19 @@ class MainActivity : AppCompatActivity() {
         return totalSize
     }
 
-    private fun getFileType(filename: String): String {
-        return when {
+    private fun getFileType(filename: String): String =
+        when {
             filename.endsWith(".mp4") -> "video"
             filename.endsWith(".csv") -> "gsr"
             filename.endsWith(".png") -> "thermal"
             filename.endsWith(".jpg") || filename.endsWith(".jpeg") -> "image"
             else -> "unknown"
         }
-    }
 
-    private fun startFileTransfer(transferPort: Int, sessionId: String) {
+    private fun startFileTransfer(
+        transferPort: Int,
+        sessionId: String,
+    ) {
         Thread {
             try {
                 Log.d(TAG, "Starting file transfer to PC on port $transferPort")
@@ -1328,13 +1383,14 @@ class MainActivity : AppCompatActivity() {
                     val file = File(getExternalFilesDir(null), filename)
                     if (file.exists()) {
                         // Send file header
-                        val header = JSONObject().apply {
-                            put("type", "file")
-                            put("filename", filename)
-                            put("size", fileSize)
-                            put("file_type", fileType)
-                            put("session_id", sessionId)
-                        }
+                        val header =
+                            JSONObject().apply {
+                                put("type", "file")
+                                put("filename", filename)
+                                put("size", fileSize)
+                                put("file_type", fileType)
+                                put("session_id", sessionId)
+                            }
 
                         val headerBytes = header.toString().padEnd(1024, '\u0000').toByteArray()
                         outputStream.write(headerBytes)
@@ -1353,16 +1409,16 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Send completion header
-                val completionHeader = JSONObject().apply {
-                    put("type", "complete")
-                    put("session_id", sessionId)
-                }
+                val completionHeader =
+                    JSONObject().apply {
+                        put("type", "complete")
+                        put("session_id", sessionId)
+                    }
                 val completionBytes = completionHeader.toString().padEnd(1024, '\u0000').toByteArray()
                 outputStream.write(completionBytes)
 
                 socket.close()
                 Log.d(TAG, "File transfer completed successfully")
-
             } catch (e: Exception) {
                 Log.e(TAG, "Error in file transfer", e)
             }
@@ -1386,7 +1442,7 @@ class MainActivity : AppCompatActivity() {
                 ipAddress and 0xff,
                 ipAddress shr 8 and 0xff,
                 ipAddress shr 16 and 0xff,
-                ipAddress shr 24 and 0xff
+                ipAddress shr 24 and 0xff,
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error getting device IP address", e)
@@ -1398,9 +1454,10 @@ class MainActivity : AppCompatActivity() {
         activityResultLauncher.launch(REQUIRED_PERMISSIONS)
     }
 
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
-    }
+    private fun allPermissionsGranted() =
+        REQUIRED_PERMISSIONS.all {
+            ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+        }
 
     override fun onDestroy() {
         super.onDestroy()

@@ -238,7 +238,6 @@ dependencies {
     // OpenCV for image processing - Temporarily commented out due to dependency issues
     // implementation(libs.opencv.android)
 
-
     // Testing dependencies
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
