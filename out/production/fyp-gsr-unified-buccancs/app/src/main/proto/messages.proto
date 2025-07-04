@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package gsrunified;
+
+// Common timestamp message
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+// Device identification
+message DeviceInfo {
+  string device_id = 1;
+  string device_name = 2;
+  string device_type = 3; // "android", "pc"
+}
+
+// Command messages from PC to Android devices
+message Command {
+  enum CommandType {
+    UNKNOWN = 0;
+    START_STREAM = 1;
+    STOP_STREAM = 2;
+    START_CAMERA = 3;
+    STOP_CAMERA = 4;
+    START_GSR = 5;
+    STOP_GSR = 6;
+    START_THERMAL = 7;
+    STOP_THERMAL = 8;
+    MARK_EVENT = 9;
+    SYNC_TIME = 10;
+    GET_STATUS = 11;
+  }
+
+  CommandType type = 1;
+  string device_id = 2;
+  Timestamp timestamp = 3;
+  map<string, string> parameters = 4;
+}
+
+// Response messages from Android devices to PC
+message CommandResponse {
+  enum Status {
+    SUCCESS = 0;
+    ERROR = 1;
+    NOT_SUPPORTED = 2;
+    DEVICE_BUSY = 3;
+  }
+
+  Status status = 1;
+  string message = 2;
+  string device_id = 3;
+  Timestamp timestamp = 4;
+}
+
+// GSR sensor data
+message GSRData {
+  double conductance = 1;
+  double resistance = 2;
+  int32 quality = 3; // 0-100 quality percentage
+  Timestamp timestamp = 4;
+  string device_id = 5;
+}
+
+// Thermal camera data
+message ThermalData {
+  int32 width = 1;
+  int32 height = 2;
+  repeated float temperature_matrix = 3; // Flattened temperature matrix
+  float min_temp = 4;
+  float max_temp = 5;
+  float avg_temp = 6;
+  Timestamp timestamp = 7;
+  string device_id = 8;
+  int32 frame_number = 9;
+}
+
+// RGB camera frame metadata
+message CameraFrame {
+  int32 width = 1;
+  int32 height = 2;
+  bytes image_data = 3; // JPEG compressed image data
+  Timestamp timestamp = 4;
+  string device_id = 5;
+  int32 frame_number = 6;
+}
+
+// Device status information
+message DeviceStatus {
+  string device_id = 1;
+  bool gsr_connected = 2;
+  bool thermal_connected = 3;
+  bool camera_active = 4;
+  bool recording = 5;
+  int32 battery_level = 6;
+  string status_message = 7;
+  Timestamp timestamp = 8;
+}
+
+// Session management
+message SessionInfo {
+  string session_id = 1;
+  string session_name = 2;
+  Timestamp start_time = 3;
+  Timestamp end_time = 4;
+  repeated string participating_devices = 5;
+  map<string, string> metadata = 6;
+}
+
+// Time synchronization
+message TimeSyncRequest {
+  Timestamp pc_timestamp = 1;
+  string device_id = 2;
+}
+
+message TimeSyncResponse {
+  Timestamp pc_timestamp = 1;
+  Timestamp device_timestamp = 2;
+  string device_id = 3;
+  int64 round_trip_time_ms = 4;
+}

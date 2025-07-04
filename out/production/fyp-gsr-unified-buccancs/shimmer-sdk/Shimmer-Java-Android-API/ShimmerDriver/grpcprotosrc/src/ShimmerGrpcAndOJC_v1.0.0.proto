@@ -1,0 +1,262 @@
+//import "C:/Users/Lim/git/Shimmer-Java-Android-API/ShimmerDriver/grpcprotosrc/src/LiteProtocolInstructionSet.proto";
+
+syntax = "proto3";
+//import "src/LiteProtocolInstructionSet.proto";
+
+//import "google/protobuf/descriptor.proto";
+
+option csharp_namespace = "com.shimmerresearch.grpc";
+option java_package = "com.shimmerresearch.grpc";
+option java_outer_classname = "ShimmerGRPC";
+
+package shimmerGRPC;
+
+// The greeter service definition.
+service ShimmerServer {
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+
+  //Client asking for data
+  rpc GetDataStream(StreamRequest) returns (stream ObjectCluster2) {}
+  
+  //Client sending data
+  rpc SendDataStream(stream ObjectCluster2) returns (HelloReply){}
+  
+  rpc SendFileStream(stream FileByteTransfer) returns (HelloReply){}
+  
+  rpc ConnectShimmer(ShimmerRequest) returns (CommandStatus){}
+  
+  rpc DisconnectShimmer(ShimmerRequest) returns (CommandStatus){}
+
+  rpc StartStreaming(ShimmerRequest) returns (CommandStatus){}
+  
+  rpc StopStreaming(ShimmerRequest) returns (CommandStatus){}
+
+  rpc CloseApplication(ShimmerRequest) returns (CommandStatus){}
+
+
+  //ConsensysApi related
+  rpc SetWorkspaceDirectory(StringMsg) returns (OperationRequest){}
+  
+  rpc GetWorkspaceDirectory(StringMsg) returns (StringMsg){}
+
+  rpc GetDockedShimmerInfo(StringMsg) returns (ShimmersInfo){}
+
+  rpc GetMadgewickBetaValue(StringMsg) returns (DoubleMsg){}
+
+  rpc PairShimmers(StringArrayMsg) returns (OperationRequest){}
+
+  rpc GetOperationProgress(StringMsg) returns (OperationRequest){}
+
+  rpc ImportSdDataFromShimmers(StringArrayMsg) returns (OperationRequest){}
+
+  rpc ParseSdDataFromPath(StringMsg) returns (OperationRequest){}
+
+  rpc ScanSdDataAndCopy(StringArrayMsg) returns (OperationRequest){}
+
+  rpc ClearSdCardData(StringArrayMsg) returns (OperationRequest){}
+
+  rpc DockAccessSlotWithSdCard(StringArrayMsg) returns (OperationRequest){}
+
+  rpc DockRestoreAutoTasks(StringArrayMsg) returns (OperationRequest){}
+
+  //Shimmer device emulation software related
+  rpc GetInfoSpans(StringMsg) returns (InfoSpans){}
+
+  rpc GetInfoAllShimmers(StringMsg) returns (ShimmersInfo){}
+
+  rpc GetEmulatedDevices(StringMsg) returns (EmulatedDevices){}
+  
+  
+  //Noldus client related
+  rpc GetPairedBtShimmers(StringMsg) returns (BluetoothDevicesDetails) {}
+    
+  rpc GetDeviceStateStream(StreamRequest) returns (stream DeviceState) {}
+}
+
+message FileByteTransfer {
+	string name=1;
+	bytes data=2;
+	bool endoffile=3;
+}
+
+message CommandStatus {
+	string status = 1;
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}
+
+message ShimmerRequest {
+  string address = 1;
+}
+
+message StreamRequest {
+  string message = 1;
+}
+
+message ObjectCluster2 {
+  string name = 1;
+  string bluetoothAddress = 2;
+  
+  enum CommunicationType {
+    BT = 0;
+    SD = 1;
+    Radio_802_15_4 = 2;
+  }
+  
+  CommunicationType communicationType = 3;
+
+  message FormatCluster2 {
+  	
+  	message DataCluster2{
+  		string unit = 1;
+    	double data = 2;	
+    	repeated double dataArray = 3;
+  	}
+  	map<string, DataCluster2> formatMap = 1;  
+    
+  }
+  map<string,FormatCluster2> dataMap = 4;
+  
+  int64 systemTime = 5;
+  double calibratedTimeStamp = 6;
+}
+
+
+//ConsensysApi related
+message StringMsg {
+  string message = 1;
+}
+
+message StringArrayMsg {
+  repeated string messageArray = 1;
+}
+
+message BoolMsg {
+  bool state = 1;
+}
+
+message DoubleMsg {
+  double number = 1;
+}
+
+message OperationRequest {
+  bool isFinished = 1;
+  bool isSuccess = 2;
+  string message = 3;
+
+  double progressPercentage = 4;
+  string progressPercentageParsed = 5;
+}
+
+message ShimmersInfo {
+  bool state = 1;
+  string message = 2;
+
+  message ShimmerInfo {
+    string name = 1;
+    string uniqueId = 2;
+    string bluetoothAddress = 3;
+    string trialName = 4;
+    string batteryPercentageParsed = 5;
+    double batteryPercentage = 6;
+    string chargingStatusParsed = 7;
+    int64 driveCapacity = 8;
+    int64 driveSpaceUsed = 9;
+    int64 driveSpaceFree = 10;
+    string driveCapacityParsed = 11;
+
+    bool isRealTimeClockSet = 12;
+    int64 lastReadRtcValueMilliSecs = 13;
+    string lastReadRtcValueParsed = 14;
+
+    string hwVersionParsed = 15;
+    string expBrdVersionParsed = 16;
+    string fwVersionParsed = 17;
+	repeated string pairedDevice = 18;
+
+	int64 configTime = 19;
+	string configTimeParsed = 20;
+
+	//Applicable for GQ devices
+	Ieee802154Info ieee802154Info = 21;
+  }
+  map<string,ShimmerInfo> shimmerMap = 3;
+}
+
+message BluetoothDevicesDetails {
+	bool state = 1;
+	string message = 2;
+	
+	message BluetoothDeviceDetails {
+		string comPort = 1;
+		string name = 2;
+		string macId = 3;
+		string deviceType = 4;
+		string lastConnectionState = 5;
+	}
+	
+	map<string,BluetoothDeviceDetails> deviceMap = 3;
+}
+
+enum BT_STATE {
+	DISCONNECTED = 0;
+	CONNECTING = 1;
+	CONNECTED = 2;
+	STREAMING = 3;
+	STREAMING_AND_SDLOGGING = 4;
+	SDLOGGING = 5;
+	CONFIGURING = 6;
+	CONNECTION_LOST = 7;
+	CONNECTION_FAILED = 8;
+}
+
+message DeviceState {
+	string deviceName = 1;
+	string comPort = 2;
+	string macId = 3;
+	BT_STATE state = 4;
+}
+
+message Ieee802154Info {
+    int32 radioChannel = 1;
+	int32 radioGroupId = 2;
+	int32 radioDeviceId = 3;
+}
+
+message InfoSpans {
+  bool state = 1;
+  string message = 2;
+
+  message InfoSpan {
+    string uniqueId = 1;
+    string portBsl = 2;
+    string portComms = 3;
+  }
+  map<string,InfoSpan> spanMap = 3;
+  
+  Ieee802154Info ieee802154Info = 4;
+}
+
+message EmulatedDevices {
+  bool state = 1;
+  string message = 2;
+  bool isEmulatorSide = 3;
+
+  message EmulatedDevice {
+    string uniqueId = 1;
+    int32 deviceTypeOrdinal = 2;
+    repeated string hwDeviceInterfacePath = 3;
+    bool isDeviceEnabled = 4;
+  }
+  map<string,EmulatedDevice> emulatedDevicesMap = 4;
+}
+
