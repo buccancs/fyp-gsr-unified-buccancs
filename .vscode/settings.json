@@ -1,0 +1,78 @@
+{
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.formatting.provider": "black",
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "windows_controller/tests"
+    ],
+    "python.analysis.extraPaths": [
+        "./windows_controller/src",
+        "./windows/app"
+    ],
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.sources.organizeImports.starThreshold": 99,
+    "java.sources.organizeImports.staticStarThreshold": 99,
+    "java.project.sourcePaths": [
+        "shared",
+        "src"
+    ],
+    "java.project.outputPath": "build/classes",
+    "files.associations": {
+        "*.gradle": "groovy",
+        "*.kt": "kotlin"
+    },
+    "files.exclude": {
+        "**/build/": true,
+        "**/.gradle/": true,
+        "**/__pycache__/": true,
+        "**/*.pyc": true,
+        "**/venv/": false,
+        "**/.pytest_cache/": true,
+        "**/node_modules/": true
+    },
+    "search.exclude": {
+        "**/build/": true,
+        "**/.gradle/": true,
+        "**/venv/": true,
+        "**/__pycache__/": true,
+        "**/.pytest_cache/": true
+    },
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "kotlin.languageServer.enabled": true,
+    "android.home": "${env:ANDROID_HOME}",
+    "gradle.nestedProjects": true,
+    "terminal.integrated.env.osx": {
+        "ANDROID_HOME": "${env:ANDROID_HOME}",
+        "JAVA_HOME": "${env:JAVA_HOME}"
+    },
+    "terminal.integrated.env.linux": {
+        "ANDROID_HOME": "${env:ANDROID_HOME}",
+        "JAVA_HOME": "${env:JAVA_HOME}"
+    },
+    "terminal.integrated.env.windows": {
+        "ANDROID_HOME": "${env:ANDROID_HOME}",
+        "JAVA_HOME": "${env:JAVA_HOME}"
+    },
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#2D3748",
+        "activityBar.foreground": "#E2E8F0"
+    },
+    "extensions.recommendations": [
+        "ms-python.python",
+        "ms-python.flake8",
+        "ms-python.black-formatter",
+        "redhat.java",
+        "vscjava.vscode-java-pack",
+        "fwcd.kotlin",
+        "ms-vscode.vscode-gradle",
+        "ms-python.pylint"
+    ]
+}

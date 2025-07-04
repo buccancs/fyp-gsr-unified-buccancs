@@ -1,9 +1,7 @@
-# Windows PC Controller App Dependencies
+# PC Controller App Dependencies (Cross-Platform: Windows, macOS, Linux)
 
-# GUI Framework
-PyQt5==5.15.9
-PyQt5-Qt5==5.15.2
-PyQt5-sip==12.12.1
+# GUI Framework (PySide6 is the official Qt binding for Python)
+PySide6==6.6.1
 
 # Networking
 socket.io-client==0.5.3
@@ -18,11 +16,14 @@ pillow==10.0.0
 # Data Handling
 pandas==2.0.3
 matplotlib==3.7.2
-pyqtgraph==0.13.3  # For real-time plotting
+pyqtgraph==0.13.7  # For real-time plotting (PySide6 compatible)
 
 # Sensor Integration
 pyserial==3.5  # For serial communication with sensors
 bleak==0.20.2  # For BLE communication
+pylsl==1.16.2  # Lab Streaming Layer for real-time data streaming
+psychopy==2023.2.3  # For psychological experiments and stimulus presentation
+shimmer-python==1.0.0  # Shimmer sensor Python bindings (if available)
 
 # Utilities
 pyyaml==6.0.1  # For configuration files

@@ -9,7 +9,15 @@ This repository contains the unified codebase for the GSR & Dual-Video Recording
 ├── android/              # Android application code
 │   ├── app/              # Android app module
 │   └── build.gradle      # Android build configuration
-├── windows/              # Windows application code
+├── windows_controller/   # Windows PC Controller application (PySide6)
+│   ├── src/              # Source code
+│   │   ├── ui/           # Modern GUI components
+│   │   ├── network/      # Device management and networking
+│   │   ├── utils/        # Utility functions and session management
+│   │   └── main/         # Application entry point
+│   ├── requirements.txt  # Python dependencies (PySide6-based)
+│   └── README.md         # Windows controller documentation
+├── windows/              # Legacy Windows application code
 │   ├── app/              # Windows app module
 │   └── setup.py          # Python package configuration
 ├── shared/               # Shared code used by both platforms
@@ -80,25 +88,27 @@ The Android Capture App has been implemented with the following components:
 
 1. **RGB Video Capture**: Implemented using the CameraX API in `RgbCameraManager.kt`. Records high-definition color video at 1080p/30fps.
 
-2. **Thermal Video Capture**: Implemented in `ThermalCameraManager.kt`. Interfaces with the Topdon TC001 thermal camera via USB-C to capture infrared video frames.
+2. **Raw RGB Image Capture**: NEW - Implemented in `RgbCameraManager.kt`. Captures raw images before ISP processing using CameraX ImageCapture with minimize latency mode. Images are saved frame-by-frame with nanosecond timestamp naming at ~30 FPS for precise temporal analysis.
 
-3. **GSR Sensor Data Capture**: Implemented in `GsrSensorManager.kt`. Connects to a Shimmer3 GSR+ sensor over Bluetooth Low Energy to stream GSR readings at 128 Hz.
+3. **Thermal Video Capture**: Implemented in `ThermalCameraManager.kt`. Interfaces with the Topdon TC001 thermal camera via USB-C to capture infrared video frames. Thermal frames are also saved individually with nanosecond timestamp naming for frame-by-frame analysis.
 
-4. **Audio Recording**: Implemented in `AudioRecorder.kt`. Captures synchronized audio via the phone's microphone at 44.1 kHz stereo, saved to WAV format.
+4. **GSR Sensor Data Capture**: Implemented in `GsrSensorManager.kt`. Connects to a Shimmer3 GSR+ sensor over Bluetooth Low Energy to stream GSR readings at 128 Hz.
 
-5. **Real-time Preview & Mode Toggle**: Implemented in `MainActivity.kt`. Provides live preview of both RGB and thermal camera feeds with the ability to switch between views.
+5. **Audio Recording**: Implemented in `AudioRecorder.kt`. Captures synchronized audio via the phone's microphone at 44.1 kHz stereo, saved to WAV format.
 
-6. **Unified Recording Control**: Implemented in `RecordingController.kt`. Provides a simple one-touch interface to start and stop recordings for all data streams simultaneously.
+6. **Real-time Preview & Mode Toggle**: Implemented in `MainActivity.kt`. Provides live preview of both RGB and thermal camera feeds with the ability to switch between views.
 
-7. **Local Data Storage**: Implemented across all manager classes. Saves captured data locally with a consistent naming scheme based on session ID and timestamp.
+7. **Unified Recording Control**: Implemented in `RecordingController.kt`. Provides a simple one-touch interface to start and stop recordings for all data streams simultaneously, including the new raw image capture functionality.
 
-8. **Bluetooth Sensor Pairing & Status**: Implemented in `GsrSensorManager.kt`. Manages pairing and connection to the Shimmer GSR sensor with status feedback.
+8. **Local Data Storage**: Implemented across all manager classes. Saves captured data locally with a consistent naming scheme based on session ID and timestamp. Creates organized directory structure with separate folders for raw RGB images and thermal frames.
 
-9. **Sensor Status and Feedback UI**: Implemented in `MainActivity.kt`. Displays visual indicators for each data source's status and real-time values.
+9. **Bluetooth Sensor Pairing & Status**: Implemented in `GsrSensorManager.kt`. Manages pairing and connection to the Shimmer GSR sensor with status feedback.
 
-10. **Timestamping & Synchronization**: Implemented in `TimeManager.kt`. Uses a unified clock (SystemClock.elapsedRealtimeNanos) to timestamp all sensor readings and video frames.
+10. **Sensor Status and Feedback UI**: Implemented in `MainActivity.kt`. Displays visual indicators for each data source's status and real-time values.
 
-11. **Network Remote Control Client**: Implemented in `NetworkClient.kt`. Allows the app to be remote-controlled by the Windows PC controller.
+11. **Timestamping & Synchronization**: Implemented in `TimeManager.kt`. Uses a unified clock (SystemClock.elapsedRealtimeNanos) to timestamp all sensor readings, video frames, and raw images with nanosecond precision.
+
+12. **Network Remote Control Client**: Implemented in `NetworkClient.kt`. Allows the app to be remote-controlled by the PC controller.
 
 #### Extended Features
 
@@ -110,11 +120,98 @@ The app follows a modular architecture with clear separation of concerns:
 
 - **MainActivity**: Main UI and entry point
 - **RecordingController**: Coordinates all recording components
-- **Camera Package**: Handles RGB and thermal video capture
+- **Camera Package**: Handles RGB and thermal video capture, including raw image capture
 - **Sensor Package**: Manages GSR sensor connection and data
 - **Audio Package**: Handles audio recording
 - **Network Package**: Manages communication with the PC controller
 - **Utils Package**: Provides utility classes like TimeManager
+
+#### Recent Upgrades (2024)
+
+The Android application has been comprehensively upgraded to the latest technologies:
+
+**Platform Upgrades:**
+- **Java 24**: Updated from Java 1.8 to Java 24 for access to latest language features and performance improvements
+- **Kotlin 2.0.0**: Updated from Kotlin 1.8.0 to 2.0.0 for enhanced compiler performance and new language features
+- **Android SDK 34**: Updated from API 33 to API 34 (Android 14) for latest Android features and security improvements
+- **Gradle 8.5**: Updated build system for better performance and compatibility
+
+**AndroidX Library Updates:**
+- **Core KTX**: 1.9.0 → 1.12.0
+- **AppCompat**: 1.6.1 → 1.7.0
+- **Material Design**: 1.8.0 → 1.11.0
+- **ConstraintLayout**: 2.1.4 → 2.2.0
+- **Lifecycle Components**: 2.5.1 → 2.7.0
+- **CameraX**: 1.2.2 → 1.3.1 (enables enhanced raw image capture capabilities)
+
+**Third-Party Dependencies:**
+- **Kotlin Coroutines**: 1.6.4 → 1.7.3
+- **Nordic BLE Library**: 2.5.1 → 2.7.4
+- **USB Serial**: 3.4.6 → 3.7.0
+- **OkHttp**: 4.10.0 → 4.12.0
+
+All upgrades maintain backward compatibility while providing enhanced performance, security, and access to latest Android features.
+
+### PC Controller App Implementation (Cross-Platform)
+
+The PC Controller App has been fully upgraded to PySide6 with a modern GUI interface and supports Windows, macOS, and Linux:
+
+#### Modern GUI Framework (PySide6)
+
+The application has been completely upgraded from PyQt5 to PySide6, providing:
+- **Official Qt Support**: Using PySide6 (the official Qt binding for Python)
+- **Modern Interface**: Professional blue and gray color scheme with rounded corners
+- **Enhanced Usability**: Larger buttons with emojis, improved typography, and better spacing
+- **Responsive Design**: Better scaling on different screen sizes (1400x900 minimum)
+- **Cross-Platform Compatibility**: Consistent experience across Windows, macOS, and Linux
+
+#### Core Components
+
+1. **Multi-Device Connection Management**: Implemented in `device_manager.py`. Provides a framework for discovering and connecting to multiple Android capture devices using Zeroconf/mDNS discovery. Features modern device panels with real-time status indicators.
+
+2. **Synchronized Start/Stop Control**: Implemented in `main_window.py` with modern control buttons featuring emojis (🔴 Start, ⏹️ Stop). Provides central control to start and stop recording simultaneously on all connected devices with enhanced visual feedback.
+
+3. **Device Status Dashboard**: Implemented in `status_dashboard.py`. Shows real-time status of each connected device in a modern tabular interface with color-coded indicators for connection health, battery level, storage remaining, and sensor stream status.
+
+4. **Data Logging and Monitoring**: Implemented in `log_viewer.py` with modern text formatting and color-coded log levels. Provides live log view with filtering capabilities and export functionality.
+
+5. **Session Manifest & Metadata Generation**: Fully implemented in `session_manager.py`. Compiles comprehensive session manifests with device information, timestamps, and file references.
+
+6. **Video Playback and Annotation**: Implemented in `video_playback_window.py` with PySide6 multimedia support. Features video playlist management, real-time annotation capabilities, and export functionality for research analysis.
+
+#### Extended Features
+
+1. **Live Video Preview from Devices**: UI framework implemented in `video_preview.py` with modern styling. Actual video streaming implementation is planned for future development.
+
+2. **File Aggregation Utility**: Framework exists in `device_manager.py` with modern progress indicators. Actual file transfer implementation is currently simulated but ready for network protocol integration.
+
+3. **Local Webcam Integration**: Planned feature for capturing video from PC webcams using OpenCV integration.
+
+4. **Optional PC-GSR Sensor Recording**: Planned feature for direct GSR sensor connection to PC via USB/Bluetooth.
+
+5. **Live GSR/PPG Plotting**: Planned feature using pyqtgraph for real-time physiological data visualization.
+
+6. **Configuration Management UI**: Planned feature for device-specific settings and recording parameters.
+
+#### Architecture
+
+The app follows a modern modular architecture built on PySide6 with clear separation of concerns:
+
+- **src/main/**: Application entry point (`main.py`) with PySide6 initialization and high-DPI support
+- **src/ui/**: Modern GUI components with professional styling
+  - `main_window.py`: Main application window with tabbed interface and modern controls
+  - `device_panel.py`: Individual device management panels with real-time status
+  - `status_dashboard.py`: System-wide status overview with color-coded indicators
+  - `log_viewer.py`: Advanced log viewing with filtering and export capabilities
+  - `video_preview.py`: Live video preview widgets with modern styling
+  - `video_playback_window.py`: Video playback and annotation system
+- **src/network/**: Device discovery and communication
+  - `device_manager.py`: Multi-device connection management with Zeroconf discovery
+  - `device.py`: Individual device communication and status monitoring
+- **src/utils/**: Utility functions and session management
+  - `session_manager.py`: Session lifecycle and metadata management
+  - `logger.py`: Advanced logging with multiple output formats
+- **src/integrations/**: External system integrations (LSL, PsychoPy, Shimmer)
 
 ## Building and Running
 
@@ -123,12 +220,120 @@ The app follows a modular architecture with clear separation of concerns:
 1. Open the `android` directory in Android Studio
 2. Build and run the app on a device or emulator
 
-### Windows App
+### PC Controller App (Cross-Platform)
 
-1. Install Python 3.8 or higher
-2. Navigate to the `windows` directory
-3. Install dependencies: `pip install -e .`
-4. Run the app: `python -m app.main`
+The PC Controller App has been upgraded to PySide6 with a modern GUI interface.
+
+#### Prerequisites
+
+- Python 3.8 or higher
+- PySide6 6.6.1 or higher
+
+#### Installation
+
+1. Navigate to the `windows_controller` directory:
+   ```bash
+   cd windows_controller
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Run the application:
+   ```bash
+   python src/main/main.py
+   ```
+
+#### Testing the Modern GUI
+
+To test the modernized interface:
+```bash
+python test_modern_gui.py
+```
+
+#### Key Dependencies
+
+- **PySide6 6.6.1**: Official Qt binding for Python with modern GUI framework
+- **pyqtgraph 0.13.7**: Real-time plotting (PySide6 compatible)
+- **OpenCV 4.8.0**: Video processing and webcam integration
+- **Zeroconf 0.69.0**: Device discovery on local network
+- **Additional integrations**: LSL, PsychoPy, Shimmer sensor support
+
+**Platform Support**: Windows, macOS, Linux with consistent modern interface
+
+## Implementation Roadmap
+
+The following roadmap outlines the next steps for completing the PC Controller App implementation:
+
+### Phase 1: Core Networking Implementation
+
+1. **Implement Actual Device Discovery**
+   - Replace the simulated device discovery in `DeviceManager.py` with actual Zeroconf/mDNS discovery
+   - Ensure proper handling of device appearance and disappearance on the network
+   - Add support for manual IP address entry for devices not discovered automatically
+
+2. **Implement Actual Device Connection**
+   - Replace the simulated connection in `Device.py` with actual socket connection
+   - Implement proper connection handshake and authentication if needed
+   - Add error handling and reconnection logic
+
+3. **Implement Command Protocol**
+   - Define a clear command protocol for communication between PC and Android devices
+   - Implement command serialization and deserialization
+   - Replace simulated command sending with actual network communication
+
+### Phase 2: Data Streaming and Collection
+
+1. **Implement Live Video Streaming**
+   - Add video frame receiving and decoding in `Device.py`
+   - Update `VideoPreview.py` to display actual video frames
+   - Implement efficient frame transport (possibly using RTSP or WebRTC)
+
+2. **Implement Actual File Collection**
+   - Replace simulated file collection with actual file transfer protocol
+   - Add progress reporting for file transfers
+   - Implement verification of transferred files
+
+3. **Implement Status Updates**
+   - Replace simulated status updates with actual device status polling
+   - Add real-time status visualization in the dashboard
+
+### Phase 3: Extended Features
+
+1. **Implement Local Webcam Integration**
+   - Add webcam capture using OpenCV
+   - Integrate webcam feed into the recording session
+
+2. **Implement PC-GSR Sensor Recording**
+   - Add direct connection to GSR sensors from the PC
+   - Integrate sensor data into the recording session
+
+3. **Implement Live GSR/PPG Plotting**
+   - Add real-time plotting of GSR and PPG data
+   - Implement data visualization options
+
+4. **Implement Configuration Management UI**
+   - Add settings dialog for configuring app behavior
+   - Implement device-specific configuration options
+
+### Phase 4: Testing and Optimization
+
+1. **Comprehensive Testing**
+   - Test with multiple Android devices simultaneously
+   - Test all recording scenarios and edge cases
+   - Verify synchronization accuracy
+
+2. **Performance Optimization**
+   - Optimize video streaming for lower latency
+   - Improve file transfer speeds
+   - Reduce CPU and memory usage
+
+3. **User Experience Improvements**
+   - Refine UI based on user feedback
+   - Add helpful tooltips and documentation
+   - Improve error messages and recovery procedures
 
 ## Development
 
@@ -155,7 +360,7 @@ Below are detailed feature requirements for each component of the system. Each f
 *   **PPG/Heart Rate Derivation (Extended)** – If the Shimmer GSR+ provides PPG data, compute real-time heart rate from the PPG signal and display it ￼ ￼. Interdependencies: Requires the GSR sensor’s PPG channel and additional processing; depends on GSR capture functioning. Not essential for basic recording (the raw PPG can be recorded regardless), but adds value for biofeedback.
 *   **Additional Phone Sensors (Extended)** – Optionally capture other phone sensor data (e.g. accelerometer, gyroscope) to include with the session. Interdependencies: Requires accessing Android sensor APIs and adding new capture modules; would need to integrate with timestamping and storage just like other modalities.
 
-## 2. Windows PC Controller App
+## 2. PC Controller App (Cross-Platform)
 
 *   **Multi-Device Connection Management (Core)** – A GUI to discover and connect to multiple Android capture devices (e.g. two phones) either via Bluetooth or Wi-Fi ￼. The user should be able to pair with each phone and see a list of connected devices. Interdependencies: Requires the Android apps to be running and advertising/awaiting connection; depends on the Networking layer’s device discovery and pairing protocol (Bluetooth scanning, Wi-Fi LAN or direct connections).
 *   **Synchronized Start/Stop Control (Core)** – One central control to start and stop recording simultaneously on all connected devices (and on the PC itself if it’s capturing data). When the user hits “Start”, the PC sends a CMD_START to each device to initiate recording in unison ￼ ￼. Similarly, a stop command halts all recordings. Interdependencies: Relies on robust bi-directional communication with each Android (commands and acknowledgments). It also depends on each device’s ability to honor the command and use its local timestamp base such that all streams share a common start reference (see Networking/Sync features).

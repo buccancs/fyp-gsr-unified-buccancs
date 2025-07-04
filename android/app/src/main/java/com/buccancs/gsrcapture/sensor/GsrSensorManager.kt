@@ -12,6 +12,13 @@ import java.util.UUID
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
+// Shimmer SDK imports
+import com.shimmerresearch.android.Shimmer
+import com.shimmerresearch.android.manager.ShimmerBluetoothManagerAndroid
+import com.shimmerresearch.driver.Configuration
+import com.shimmerresearch.driver.ObjectCluster
+import com.shimmerresearch.driver.ShimmerDevice
+
 /**
  * Manages GSR sensor operations including connection, data streaming, and recording.
  * This class interfaces with the Shimmer3 GSR+ sensor over Bluetooth Low Energy.
@@ -21,45 +28,42 @@ class GsrSensorManager(
     private val sensorExecutor: ExecutorService
 ) {
     private val TAG = "GsrSensorManager"
-    
-    // Bluetooth components
+
+    // Shimmer SDK components
     private var bluetoothAdapter: BluetoothAdapter? = null
-    private var shimmerDevice: BluetoothDevice? = null
-    private var shimmerConnection: ShimmerConnection? = null
-    
+    private var shimmerBluetoothManager: ShimmerBluetoothManagerAndroid? = null
+    private var shimmerDevice: Shimmer? = null
+
     // GSR sensor state
     private val isConnected = AtomicBoolean(false)
     private val isRecording = AtomicBoolean(false)
     private var gsrCallback: ((Float) -> Unit)? = null
     private var heartRateCallback: ((Int) -> Unit)? = null
     private var connectionStateCallback: ((Boolean) -> Unit)? = null
-    
+
     // Recording state
     private var outputDirectory: File? = null
     private var sessionId: String? = null
     private var csvWriter: FileWriter? = null
     private var sampleCount: Int = 0
-    
+
     // Shimmer GSR+ specific constants
     companion object {
-        // Shimmer GSR+ service and characteristic UUIDs
-        // Note: These are placeholder UUIDs and would need to be replaced with actual Shimmer UUIDs
-        private val SHIMMER_SERVICE_UUID = UUID.fromString("00001234-0000-1000-8000-00805f9b34fb")
-        private val GSR_CHARACTERISTIC_UUID = UUID.fromString("00002345-0000-1000-8000-00805f9b34fb")
-        private val PPG_CHARACTERISTIC_UUID = UUID.fromString("00003456-0000-1000-8000-00805f9b34fb")
-        
         // Shimmer GSR+ sampling rate (Hz)
         private const val SAMPLING_RATE_HZ = 128
     }
-    
+
     /**
      * Initializes the GSR sensor manager.
      */
     fun initialize() {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
+
+        // Initialize Shimmer Bluetooth Manager
+        shimmerBluetoothManager = ShimmerBluetoothManagerAndroid(context, bluetoothAdapter)
     }
-    
+
     /**
      * Scans for and connects to the Shimmer GSR+ sensor.
      * @param deviceAddress MAC address of the Shimmer device (optional)
@@ -70,50 +74,59 @@ class GsrSensorManager(
             Log.d(TAG, "Already connected to GSR sensor")
             return true
         }
-        
+
         if (bluetoothAdapter == null) {
             Log.e(TAG, "Bluetooth not supported on this device")
             return false
         }
-        
+
         if (!bluetoothAdapter!!.isEnabled) {
             Log.e(TAG, "Bluetooth is not enabled")
             return false
         }
-        
+
         try {
             // If device address is provided, connect directly
             if (deviceAddress != null) {
-                shimmerDevice = bluetoothAdapter?.getRemoteDevice(deviceAddress)
-                if (shimmerDevice == null) {
+                val bluetoothDevice = bluetoothAdapter?.getRemoteDevice(deviceAddress)
+                if (bluetoothDevice == null) {
                     Log.e(TAG, "Could not find Shimmer device with address $deviceAddress")
                     return false
                 }
+
+                // Create Shimmer device using the SDK
+                shimmerDevice = Shimmer(shimmerBluetoothManager)
+                shimmerDevice?.setBluetoothRadio(bluetoothDevice)
             } else {
-                // Scan for Shimmer devices
-                // In a real implementation, you would use BluetoothLeScanner to scan for devices
-                // For now, we'll simulate finding a device
-                shimmerDevice = findShimmerDevice()
-                if (shimmerDevice == null) {
+                // Scan for Shimmer devices using the SDK
+                val availableDevices = shimmerBluetoothManager?.getShimmerDeviceList()
+                if (availableDevices.isNullOrEmpty()) {
                     Log.e(TAG, "No Shimmer GSR+ sensor found")
                     return false
                 }
+
+                // Use the first available Shimmer device
+                shimmerDevice = availableDevices[0]
             }
-            
-            // Create and establish connection
-            shimmerConnection = ShimmerConnection(shimmerDevice!!)
-            val connected = shimmerConnection?.connect() ?: false
-            
+
+            // Set up data callback before connecting
+            shimmerDevice?.setDataProcessingCallback { objectCluster ->
+                processShimmerData(objectCluster)
+            }
+
+            // Connect to the device
+            val connected = shimmerDevice?.connect() ?: false
+
             if (connected) {
                 isConnected.set(true)
                 connectionStateCallback?.invoke(true)
-                
+
                 // Configure the sensor
                 configureSensor()
-                
+
                 // Start data streaming
                 startDataStreaming()
-                
+
                 Log.d(TAG, "Connected to Shimmer GSR+ sensor")
                 return true
             } else {
@@ -121,54 +134,59 @@ class GsrSensorManager(
                 disconnect()
                 return false
             }
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "Error connecting to GSR sensor", e)
             disconnect()
             return false
         }
     }
-    
+
+
     /**
-     * Simulates finding a Shimmer device.
-     * In a real implementation, this would scan for BLE devices and filter for Shimmer devices.
-     * @return A Shimmer BluetoothDevice, or null if not found
+     * Processes data from the Shimmer SDK ObjectCluster.
+     * @param objectCluster Data cluster containing sensor readings
      */
-    private fun findShimmerDevice(): BluetoothDevice? {
-        // In a real implementation, you would scan for devices and filter for Shimmer devices
-        // For now, we'll just return null to simulate no device found
-        return null
+    private fun processShimmerData(objectCluster: ObjectCluster) {
+        // Extract GSR data
+        val gsrData = objectCluster.getFormatClusterValue(Configuration.Shimmer3.ObjectClusterSensorName.GSR_SKIN_CONDUCTANCE)
+        if (gsrData != null) {
+            processGsrData(gsrData.data.toFloat())
+        }
+
+        // Extract PPG data
+        val ppgData = objectCluster.getFormatClusterValue(Configuration.Shimmer3.ObjectClusterSensorName.PPG_A12)
+        if (ppgData != null) {
+            processPpgData(ppgData.data.toFloat())
+        }
     }
-    
+
     /**
      * Configures the Shimmer GSR+ sensor.
      */
     private fun configureSensor() {
-        // In a real implementation, you would configure the sensor settings
-        // such as sampling rate, enabled sensors, etc.
-        shimmerConnection?.setSamplingRate(SAMPLING_RATE_HZ)
-        shimmerConnection?.enableGsrSensor(true)
-        shimmerConnection?.enablePpgSensor(true)
+        shimmerDevice?.let { device ->
+            // Set sampling rate
+            device.setSamplingRateShimmer(SAMPLING_RATE_HZ.toDouble())
+
+            // Enable GSR sensor
+            device.setEnabledSensors(
+                Configuration.Shimmer3.SensorBitmap.SENSOR_GSR or
+                Configuration.Shimmer3.SensorBitmap.SENSOR_PPG_A12
+            )
+
+            // Write configuration to device
+            device.writeShimmerAndSensorConfiguration()
+        }
     }
-    
+
     /**
      * Starts streaming data from the Shimmer GSR+ sensor.
      */
     private fun startDataStreaming() {
-        shimmerConnection?.startStreaming()
-        
-        // Set up data listeners
-        shimmerConnection?.setGsrDataListener { gsrValue ->
-            // Process GSR data
-            processGsrData(gsrValue)
-        }
-        
-        shimmerConnection?.setPpgDataListener { ppgValue ->
-            // Process PPG data
-            processPpgData(ppgValue)
-        }
+        shimmerDevice?.startStreaming()
     }
-    
+
     /**
      * Processes GSR data from the sensor.
      * @param gsrValue GSR value in microSiemens
@@ -176,16 +194,16 @@ class GsrSensorManager(
     private fun processGsrData(gsrValue: Float) {
         // Timestamp the data
         val timestampedData = TimeManager.timestampData(gsrValue)
-        
+
         // Call the callback if set
         gsrCallback?.invoke(gsrValue)
-        
+
         // Save data if recording
         if (isRecording.get()) {
             saveGsrData(timestampedData)
         }
     }
-    
+
     /**
      * Processes PPG data from the sensor.
      * @param ppgValue PPG value
@@ -194,11 +212,11 @@ class GsrSensorManager(
         // In a real implementation, you would process the PPG data to derive heart rate
         // For now, we'll just simulate a heart rate calculation
         val heartRate = calculateHeartRate(ppgValue)
-        
+
         // Call the callback if set
         heartRateCallback?.invoke(heartRate)
     }
-    
+
     /**
      * Calculates heart rate from PPG data.
      * @param ppgValue PPG value
@@ -209,7 +227,7 @@ class GsrSensorManager(
         // For now, we'll just return a simulated heart rate
         return (60 + (Math.random() * 20).toInt())
     }
-    
+
     /**
      * Sets a callback to receive GSR data.
      * @param callback Function to call with each new GSR value
@@ -217,7 +235,7 @@ class GsrSensorManager(
     fun setGsrCallback(callback: (Float) -> Unit) {
         gsrCallback = callback
     }
-    
+
     /**
      * Sets a callback to receive heart rate data.
      * @param callback Function to call with each new heart rate value
@@ -225,7 +243,7 @@ class GsrSensorManager(
     fun setHeartRateCallback(callback: (Int) -> Unit) {
         heartRateCallback = callback
     }
-    
+
     /**
      * Sets a callback to receive connection state changes.
      * @param callback Function to call when connection state changes
@@ -233,7 +251,7 @@ class GsrSensorManager(
     fun setConnectionStateCallback(callback: (Boolean) -> Unit) {
         connectionStateCallback = callback
     }
-    
+
     /**
      * Starts recording GSR data.
      * @param outputDir Directory where data will be saved
@@ -245,30 +263,30 @@ class GsrSensorManager(
             Log.e(TAG, "Cannot start recording: not connected to GSR sensor")
             return false
         }
-        
+
         if (isRecording.get()) {
             Log.d(TAG, "Already recording")
             return true
         }
-        
+
         outputDirectory = outputDir
         this.sessionId = sessionId
         sampleCount = 0
-        
+
         try {
             // Create CSV file for GSR data
             val timestamp = TimeManager.getCurrentTimestamp()
             val csvFile = File(outputDir, "GSR_${sessionId}_${timestamp}.csv")
-            
+
             csvWriter = FileWriter(csvFile)
-            
+
             // Write CSV header
             csvWriter?.write("timestamp_nanos,session_offset_nanos,gsr_microsiemens\n")
-            
+
             isRecording.set(true)
             Log.d(TAG, "Started recording GSR data to ${csvFile.absolutePath}")
             return true
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "Error starting GSR recording", e)
             csvWriter?.close()
@@ -276,7 +294,7 @@ class GsrSensorManager(
             return false
         }
     }
-    
+
     /**
      * Stops recording GSR data.
      */
@@ -292,7 +310,7 @@ class GsrSensorManager(
             }
         }
     }
-    
+
     /**
      * Saves GSR data to the CSV file.
      * @param data Timestamped GSR data
@@ -306,29 +324,28 @@ class GsrSensorManager(
             Log.e(TAG, "Error saving GSR data", e)
         }
     }
-    
+
     /**
      * Disconnects from the GSR sensor.
      */
     fun disconnect() {
         stopRecording()
-        
+
         try {
-            shimmerConnection?.stopStreaming()
-            shimmerConnection?.disconnect()
+            shimmerDevice?.stopStreaming()
+            shimmerDevice?.disconnect()
         } catch (e: Exception) {
             Log.e(TAG, "Error disconnecting from GSR sensor", e)
         }
-        
-        shimmerConnection = null
+
         shimmerDevice = null
-        
+
         isConnected.set(false)
         connectionStateCallback?.invoke(false)
-        
+
         Log.d(TAG, "Disconnected from GSR sensor")
     }
-    
+
     /**
      * Releases all resources.
      */
@@ -338,125 +355,5 @@ class GsrSensorManager(
         heartRateCallback = null
         connectionStateCallback = null
     }
-    
-    /**
-     * Inner class to handle Shimmer device connection and data streaming.
-     * In a real implementation, this would use the Shimmer API.
-     */
-    private inner class ShimmerConnection(private val device: BluetoothDevice) {
-        private val isStreaming = AtomicBoolean(false)
-        private var gsrDataListener: ((Float) -> Unit)? = null
-        private var ppgDataListener: ((Float) -> Unit)? = null
-        
-        /**
-         * Connects to the Shimmer device.
-         * @return True if connection was successful, false otherwise
-         */
-        fun connect(): Boolean {
-            // In a real implementation, you would use the Shimmer API to connect to the device
-            // For now, we'll just simulate a successful connection
-            return true
-        }
-        
-        /**
-         * Disconnects from the Shimmer device.
-         */
-        fun disconnect() {
-            stopStreaming()
-            // In a real implementation, you would use the Shimmer API to disconnect from the device
-        }
-        
-        /**
-         * Sets the sampling rate for the Shimmer device.
-         * @param samplingRate Sampling rate in Hz
-         */
-        fun setSamplingRate(samplingRate: Int) {
-            // In a real implementation, you would use the Shimmer API to set the sampling rate
-        }
-        
-        /**
-         * Enables or disables the GSR sensor.
-         * @param enable True to enable, false to disable
-         */
-        fun enableGsrSensor(enable: Boolean) {
-            // In a real implementation, you would use the Shimmer API to enable/disable the GSR sensor
-        }
-        
-        /**
-         * Enables or disables the PPG sensor.
-         * @param enable True to enable, false to disable
-         */
-        fun enablePpgSensor(enable: Boolean) {
-            // In a real implementation, you would use the Shimmer API to enable/disable the PPG sensor
-        }
-        
-        /**
-         * Starts streaming data from the Shimmer device.
-         */
-        fun startStreaming() {
-            if (isStreaming.getAndSet(true)) {
-                return
-            }
-            
-            // In a real implementation, you would use the Shimmer API to start streaming
-            // For now, we'll simulate data streaming with a background thread
-            sensorExecutor.execute {
-                var lastGsrValue = 0.5f
-                var lastPpgValue = 0.0f
-                var direction = 1
-                
-                while (isStreaming.get()) {
-                    try {
-                        // Simulate GSR data (0.5 to 20 microSiemens)
-                        lastGsrValue += (Math.random() * 0.1f - 0.05f) * direction
-                        if (lastGsrValue > 20f) {
-                            lastGsrValue = 20f
-                            direction = -1
-                        } else if (lastGsrValue < 0.5f) {
-                            lastGsrValue = 0.5f
-                            direction = 1
-                        }
-                        
-                        // Simulate PPG data (sine wave)
-                        lastPpgValue += 0.1f
-                        val ppgValue = Math.sin(lastPpgValue).toFloat() * 500 + 500
-                        
-                        // Call listeners
-                        gsrDataListener?.invoke(lastGsrValue)
-                        ppgDataListener?.invoke(ppgValue)
-                        
-                        // Sleep to simulate sampling rate
-                        Thread.sleep((1000 / SAMPLING_RATE_HZ).toLong())
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error in simulated data streaming", e)
-                        break
-                    }
-                }
-            }
-        }
-        
-        /**
-         * Stops streaming data from the Shimmer device.
-         */
-        fun stopStreaming() {
-            isStreaming.set(false)
-            // In a real implementation, you would use the Shimmer API to stop streaming
-        }
-        
-        /**
-         * Sets a listener for GSR data.
-         * @param listener Function to call with each new GSR value
-         */
-        fun setGsrDataListener(listener: (Float) -> Unit) {
-            gsrDataListener = listener
-        }
-        
-        /**
-         * Sets a listener for PPG data.
-         * @param listener Function to call with each new PPG value
-         */
-        fun setPpgDataListener(listener: (Float) -> Unit) {
-            ppgDataListener = listener
-        }
-    }
+
 }

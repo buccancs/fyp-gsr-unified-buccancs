@@ -1,0 +1,20 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        // For Shimmer GSR+ SDK
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+rootProject.name = "GSR Capture"
+include ':app'

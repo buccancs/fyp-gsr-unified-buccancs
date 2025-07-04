@@ -1,0 +1,57 @@
+# Android SDK location configuration
+# Copy this file to local.properties and update the path to your Android SDK
+# 
+# IMPORTANT: Choose ONE of the following approaches:
+# 1. Set sdk.dir property below (recommended for project-specific setup)
+# 2. Set ANDROID_HOME environment variable (recommended for system-wide setup)
+#
+# =============================================================================
+# PLATFORM-SPECIFIC SDK PATHS
+# =============================================================================
+#
+# macOS (typical installations):
+# - Android Studio default: sdk.dir=/Users/username/Library/Android/sdk
+# - Homebrew installation: sdk.dir=/usr/local/share/android-sdk
+# - Manual installation: sdk.dir=/Users/username/android-sdk
+#
+# Linux (typical installations):
+# - Ubuntu/Debian default: sdk.dir=/home/username/Android/Sdk
+# - Snap installation: sdk.dir=/home/username/snap/android-studio/common/Android/Sdk
+# - Manual installation: sdk.dir=/opt/android-sdk
+#
+# Windows (typical installations):
+# - Default installation: sdk.dir=C\:\\Users\\username\\AppData\\Local\\Android\\Sdk
+# - Custom installation: sdk.dir=C\:\\Android\\Sdk
+# - Portable installation: sdk.dir=C\:\\Tools\\Android\\Sdk
+#
+# =============================================================================
+# ENVIRONMENT VARIABLE ALTERNATIVE
+# =============================================================================
+#
+# Instead of setting sdk.dir, you can set the ANDROID_HOME environment variable:
+#
+# macOS/Linux:
+#   export ANDROID_HOME=/path/to/your/android-sdk
+#   export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+#
+# Windows (Command Prompt):
+#   set ANDROID_HOME=C:\path\to\your\android-sdk
+#   set PATH=%PATH%;%ANDROID_HOME%\tools;%ANDROID_HOME%\platform-tools
+#
+# Windows (PowerShell):
+#   $env:ANDROID_HOME="C:\path\to\your\android-sdk"
+#   $env:PATH="$env:PATH;$env:ANDROID_HOME\tools;$env:ANDROID_HOME\platform-tools"
+#
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+#
+# Uncomment and update the line below with your actual Android SDK path:
+# sdk.dir=REPLACE_WITH_YOUR_ANDROID_SDK_PATH
+#
+# Examples:
+# sdk.dir=/Users/johndoe/Library/Android/sdk                    # macOS
+# sdk.dir=/home/johndoe/Android/Sdk                             # Linux
+# sdk.dir=C\:\\Users\\johndoe\\AppData\\Local\\Android\\Sdk     # Windows
+
+sdk.dir=REPLACE_WITH_YOUR_ANDROID_SDK_PATH

@@ -1,0 +1,55 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Windows Controller - Main",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/windows_controller/src/main/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/windows_controller",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/windows_controller/src"
+            },
+            "args": []
+        },
+        {
+            "name": "Windows Controller - Debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/windows_controller/src/main/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/windows_controller",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/windows_controller/src"
+            },
+            "args": ["--debug"],
+            "justMyCode": false
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}"
+        },
+        {
+            "name": "Python: Test Current File",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["${file}", "-v"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/windows_controller"
+        },
+        {
+            "name": "Android: Attach Debugger",
+            "type": "java",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5005,
+            "projectName": "android"
+        }
+    ]
+}

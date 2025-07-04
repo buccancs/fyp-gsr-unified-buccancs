@@ -1,0 +1,166 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Android: Build Debug",
+            "type": "shell",
+            "command": "./gradlew",
+            "args": ["assembleDebug"],
+            "options": {
+                "cwd": "${workspaceFolder}/android"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Android: Build Release",
+            "type": "shell",
+            "command": "./gradlew",
+            "args": ["assembleRelease"],
+            "options": {
+                "cwd": "${workspaceFolder}/android"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Android: Run Tests",
+            "type": "shell",
+            "command": "./gradlew",
+            "args": ["test", "connectedAndroidTest"],
+            "options": {
+                "cwd": "${workspaceFolder}/android"
+            },
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Android: Clean",
+            "type": "shell",
+            "command": "./gradlew",
+            "args": ["clean"],
+            "options": {
+                "cwd": "${workspaceFolder}/android"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Python: Setup Environment",
+            "type": "shell",
+            "command": "python3",
+            "args": ["setup_python_env.py"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Python: Install Dependencies",
+            "type": "shell",
+            "command": "pip",
+            "args": ["install", "-r", "windows_controller/requirements.txt"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Python: Run Tests",
+            "type": "shell",
+            "command": "python",
+            "args": ["-m", "pytest", "tests/", "-v"],
+            "options": {
+                "cwd": "${workspaceFolder}/windows_controller"
+            },
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Java: Compile Shared Components",
+            "type": "shell",
+            "command": "javac",
+            "args": [
+                "-d", "build/classes",
+                "-cp", ".",
+                "shared/models/*.java",
+                "shared/utils/*.java",
+                "src/common/network/*.java"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": ["$javac"]
+        }
+    ]
+}
