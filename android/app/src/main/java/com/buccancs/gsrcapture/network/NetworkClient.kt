@@ -11,6 +11,8 @@ import android.os.Environment
 import android.util.Log
 import com.buccancs.gsrcapture.utils.TimeManager
 import java.io.BufferedReader
+import java.io.File
+import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket
@@ -43,8 +45,12 @@ class NetworkClient(private val context: Context) {
     private var registrationListener: NsdManager.RegistrationListener? = null
 
     // Client state
-    private val isRunning = AtomicBoolean(false)
+    private val _isRunning = AtomicBoolean(false)
     private val isConnected = AtomicBoolean(false)
+
+    // Public property to access running state for testing
+    val isRunning: Boolean
+        get() = _isRunning.get()
 
     // Callbacks
     private var commandCallback: ((String) -> Unit)? = null
@@ -61,7 +67,7 @@ class NetworkClient(private val context: Context) {
      * Starts the network client.
      */
     fun start() {
-        if (isRunning.getAndSet(true)) {
+        if (_isRunning.getAndSet(true)) {
             Log.d(TAG, "Network client already running")
             return
         }
@@ -84,7 +90,7 @@ class NetworkClient(private val context: Context) {
                 serverSocket = ServerSocket(PORT)
                 Log.d(TAG, "Server socket started on port $PORT")
 
-                while (isRunning.get()) {
+                while (_isRunning.get()) {
                     try {
                         // Wait for client connection
                         val socket = serverSocket?.accept()
@@ -93,7 +99,7 @@ class NetworkClient(private val context: Context) {
                             handleClientConnection(socket)
                         }
                     } catch (e: Exception) {
-                        if (isRunning.get()) {
+                        if (_isRunning.get()) {
                             Log.e(TAG, "Error accepting client connection", e)
                         }
                     }
@@ -108,7 +114,7 @@ class NetworkClient(private val context: Context) {
      * Handles a client connection.
      * @param socket Client socket
      */
-    private fun handleClientConnection(socket: Socket) {
+    internal fun handleClientConnection(socket: Socket) {
         // Close existing connection
         closeConnection()
 
@@ -160,7 +166,7 @@ class NetworkClient(private val context: Context) {
      * Handles a command from the client.
      * @param commandJson JSON command string
      */
-    private fun handleCommand(commandJson: String) {
+    internal fun handleCommand(commandJson: String) {
         try {
             val json = JSONObject(commandJson)
             val command = json.getString("command")
@@ -202,7 +208,7 @@ class NetworkClient(private val context: Context) {
      * Sends an acknowledgment for a command.
      * @param command Command to acknowledge
      */
-    private fun sendAcknowledgment(command: String) {
+    internal fun sendAcknowledgment(command: String) {
         try {
             val json = JSONObject()
             json.put("type", "ACK")
@@ -242,6 +248,13 @@ class NetworkClient(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "Error sending device status", e)
         }
+    }
+
+    /**
+     * Alias for sendDeviceStatus() for backward compatibility with tests.
+     */
+    fun sendStatus() {
+        sendDeviceStatus()
     }
 
     /**
@@ -325,7 +338,7 @@ class NetworkClient(private val context: Context) {
      * @param remoteTime Remote time in milliseconds
      * @param roundTripTime Round-trip time in milliseconds
      */
-    private fun sendTimeSync(remoteTime: Long, roundTripTime: Long) {
+    internal fun sendTimeSync(remoteTime: Long, roundTripTime: Long) {
         try {
             val json = JSONObject()
             json.put("type", "TIME_SYNC")
@@ -343,7 +356,7 @@ class NetworkClient(private val context: Context) {
     /**
      * Initiates time synchronization with the client.
      */
-    private fun synchronizeTime() {
+    internal fun synchronizeTime() {
         try {
             val json = JSONObject()
             json.put("type", "SYNC_REQUEST")
@@ -358,7 +371,7 @@ class NetworkClient(private val context: Context) {
     /**
      * Registers the network service for discovery.
      */
-    private fun registerService() {
+    internal fun registerService() {
         nsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
 
         // Generate unique device ID based on Android ID
@@ -413,7 +426,7 @@ class NetworkClient(private val context: Context) {
     /**
      * Unregisters the network service.
      */
-    private fun unregisterService() {
+    internal fun unregisterService() {
         try {
             registrationListener?.let { listener ->
                 nsdManager?.unregisterService(listener)
@@ -429,7 +442,7 @@ class NetworkClient(private val context: Context) {
     /**
      * Closes the current client connection.
      */
-    private fun closeConnection() {
+    internal fun closeConnection() {
         if (isConnected.getAndSet(false)) {
             connectionStateCallback?.invoke(false)
         }
@@ -454,7 +467,7 @@ class NetworkClient(private val context: Context) {
      * Stops the network client.
      */
     fun stop() {
-        if (!isRunning.getAndSet(false)) {
+        if (!_isRunning.getAndSet(false)) {
             return
         }
 

@@ -42,6 +42,10 @@ class ThermalCameraManager(
     // Thermal camera state
     private val isConnected = AtomicBoolean(false)
     private val isRecording = AtomicBoolean(false)
+
+    // Public properties for testing and external access
+    val isConnectedValue: Boolean get() = isConnected.get()
+    val isRecordingValue: Boolean get() = isRecording.get()
     private var textureView: TextureView? = null
     private var frameCallback: ((Bitmap) -> Unit)? = null
 
@@ -52,9 +56,16 @@ class ThermalCameraManager(
 
     /**
      * Initializes the thermal camera manager.
+     * @return True if initialization was successful, false otherwise
      */
-    fun initialize() {
-        usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
+    fun initialize(): Boolean {
+        return try {
+            usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
+            usbManager != null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing thermal camera manager", e)
+            false
+        }
     }
 
     /**
@@ -118,7 +129,7 @@ class ThermalCameraManager(
      * @param availableDrivers List of available USB drivers
      * @return The Topdon TC001 driver, or null if not found
      */
-    private fun findTopdonDriver(availableDrivers: List<UsbSerialDriver>): UsbSerialDriver? {
+    internal fun findTopdonDriver(availableDrivers: List<UsbSerialDriver>): UsbSerialDriver? {
         // In a real implementation, you would check for the specific vendor ID and product ID
         // of the Topdon TC001 thermal camera
         // For now, we'll just return the first available driver for demonstration purposes
@@ -163,7 +174,7 @@ class ThermalCameraManager(
      * @param len Length of data
      * @return Bitmap representation of thermal data
      */
-    private fun processThermalData(buffer: ByteArray, len: Int): Bitmap {
+    internal fun processThermalData(buffer: ByteArray, len: Int): Bitmap {
         // In a real implementation, you would parse the thermal data format
         // specific to the Topdon TC001 camera and convert it to a bitmap
         // For now, we'll just create a dummy bitmap for demonstration purposes
@@ -187,7 +198,7 @@ class ThermalCameraManager(
      * Updates the preview with the latest thermal frame.
      * @param thermalFrame Bitmap of the thermal frame
      */
-    private fun updatePreview(thermalFrame: Bitmap) {
+    internal fun updatePreview(thermalFrame: Bitmap) {
         // Update the texture view on the main thread
         textureView?.post {
             val canvas = textureView?.lockCanvas()
@@ -281,7 +292,7 @@ class ThermalCameraManager(
      * Saves a thermal frame to disk.
      * @param frame Bitmap of the thermal frame
      */
-    private fun saveFrame(frame: Bitmap) {
+    internal fun saveFrame(frame: Bitmap) {
         val dir = outputDirectory ?: return
         val sid = sessionId ?: return
 

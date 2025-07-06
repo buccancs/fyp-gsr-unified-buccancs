@@ -41,6 +41,10 @@ class RecordingController(private val context: Context) {
     private var currentSessionId: String? = null
     private var outputDirectory: File? = null
 
+    // Public property for testing
+    val isRecordingState: Boolean
+        get() = isRecording.get()
+
     // Callbacks
     private var recordingStateCallback: ((Boolean) -> Unit)? = null
     private var gsrValueCallback: ((Float) -> Unit)? = null
@@ -84,7 +88,15 @@ class RecordingController(private val context: Context) {
      */
     private fun initializeComponents() {
         // Initialize RGB camera manager
-        rgbCameraManager = RgbCameraManager(context, context as androidx.lifecycle.LifecycleOwner, cameraExecutor)
+        val lifecycleOwner = if (context is androidx.lifecycle.LifecycleOwner) {
+            context as androidx.lifecycle.LifecycleOwner
+        } else {
+            // For testing, create a mock lifecycle owner
+            object : androidx.lifecycle.LifecycleOwner {
+                override val lifecycle: androidx.lifecycle.Lifecycle = androidx.lifecycle.LifecycleRegistry(this)
+            }
+        }
+        rgbCameraManager = RgbCameraManager(context, lifecycleOwner, cameraExecutor)
 
         // Initialize thermal camera manager
         thermalCameraManager = ThermalCameraManager(context, cameraExecutor)
@@ -338,6 +350,39 @@ class RecordingController(private val context: Context) {
         audioExecutor.shutdown()
 
         Log.d(TAG, "RecordingController shut down")
+    }
+
+    /**
+     * Public method for testing - creates output directory.
+     * @return The output directory File
+     */
+    fun createOutputDirectoryForTesting(): File? {
+        createOutputDirectory()
+        return outputDirectory
+    }
+
+    /**
+     * Public method for testing - generates session ID.
+     * @return Generated session ID
+     */
+    fun generateSessionIdForTesting(): String {
+        return generateSessionId()
+    }
+
+    /**
+     * Public method for testing - creates session metadata.
+     * @param sessionDir Directory for the session
+     */
+    fun createSessionMetadataForTesting(sessionDir: File) {
+        createSessionMetadata(sessionDir)
+    }
+
+    /**
+     * Public method for testing - checks if devices are connected.
+     * @return True if any device is connected
+     */
+    fun isConnectedForTesting(): Boolean {
+        return thermalCameraManager.isConnected() || gsrSensorManager.isConnected()
     }
 
     /**

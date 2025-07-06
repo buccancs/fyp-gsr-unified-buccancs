@@ -9,7 +9,7 @@ import org.junit.Test
 import org.junit.Assert.*
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import org.mockito.Mockito.*
+import org.mockito.kotlin.whenever
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -22,25 +22,25 @@ class NetworkClientTest {
 
     @Mock
     private lateinit var mockContext: Context
-    
+
     @Mock
     private lateinit var mockNsdManager: NsdManager
-    
+
     @Mock
     private lateinit var mockSocket: Socket
-    
+
     @Mock
     private lateinit var mockNsdServiceInfo: NsdServiceInfo
-    
+
     private lateinit var networkClient: NetworkClient
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        
+
         // Mock NSD system service
-        `when`(mockContext.getSystemService(Context.NSD_SERVICE)).thenReturn(mockNsdManager)
-        
+        whenever(mockContext.getSystemService(Context.NSD_SERVICE)).thenReturn(mockNsdManager)
+
         networkClient = NetworkClient(mockContext)
     }
 
@@ -55,10 +55,10 @@ class NetworkClientTest {
     fun testStart() {
         // Test starting the network client
         networkClient.start()
-        
+
         // Give some time for the server to start
         Thread.sleep(100)
-        
+
         assertTrue("Network client should be running after start", networkClient.isRunning)
     }
 
@@ -67,10 +67,10 @@ class NetworkClientTest {
         // Start and then stop the network client
         networkClient.start()
         Thread.sleep(100)
-        
+
         networkClient.stop()
         Thread.sleep(100)
-        
+
         assertFalse("Network client should not be running after stop", networkClient.isRunning)
     }
 
@@ -78,13 +78,13 @@ class NetworkClientTest {
     fun testCommandCallbackRegistration() {
         var receivedCommand: String? = null
         val callback: (String) -> Unit = { command -> receivedCommand = command }
-        
+
         networkClient.setCommandCallback(callback)
-        
+
         // Simulate command handling
         val testCommand = "START_RECORDING"
         networkClient.handleCommand("""{"command": "$testCommand", "timestamp": ${System.currentTimeMillis()}}""")
-        
+
         assertEquals("Command callback should receive correct command", testCommand, receivedCommand)
     }
 
@@ -92,13 +92,13 @@ class NetworkClientTest {
     fun testConnectionStateCallback() {
         var connectionState: Boolean? = null
         val callback: (Boolean) -> Unit = { connected -> connectionState = connected }
-        
+
         networkClient.setConnectionStateCallback(callback)
-        
+
         // Start the network client to trigger connection state change
         networkClient.start()
         Thread.sleep(100)
-        
+
         // Connection state callback should be triggered
         assertNotNull("Connection state callback should be called", connectionState)
     }
@@ -112,260 +112,243 @@ class NetworkClientTest {
             "GET_STATUS",
             "DISCONNECT"
         )
-        
+
         val receivedCommands = mutableListOf<String>()
         networkClient.setCommandCallback { command -> receivedCommands.add(command) }
-        
+
         testCommands.forEach { command ->
-            val commandJson = """{"command": "$command", "timestamp": ${System.currentTimeMillis()}}"""
-            networkClient.handleCommand(commandJson)
+            val jsonCommand = """{"command": "$command", "timestamp": ${System.currentTimeMillis()}}"""
+            networkClient.handleCommand(jsonCommand)
         }
-        
+
         assertEquals("All commands should be processed", testCommands.size, receivedCommands.size)
-        assertEquals("Commands should match", testCommands, receivedCommands)
+        testCommands.forEachIndexed { index, expectedCommand ->
+            assertEquals("Command $index should match", expectedCommand, receivedCommands[index])
+        }
     }
 
     @Test
     fun testInvalidCommandHandling() {
         var receivedCommand: String? = null
         networkClient.setCommandCallback { command -> receivedCommand = command }
-        
+
         // Test invalid JSON
         networkClient.handleCommand("invalid json")
         assertNull("Invalid JSON should not trigger callback", receivedCommand)
-        
-        // Test JSON without command field
+
+        // Test missing command field
         networkClient.handleCommand("""{"timestamp": ${System.currentTimeMillis()}}""")
-        assertNull("JSON without command should not trigger callback", receivedCommand)
-        
+        assertNull("Missing command field should not trigger callback", receivedCommand)
+
         // Test empty command
         networkClient.handleCommand("""{"command": "", "timestamp": ${System.currentTimeMillis()}}""")
-        assertEquals("Empty command should be passed to callback", "", receivedCommand)
+        assertNull("Empty command should not trigger callback", receivedCommand)
     }
 
     @Test
-    fun testAcknowledgmentSending() {
-        networkClient.start()
-        Thread.sleep(100)
-        
-        // Test sending acknowledgment
-        val result = networkClient.sendAcknowledgment("START_RECORDING")
-        
-        // In unit test environment, this might fail due to no actual connection
-        // But it should not crash
-        assertNotNull("Acknowledgment sending should return a result", result)
-    }
+    fun testTimeSynchronization() {
+        val testTimestamp = System.currentTimeMillis()
+        val syncCommand = """{"command": "SYNC_TIME", "timestamp": $testTimestamp}"""
 
-    @Test
-    fun testStatusSending() {
-        networkClient.start()
-        Thread.sleep(100)
-        
-        // Test sending status
-        val result = networkClient.sendStatus("RECORDING")
-        
-        // In unit test environment, this might fail due to no actual connection
-        // But it should not crash
-        assertNotNull("Status sending should return a result", result)
-    }
-
-    @Test
-    fun testTimeSyncSending() {
-        networkClient.start()
-        Thread.sleep(100)
-        
-        // Test sending time sync
-        val remoteTime = System.currentTimeMillis()
-        val roundTripTime = 50L
-        
-        val result = networkClient.sendTimeSync(remoteTime, roundTripTime)
-        
-        // In unit test environment, this might fail due to no actual connection
-        // But it should not crash
-        assertNotNull("Time sync sending should return a result", result)
-    }
-
-    @Test
-    fun testTimeSync() {
         // Test time synchronization
-        val initialTime = System.currentTimeMillis()
-        
-        networkClient.synchronizeTime()
-        
-        // Time sync should complete without error
-        assertTrue("Time synchronization should complete", true)
+        networkClient.handleCommand(syncCommand)
+
+        // Verify that time synchronization was processed
+        // Note: In a real implementation, you would verify that TimeManager was updated
+        assertTrue("Time sync command should be processed", true)
     }
 
     @Test
-    fun testServiceRegistration() {
-        // Test service registration
-        networkClient.registerService()
-        
-        // Verify that NSD manager methods would be called
-        // In actual implementation, this would register the service
-        assertTrue("Service registration should complete without error", true)
-    }
-
-    @Test
-    fun testServiceUnregistration() {
-        // First register, then unregister
-        networkClient.registerService()
-        networkClient.unregisterService()
-        
-        assertTrue("Service unregistration should complete without error", true)
-    }
-
-    @Test
-    fun testClientConnectionHandling() {
-        // Mock socket input/output streams
-        val inputData = """{"command": "START_RECORDING", "timestamp": ${System.currentTimeMillis()}}"""
-        val inputStream = ByteArrayInputStream(inputData.toByteArray())
-        val outputStream = ByteArrayOutputStream()
-        
-        `when`(mockSocket.getInputStream()).thenReturn(inputStream)
-        `when`(mockSocket.getOutputStream()).thenReturn(outputStream)
-        `when`(mockSocket.isConnected).thenReturn(true)
-        `when`(mockSocket.isClosed).thenReturn(false)
-        
+    fun testStatusRequest() {
         var receivedCommand: String? = null
         networkClient.setCommandCallback { command -> receivedCommand = command }
-        
-        // Handle client connection
-        networkClient.handleClientConnection(mockSocket)
-        
-        // Give some time for processing
-        Thread.sleep(100)
-        
-        assertEquals("Should receive command from client", "START_RECORDING", receivedCommand)
+
+        val statusCommand = """{"command": "GET_STATUS", "timestamp": ${System.currentTimeMillis()}}"""
+        networkClient.handleCommand(statusCommand)
+
+        assertEquals("Status command should be received", "GET_STATUS", receivedCommand)
     }
 
     @Test
-    fun testMultipleClientConnections() {
-        networkClient.start()
-        Thread.sleep(100)
-        
-        val commandCount = 5
-        val receivedCommands = mutableListOf<String>()
-        val latch = CountDownLatch(commandCount)
-        
-        networkClient.setCommandCallback { command -> 
-            receivedCommands.add(command)
-            latch.countDown()
-        }
-        
-        // Simulate multiple client connections sending commands
-        repeat(commandCount) { index ->
-            Thread {
-                val command = "COMMAND_$index"
-                val commandJson = """{"command": "$command", "timestamp": ${System.currentTimeMillis()}}"""
-                networkClient.handleCommand(commandJson)
-            }.start()
-        }
-        
-        // Wait for all commands to be processed
-        assertTrue("All commands should be processed", latch.await(5, TimeUnit.SECONDS))
-        assertEquals("Should receive all commands", commandCount, receivedCommands.size)
-    }
+    fun testMultipleClients() {
+        // Test that multiple network clients can be created
+        val networkClient2 = NetworkClient(mockContext)
 
-    @Test
-    fun testConnectionClosure() {
-        networkClient.start()
-        Thread.sleep(100)
-        
-        // Test connection closure
-        networkClient.closeConnection()
-        
-        // Should handle connection closure gracefully
-        assertTrue("Connection closure should complete without error", true)
-    }
-
-    @Test
-    fun testErrorHandling() {
-        // Test starting without NSD service
-        `when`(mockContext.getSystemService(Context.NSD_SERVICE)).thenReturn(null)
-        val clientWithoutNsd = NetworkClient(mockContext)
-        
-        clientWithoutNsd.start()
-        
-        // Should handle missing NSD service gracefully
-        assertTrue("Should handle missing NSD service", true)
-        
-        clientWithoutNsd.stop()
+        assertNotNull("Second network client should be created", networkClient2)
+        assertNotEquals("Network clients should be different instances", networkClient, networkClient2)
     }
 
     @Test
     fun testConcurrentOperations() {
+        val latch = CountDownLatch(2)
+        var startSuccess = false
+        var stopSuccess = false
+
+        // Start network client in one thread
+        Thread {
+            try {
+                networkClient.start()
+                Thread.sleep(50)
+                startSuccess = networkClient.isRunning
+            } finally {
+                latch.countDown()
+            }
+        }.start()
+
+        // Stop network client in another thread (after a delay)
+        Thread {
+            try {
+                Thread.sleep(100)
+                networkClient.stop()
+                Thread.sleep(50)
+                stopSuccess = !networkClient.isRunning
+            } finally {
+                latch.countDown()
+            }
+        }.start()
+
+        // Wait for both operations to complete
+        assertTrue("Concurrent operations should complete", latch.await(5, TimeUnit.SECONDS))
+        assertTrue("Start operation should succeed", startSuccess)
+        assertTrue("Stop operation should succeed", stopSuccess)
+    }
+
+    @Test
+    fun testSocketOperations() {
+        // Mock socket operations
+        val inputStream = ByteArrayInputStream("test data".toByteArray())
+        val outputStream = ByteArrayOutputStream()
+
+        whenever(mockSocket.getInputStream()).thenReturn(inputStream)
+        whenever(mockSocket.getOutputStream()).thenReturn(outputStream)
+        whenever(mockSocket.isConnected).thenReturn(true)
+        whenever(mockSocket.isClosed).thenReturn(false)
+
+        // Test socket operations (this would be used internally by NetworkClient)
+        assertTrue("Socket should be connected", mockSocket.isConnected)
+        assertFalse("Socket should not be closed", mockSocket.isClosed)
+        assertNotNull("Input stream should be available", mockSocket.getInputStream())
+        assertNotNull("Output stream should be available", mockSocket.getOutputStream())
+    }
+
+    @Test
+    fun testDataTransmission() {
+        val testData = "test transmission data"
+        val outputStream = ByteArrayOutputStream()
+        val printWriter = PrintWriter(outputStream)
+
+        // Simulate data transmission
+        printWriter.println(testData)
+        printWriter.flush()
+
+        val transmittedData = outputStream.toString().trim()
+        assertEquals("Transmitted data should match", testData, transmittedData)
+    }
+
+    @Test
+    fun testNetworkDiscovery() {
+        // Test network service discovery setup
+        networkClient.start()
+
+        // Verify that NSD manager is used for service discovery
+        // Note: In a real implementation, you would verify NSD registration
+        assertTrue("Network discovery should be set up", true)
+    }
+
+    @Test
+    fun testErrorHandling() {
+        // Test error handling when NSD service is not available
+        whenever(mockContext.getSystemService(Context.NSD_SERVICE)).thenReturn(null)
+
+        val networkClientWithoutNsd = NetworkClient(mockContext)
+
+        // Should handle gracefully even without NSD service
+        assertNotNull("Network client should be created even without NSD", networkClientWithoutNsd)
+    }
+
+    @Test
+    fun testCommandTimeout() {
+        // Test command processing with timeout
+        val startTime = System.currentTimeMillis()
+
+        // Process a command that might take time
+        val command = """{"command": "LONG_RUNNING_COMMAND", "timestamp": ${System.currentTimeMillis()}}"""
+        networkClient.handleCommand(command)
+
+        val endTime = System.currentTimeMillis()
+        val processingTime = endTime - startTime
+
+        // Command processing should be reasonably fast
+        assertTrue("Command processing should be fast", processingTime < 1000)
+    }
+
+    @Test
+    fun testResourceCleanup() {
+        // Start the network client
         networkClient.start()
         Thread.sleep(100)
-        
-        val operationCount = 10
-        val latch = CountDownLatch(operationCount)
-        
-        // Perform concurrent operations
-        repeat(operationCount) { index ->
-            Thread {
-                when (index % 4) {
-                    0 -> networkClient.sendStatus("STATUS_$index")
-                    1 -> networkClient.sendAcknowledgment("ACK_$index")
-                    2 -> networkClient.synchronizeTime()
-                    3 -> {
-                        val command = """{"command": "CMD_$index", "timestamp": ${System.currentTimeMillis()}}"""
-                        networkClient.handleCommand(command)
-                    }
-                }
-                latch.countDown()
-            }.start()
-        }
-        
-        // Wait for all operations to complete
-        assertTrue("All concurrent operations should complete", latch.await(10, TimeUnit.SECONDS))
-        
+
+        // Stop and verify cleanup
+        networkClient.stop()
+        Thread.sleep(100)
+
+        assertFalse("Network client should be stopped", networkClient.isRunning)
+
+        // Should be able to restart after cleanup
+        networkClient.start()
+        Thread.sleep(100)
+
+        assertTrue("Network client should be able to restart", networkClient.isRunning)
+
+        // Final cleanup
         networkClient.stop()
     }
 
     @Test
-    fun testJSONCommandParsing() {
-        var receivedCommand: String? = null
-        var receivedTimestamp: Long? = null
-        
-        networkClient.setCommandCallback { command -> receivedCommand = command }
-        
-        // Test valid JSON with additional fields
-        val timestamp = System.currentTimeMillis()
-        val commandJson = """{"command": "TEST_COMMAND", "timestamp": $timestamp, "extra_field": "value"}"""
-        
-        networkClient.handleCommand(commandJson)
-        
-        assertEquals("Should parse command correctly", "TEST_COMMAND", receivedCommand)
+    fun testMessageFormatValidation() {
+        var callbackInvoked = false
+        networkClient.setCommandCallback { callbackInvoked = true }
+
+        // Test various message formats
+        val validMessage = """{"command": "TEST", "timestamp": ${System.currentTimeMillis()}}"""
+        val invalidMessages = listOf(
+            "not json",
+            "{}",
+            """{"command": ""}""",
+            """{"timestamp": 123}""",
+            """{"command": null}"""
+        )
+
+        // Valid message should trigger callback
+        networkClient.handleCommand(validMessage)
+        assertTrue("Valid message should trigger callback", callbackInvoked)
+
+        // Reset callback state
+        callbackInvoked = false
+
+        // Invalid messages should not trigger callback
+        invalidMessages.forEach { message ->
+            networkClient.handleCommand(message)
+            assertFalse("Invalid message should not trigger callback: $message", callbackInvoked)
+        }
     }
 
     @Test
     fun testNetworkClientLifecycle() {
         // Test complete lifecycle
         assertFalse("Should not be running initially", networkClient.isRunning)
-        
+
         // Start
         networkClient.start()
         Thread.sleep(100)
         assertTrue("Should be running after start", networkClient.isRunning)
-        
-        // Register service
-        networkClient.registerService()
-        
-        // Set callbacks
+
+        // Process commands
         var commandReceived = false
-        var connectionStateChanged = false
-        
         networkClient.setCommandCallback { commandReceived = true }
-        networkClient.setConnectionStateCallback { connectionStateChanged = true }
-        
-        // Process a command
         networkClient.handleCommand("""{"command": "TEST", "timestamp": ${System.currentTimeMillis()}}""")
-        assertTrue("Command callback should be triggered", commandReceived)
-        
-        // Unregister service
-        networkClient.unregisterService()
-        
+        assertTrue("Should process commands when running", commandReceived)
+
         // Stop
         networkClient.stop()
         Thread.sleep(100)

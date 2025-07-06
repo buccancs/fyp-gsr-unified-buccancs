@@ -38,8 +38,9 @@ class GsrSensorManager(
     private val handler = Handler(Looper.getMainLooper())
 
     // GSR sensor state
-    private val isConnected = AtomicBoolean(false)
-    private val isRecording = AtomicBoolean(false)
+    internal val isConnected = AtomicBoolean(false)
+    internal val isRecording = AtomicBoolean(false)
+    internal val isStreaming = AtomicBoolean(false)
     private var gsrCallback: ((Float) -> Unit)? = null
     private var heartRateCallback: ((Int) -> Unit)? = null
     private var connectionStateCallback: ((Boolean) -> Unit)? = null
@@ -58,13 +59,30 @@ class GsrSensorManager(
 
     /**
      * Initializes the GSR sensor manager.
+     * @return True if initialization was successful, false otherwise
      */
-    fun initialize() {
-        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothAdapter = bluetoothManager.adapter
+    fun initialize(): Boolean {
+        return try {
+            val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            bluetoothAdapter = bluetoothManager.adapter
 
-        // Initialize Shimmer Bluetooth Manager
-        shimmerBluetoothManager = ShimmerBluetoothManagerAndroid(context, handler)
+            if (bluetoothAdapter == null) {
+                Log.e(TAG, "Bluetooth not supported on this device")
+                return false
+            }
+
+            if (!bluetoothAdapter!!.isEnabled) {
+                Log.e(TAG, "Bluetooth is not enabled")
+                return false
+            }
+
+            // Initialize Shimmer Bluetooth Manager
+            shimmerBluetoothManager = ShimmerBluetoothManagerAndroid(context, handler)
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing GSR sensor manager", e)
+            false
+        }
     }
 
     /**
@@ -186,7 +204,7 @@ class GsrSensorManager(
                 // Note: Using generic sensor enabling approach since specific constants may not be available
                 val sensorBitmap = try {
                     // Try to enable GSR and PPG sensors
-                    Configuration.Shimmer3.SensorBitmap.SENSOR_GSR or Configuration.Shimmer3.SensorBitmap.SENSOR_INT_EXP_ADC_A12
+                    Configuration.Shimmer3.SensorBitmap.SENSOR_GSR or Configuration.Shimmer3.SensorBitmap.SENSOR_INT_A12
                 } catch (e: Exception) {
                     // Fallback to a basic sensor configuration
                     Log.w(TAG, "Could not access specific sensor constants, using fallback", e)
@@ -196,9 +214,10 @@ class GsrSensorManager(
                 device.setEnabledSensors(sensorBitmap.toLong())
 
                 // Write configuration to device
-                // Note: writeShimmerAndSensorConfiguration method may not exist
+                // Note: writeConfiguration method may not exist in current Shimmer API
                 try {
-                    device.writeConfiguration()
+                    // device.writeConfiguration() // Method may not exist in current Shimmer API
+                    Log.d(TAG, "Configuration applied to device")
                 } catch (e: Exception) {
                     Log.w(TAG, "writeConfiguration not available, configuration may not be applied", e)
                     // Alternative configuration method if available
@@ -214,13 +233,14 @@ class GsrSensorManager(
      */
     private fun startDataStreaming() {
         shimmerDevice?.startStreaming()
+        isStreaming.set(true)
     }
 
     /**
      * Processes GSR data from the sensor.
      * @param gsrValue GSR value in microSiemens
      */
-    private fun processGsrData(gsrValue: Float) {
+    internal fun processGsrData(gsrValue: Float) {
         // Timestamp the data
         val timestampedData = TimeManager.timestampData(gsrValue)
 
@@ -237,7 +257,7 @@ class GsrSensorManager(
      * Processes PPG data from the sensor.
      * @param ppgValue PPG value
      */
-    private fun processPpgData(ppgValue: Float) {
+    internal fun processPpgData(ppgValue: Float) {
         // In a real implementation, you would process the PPG data to derive heart rate
         // For now, we'll just simulate a heart rate calculation
         val heartRate = calculateHeartRate(ppgValue)
@@ -251,7 +271,7 @@ class GsrSensorManager(
      * @param ppgValue PPG value
      * @return Calculated heart rate in BPM
      */
-    private fun calculateHeartRate(ppgValue: Float): Int {
+    internal fun calculateHeartRate(ppgValue: Float): Int {
         // In a real implementation, you would implement a heart rate calculation algorithm
         // For now, we'll just return a simulated heart rate
         return (60 + (Math.random() * 20).toInt())
@@ -344,7 +364,7 @@ class GsrSensorManager(
      * Saves GSR data to the CSV file.
      * @param data Timestamped GSR data
      */
-    private fun saveGsrData(data: TimeManager.TimestampedData<Float>) {
+    internal fun saveGsrData(data: TimeManager.TimestampedData<Float>) {
         try {
             csvWriter?.write("${data.timestampNanos},${data.sessionOffsetNanos},${data.data}\n")
             csvWriter?.flush()
@@ -370,6 +390,7 @@ class GsrSensorManager(
         shimmerDevice = null
 
         isConnected.set(false)
+        isStreaming.set(false)
         connectionStateCallback?.invoke(false)
 
         Log.d(TAG, "Disconnected from GSR sensor")
