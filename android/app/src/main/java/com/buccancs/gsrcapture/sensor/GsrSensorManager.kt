@@ -173,9 +173,7 @@ class GsrSensorManager(
         // Extract GSR data using correct method signature
         try {
             val gsrData = objectCluster.getFormatClusterValue("GSR", "CAL")
-            if (gsrData != null) {
-                processGsrData(gsrData.toFloat())
-            }
+            processGsrData(gsrData.toFloat())
         } catch (e: Exception) {
             Log.w(TAG, "Could not extract GSR data", e)
         }
@@ -183,9 +181,7 @@ class GsrSensorManager(
         // Extract PPG data using correct method signature
         try {
             val ppgData = objectCluster.getFormatClusterValue("PPG_A12", "CAL")
-            if (ppgData != null) {
-                processPpgData(ppgData.toFloat())
-            }
+            processPpgData(ppgData.toFloat())
         } catch (e: Exception) {
             Log.w(TAG, "Could not extract PPG data", e)
         }
@@ -211,6 +207,7 @@ class GsrSensorManager(
                     0x01 or 0x02 // Basic fallback values
                 }
 
+                @Suppress("DEPRECATION")
                 device.setEnabledSensors(sensorBitmap.toLong())
 
                 // Write configuration to device

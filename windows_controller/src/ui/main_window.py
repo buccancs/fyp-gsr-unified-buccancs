@@ -22,6 +22,8 @@ from ui.video_preview import VideoPreview
 from ui.video_playback_window import VideoPlaybackWindow
 from ui.status_dashboard import StatusDashboard
 from ui.log_viewer import LogViewer
+from ui.calibration_dialog import CalibrationDialog
+from ui.live_calibration_dialog import LiveCalibrationDialog
 from network.device_manager import DeviceManager
 from utils.logger import get_logger
 from utils.session_manager import SessionManager
@@ -172,6 +174,20 @@ class MainWindow(QMainWindow):
 
         # Tools menu
         tools_menu = self.menuBar().addMenu("&Tools")
+
+        # Camera calibration action
+        calibration_action = QAction("📷 &Camera Calibration", self)
+        calibration_action.setShortcut("Ctrl+Shift+C")
+        calibration_action.triggered.connect(self.on_camera_calibration)
+        tools_menu.addAction(calibration_action)
+
+        # Live calibration action
+        live_calibration_action = QAction("🎥 &Live Calibration", self)
+        live_calibration_action.setShortcut("Ctrl+Shift+L")
+        live_calibration_action.triggered.connect(self.on_live_calibration)
+        tools_menu.addAction(live_calibration_action)
+
+        tools_menu.addSeparator()
 
         settings_action = QAction("&Settings", self)
         settings_action.triggered.connect(self.on_settings)
@@ -398,6 +414,40 @@ class MainWindow(QMainWindow):
         self.logger.info("Opening settings")
         # In a real implementation, we would show a settings dialog
         QMessageBox.information(self, "Settings", "Settings dialog not implemented yet")
+
+    @Slot()
+    def on_camera_calibration(self):
+        """
+        Handle the Camera Calibration action.
+        """
+        self.logger.info("Opening camera calibration dialog")
+        try:
+            # Create and show the calibration dialog
+            calibration_dialog = CalibrationDialog(self)
+            calibration_dialog.exec_()
+        except Exception as e:
+            self.logger.error(f"Failed to open calibration dialog: {str(e)}")
+            QMessageBox.critical(
+                self, "Error", 
+                f"Failed to open camera calibration dialog:\n\n{str(e)}"
+            )
+
+    @Slot()
+    def on_live_calibration(self):
+        """
+        Handle the Live Calibration action.
+        """
+        self.logger.info("Opening live calibration dialog")
+        try:
+            # Create and show the live calibration dialog
+            live_calibration_dialog = LiveCalibrationDialog(self)
+            live_calibration_dialog.exec_()
+        except Exception as e:
+            self.logger.error(f"Failed to open live calibration dialog: {str(e)}")
+            QMessageBox.critical(
+                self, "Error", 
+                f"Failed to open live calibration dialog:\n\n{str(e)}"
+            )
 
     @Slot()
     def on_about(self):

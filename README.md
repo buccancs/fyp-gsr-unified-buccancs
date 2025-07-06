@@ -198,6 +198,125 @@ This system enables researchers to capture synchronized physiological and visual
 - **Raw Image Capture**: ~30 FPS with timestamp naming
 - **Multi-Device Support**: Tested with up to 4 simultaneous devices
 
+## 📷 Camera Calibration System
+
+### Overview
+The system now includes comprehensive camera calibration functionality for multi-camera setups. This enables precise spatial alignment between RGB cameras, thermal cameras, and external webcams for advanced multimodal analysis.
+
+### Features
+- **📐 Intrinsic Calibration**: Individual camera parameter estimation (focal length, principal point, distortion)
+- **🔗 Extrinsic Calibration**: Spatial relationship calculation between camera pairs
+- **🎯 Multiple Patterns**: Support for chessboard and ChArUco calibration patterns
+- **🎥 Video-Based**: Extract calibration frames from recorded video sessions
+- **🖥️ Cross-Platform**: Works on Windows, macOS, and Linux
+- **⚡ Dual Interface**: Both GUI dialog and command-line tools available
+
+### Supported Camera Types
+- **RGB Cameras**: Android phone cameras, PC webcams (Logitech Brio, etc.)
+- **Thermal Cameras**: Topdon TC001 and other thermal imaging devices
+- **Multi-Camera**: Simultaneous calibration of multiple camera types
+
+### Usage
+
+#### Live Calibration Method (Recommended for real-time feedback)
+1. Launch the PC Controller application
+2. Go to **Tools → Live Calibration** (or press `Ctrl+Shift+L`)
+3. Select camera source (USB camera or video file)
+4. Configure calibration pattern settings (chessboard/ChArUco)
+5. Start live preview with real-time pattern detection feedback
+6. Begin recording session for automatic high-quality frame capture
+7. Run calibration directly on captured frames
+8. Export results to JSON format
+
+#### GUI Method (For recorded video analysis)
+1. Launch the PC Controller application
+2. Go to **Tools → Camera Calibration** (or press `Ctrl+Shift+C`)
+3. Use the **Auto-Detect** feature to find calibration data in session folders
+4. Configure calibration pattern settings (chessboard/ChArUco)
+5. Click **Start Calibration** and monitor progress
+6. Export results to JSON format for later use
+
+#### Command Line Method (For automation)
+```bash
+# Navigate to the windows_controller directory
+cd windows_controller
+
+# Basic RGB camera calibration
+python calibrate_cameras.py --rgb-video session1/rgb_video.mp4 --output calibration.json
+
+# Multi-camera calibration (RGB + Thermal)
+python calibrate_cameras.py \
+    --rgb-video session1/rgb_video.mp4 \
+    --thermal-frames session1/thermal_frames/ \
+    --output calibration.json
+
+# Using ChArUco pattern for better thermal camera results
+python calibrate_cameras.py \
+    --rgb-video session1/rgb_video.mp4 \
+    --thermal-frames session1/thermal_frames/ \
+    --pattern charuco --grid-size 7x5 \
+    --output calibration.json
+
+# Calibration via main application
+python src/main/main.py --calibrate \
+    --rgb-video session1/rgb_video.mp4 \
+    --thermal-frames session1/thermal_frames/ \
+    --output calibration.json
+```
+
+### Calibration Pattern Requirements
+- **Chessboard**: Standard black and white checkerboard pattern
+  - Recommended: 9x6 corners, 25mm squares
+  - Good for RGB cameras, may struggle with thermal
+- **ChArUco**: Combination of chessboard and ArUco markers
+  - Recommended: 7x5 markers, 25mm squares, 20mm markers
+  - Better for thermal cameras and partial occlusion
+
+### Output Format
+Calibration results are saved in JSON format containing:
+```json
+{
+  "pattern_info": {
+    "type": "chessboard",
+    "grid_size": [9, 6],
+    "square_size": 0.025
+  },
+  "cameras": {
+    "rgb_camera": {
+      "camera_matrix": [[fx, 0, cx], [0, fy, cy], [0, 0, 1]],
+      "distortion_coefficients": [k1, k2, p1, p2, k3],
+      "image_size": [1920, 1080],
+      "reprojection_error": 0.3
+    },
+    "thermal_camera": { ... }
+  },
+  "extrinsics": {
+    "rgb_to_thermal": {
+      "rotation_matrix": [...],
+      "translation_vector": [x, y, z]
+    }
+  }
+}
+```
+
+### Best Practices
+1. **Recording Calibration Data**:
+   - Use good lighting for RGB cameras
+   - Ensure thermal pattern has temperature contrast
+   - Move pattern to 10-15 different positions and orientations
+   - Avoid motion blur and ensure pattern is fully visible
+   - Fill 20-80% of the image with the pattern
+
+2. **Pattern Preparation**:
+   - Print on rigid backing (cardboard, clipboard)
+   - Ensure pattern is flat and undistorted
+   - For thermal: use materials with temperature difference
+
+3. **Multi-Camera Calibration**:
+   - Ensure cameras capture the same pattern simultaneously
+   - Use sync markers or coordinated recording
+   - Maintain static setup during calibration sequence
+
 ## 🔮 Future Improvements
 
 ### Short-Term (Next 3-6 months)
@@ -210,6 +329,10 @@ This system enables researchers to capture synchronized physiological and visual
   - Real-time GSR/PPG plotting on PC
   - Data export to MATLAB/HDF5 formats
   - Automated sync quality analysis
+  - **Camera Calibration Enhancements**:
+    - Automatic pattern detection and quality assessment
+    - Real-time calibration feedback during recording
+    - Integration with 3D reconstruction pipelines
 
 - **User Experience**:
   - Configuration management UI

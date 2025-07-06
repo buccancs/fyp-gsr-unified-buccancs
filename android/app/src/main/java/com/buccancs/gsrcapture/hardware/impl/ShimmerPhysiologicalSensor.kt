@@ -257,6 +257,7 @@ class ShimmerPhysiologicalSensor(
                     enabledSensors = enabledSensors or Configuration.Shimmer3.SensorBitmap.SENSOR_INT_A12
                 }
 
+                @Suppress("DEPRECATION")
                 device.setEnabledSensors(enabledSensors.toLong())
 
                 // Configuration is applied in memory and will be used when streaming starts
@@ -344,6 +345,7 @@ class ShimmerPhysiologicalSensor(
                 val enabledSensors = Configuration.Shimmer3.SensorBitmap.SENSOR_GSR or
                         Configuration.Shimmer3.SensorBitmap.SENSOR_INT_A12
 
+                @Suppress("DEPRECATION")
                 device.setEnabledSensors(enabledSensors.toLong())
 
                 // Configuration is applied in memory and will be used when streaming starts
