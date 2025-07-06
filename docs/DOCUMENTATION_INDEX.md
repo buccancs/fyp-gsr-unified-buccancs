@@ -12,17 +12,17 @@ This system provides multiple levels of documentation to serve different user ty
 
 ### 🔧 Technical Documentation
 - **[Python API Guide](PYTHON_API_GUIDE.md)** - Comprehensive API reference for programmatic control
-- **[Development Setup Guide](../DEVELOPMENT_SETUP.md)** - Development environment configuration
+- **[Development Setup Guide](DEVELOPMENT_SETUP.md)** - Development environment configuration
 - **[Networking and Synchronization](Networking_and_Synchronization_Layer.md)** - Technical implementation details
 
 ### 📋 Implementation Documentation
-- **[Comprehensive Implementation Summary](../windows_controller/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md)** - Complete system implementation overview
-- **[Test Suite Summary](../windows_controller/TEST_SUITE_SUMMARY.md)** - Testing coverage and validation details
+- **[Comprehensive Implementation Summary](../platforms/windows/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md)** - Complete system implementation overview
+- **[Test Suite Summary](../platforms/windows/TEST_SUITE_SUMMARY.md)** - Testing coverage and validation details
 
 ### 📖 Reference Documentation
 - **[Main README](../README.md)** - System overview, features, and technical specifications
-- **[Changelog](../CHANGELOG.md)** - Version history and major changes
-- **[Windows Controller README](../windows_controller/README.md)** - PC controller specific documentation
+- **[Changelog](CHANGELOG.md)** - Version history and major changes
+- **[Windows Controller README](../platforms/windows/README.md)** - PC controller specific documentation
 
 ## 🎯 Choose Your Path
 
@@ -55,14 +55,14 @@ This guide provides:
 - Integration with research tools (PsychoPy, LSL)
 
 ### I'm a Developer
-**Start With**: [Development Setup Guide](../DEVELOPMENT_SETUP.md)
+**Start With**: [Development Setup Guide](DEVELOPMENT_SETUP.md)
 
 Then explore:
-- [Comprehensive Implementation Summary](../windows_controller/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) - Complete system overview
+- [Comprehensive Implementation Summary](../platforms/windows/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) - Complete system overview
 - [Networking and Synchronization](Networking_and_Synchronization_Layer.md) - Technical implementation details
-- [Test Suite Summary](../windows_controller/TEST_SUITE_SUMMARY.md) - Testing and validation
-- [Windows Controller README](../windows_controller/README.md) - PC controller documentation
-- Source code in `android/` and `windows_controller/` directories
+- [Test Suite Summary](../platforms/windows/TEST_SUITE_SUMMARY.md) - Testing and validation
+- [Windows Controller README](../platforms/windows/README.md) - PC controller documentation
+- Source code in `platforms/android/` and `platforms/windows/` directories
 
 ## 📋 Quick Reference
 
@@ -77,10 +77,10 @@ Then explore:
 | Using Python API | [Python API Guide](PYTHON_API_GUIDE.md#getting-started) |
 | Multi-device recording | [App Usage Guide](APP_USAGE_GUIDE.md#multi-device-recording) |
 | Data export and analysis | [App Usage Guide](APP_USAGE_GUIDE.md#data-management) |
-| Development environment | [Development Setup Guide](../DEVELOPMENT_SETUP.md) |
-| Camera calibration | [Comprehensive Implementation Summary](../windows_controller/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md#camera-calibration-system) |
-| System implementation overview | [Comprehensive Implementation Summary](../windows_controller/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) |
-| Testing and validation | [Test Suite Summary](../windows_controller/TEST_SUITE_SUMMARY.md) |
+| Development environment | [Development Setup Guide](DEVELOPMENT_SETUP.md) |
+| Camera calibration | [Comprehensive Implementation Summary](../platforms/windows/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md#camera-calibration-system) |
+| System implementation overview | [Comprehensive Implementation Summary](../platforms/windows/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) |
+| Testing and validation | [Test Suite Summary](../platforms/windows/TEST_SUITE_SUMMARY.md) |
 
 ### Hardware-Specific Guides
 
@@ -94,8 +94,8 @@ Then explore:
 
 | Component | User Guide | API Reference | Development |
 |-----------|------------|---------------|-------------|
-| Android App | [Android App Usage](APP_USAGE_GUIDE.md#android-app-usage) | N/A | [Development Setup](../DEVELOPMENT_SETUP.md#android-app) |
-| PC Controller | [PC Controller Usage](APP_USAGE_GUIDE.md#pc-controller-usage) | [Python API Guide](PYTHON_API_GUIDE.md) | [Development Setup](../DEVELOPMENT_SETUP.md#windows-controller) |
+| Android App | [Android App Usage](APP_USAGE_GUIDE.md#android-app-usage) | N/A | [Development Setup](DEVELOPMENT_SETUP.md#android-app) |
+| PC Controller | [PC Controller Usage](APP_USAGE_GUIDE.md#pc-controller-usage) | [Python API Guide](PYTHON_API_GUIDE.md) | [Development Setup](DEVELOPMENT_SETUP.md#windows-controller) |
 | Network Layer | [Network Configuration](SETUP_AND_CONNECTION_GUIDE.md#network-configuration) | [Device Management API](PYTHON_API_GUIDE.md#device-management) | [Networking Documentation](Networking_and_Synchronization_Layer.md) |
 
 ## 🔍 Documentation by User Type
@@ -111,7 +111,7 @@ Then explore:
 
 ### 👨‍💻 Developers and Integrators
 **Primary Documentation**:
-1. [Development Setup Guide](../DEVELOPMENT_SETUP.md) - Development environment
+1. [Development Setup Guide](DEVELOPMENT_SETUP.md) - Development environment
 2. [Python API Guide](PYTHON_API_GUIDE.md) - Programmatic control
 3. [Networking and Synchronization](Networking_and_Synchronization_Layer.md) - Technical details
 
@@ -122,7 +122,7 @@ Then explore:
 ### 🔧 System Administrators
 **Primary Documentation**:
 1. [Setup and Connection Guide](SETUP_AND_CONNECTION_GUIDE.md) - Network and system setup
-2. [Development Setup Guide](../DEVELOPMENT_SETUP.md) - Installation and configuration
+2. [Development Setup Guide](DEVELOPMENT_SETUP.md) - Installation and configuration
 
 **Troubleshooting Resources**:
 - [App Usage Guide - Troubleshooting](APP_USAGE_GUIDE.md#troubleshooting)

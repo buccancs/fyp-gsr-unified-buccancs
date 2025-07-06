@@ -28,9 +28,9 @@ These features were identified as fundamental blockers but have been successfull
 **Description:** The core logic to convert message objects (like commands or status updates) into a byte format for network transmission, and to convert them back upon receipt.
 
 **Current Status:** FULLY IMPLEMENTED
-- The `serialize()` and `deserialize()` methods in `src/common/network/CommandProtocol.java` are fully functional with proper binary serialization.
+- The `serialize()` and `deserialize()` methods in `shared/network/common/CommandProtocol.java` are fully functional with proper binary serialization.
 - All message types are supported: `CommandMessage`, `ResponseMessage`, and `SyncMessage`.
-- The `processReceivedData` methods in both `src/android/network/TcpClientTransport.java` and `src/windows/network/TcpServerTransport.java` properly use the `deserialize()` method.
+- The `processReceivedData` methods in both `shared/network/android/TcpClientTransport.java` and `shared/network/windows/TcpServerTransport.java` properly use the `deserialize()` method.
 
 **Impact:** The networking layer is fully functional. Commands can be sent and received, enabling remote control, status updates, and time synchronization.
 
@@ -40,7 +40,7 @@ These features were identified as fundamental blockers but have been successfull
 **Description:** The initial connection handshake properly establishes and validates two-way connections.
 
 **Current Status:** FULLY IMPLEMENTED
-- The `performHandshake()` methods in `TcpClientTransport.java` and `TcpServerTransport.java` use the CommandProtocol with proper CONNECT messages.
+- The `performHandshake()` methods in `shared/network/android/TcpClientTransport.java` and `shared/network/windows/TcpServerTransport.java` use the CommandProtocol with proper CONNECT messages.
 - The server sends appropriate ACK/NACK responses and the client validates these responses.
 - Device ID validation and error handling are properly implemented.
 
@@ -52,8 +52,8 @@ These features were identified as fundamental blockers but have been successfull
 **Description:** The Android app properly processes and executes commands received from the PC.
 
 **Current Status:** FULLY IMPLEMENTED
-- The `receiveMessages()` loop in `TcpClientTransport.java` successfully deserializes incoming data.
-- The `handleNetworkCommand()` method in `MainActivity.kt` properly processes CommandMessages (e.g., `CMD_START`, `CMD_STOP`) and calls corresponding methods in the `RecordingController`.
+- The `receiveMessages()` loop in `shared/network/android/TcpClientTransport.java` successfully deserializes incoming data.
+- The `handleNetworkCommand()` method in `platforms/android/app/src/main/java/com/buccancs/gsrcapture/MainActivity.kt` properly processes CommandMessages (e.g., `CMD_START`, `CMD_STOP`) and calls corresponding methods in the `RecordingController`.
 - Full command execution pipeline is functional.
 
 **Impact:** The PC Controller can successfully remotely control the Android app. Synchronized start/stop and other remote commands are fully functional.
@@ -70,8 +70,8 @@ These are major features described in the documentation that are either simulate
 **Description:** The PC controller now implements real device discovery using Zeroconf/mDNS for a plug-and-play experience.
 
 **Current Status:** FULLY IMPLEMENTED
-- The `windows_controller/src/network/device_manager.py` includes comprehensive Zeroconf/mDNS device discovery implementation.
-- The Android `NetworkClient.kt` registers the device as a network service using `NsdManager` with service type `_gsrcapture._tcp.local.`.
+- The `platforms/windows/src/network/device_manager.py` includes comprehensive Zeroconf/mDNS device discovery implementation.
+- The Android `platforms/android/app/src/main/java/com/buccancs/gsrcapture/network/NetworkClient.kt` registers the device as a network service using `NsdManager` with service type `_gsrcapture._tcp.local.`.
 - Automatic device discovery works seamlessly across the network without manual IP configuration.
 - The `DeviceListener` class in the PC controller automatically detects and connects to available Android devices.
 
@@ -83,8 +83,8 @@ These are major features described in the documentation that are either simulate
 **Description:** The system now supports real-time streaming of GSR and PPG data from Android devices to the PC controller for live monitoring.
 
 **Current Status:** FULLY IMPLEMENTED
-- The Android `NetworkClient.kt` includes `streamGsrData()` and `streamHeartRateData()` methods that send real-time sensor data to the PC.
-- The `MainActivity.kt` actively streams GSR values and heart rate data using these methods.
+- The Android `platforms/android/app/src/main/java/com/buccancs/gsrcapture/network/NetworkClient.kt` includes `streamGsrData()` and `streamHeartRateData()` methods that send real-time sensor data to the PC.
+- The `platforms/android/app/src/main/java/com/buccancs/gsrcapture/MainActivity.kt` actively streams GSR values and heart rate data using these methods.
 - The PC controller receives and processes this live data through the established network connection.
 - Real-time data streaming is integrated into the main recording workflow.
 
@@ -96,7 +96,7 @@ These are major features described in the documentation that are either simulate
 **Description:** The system now includes automatic file transfer capabilities from Android devices to the PC controller after recording sessions.
 
 **Current Status:** FULLY IMPLEMENTED
-- The Android `NetworkClient.kt` includes comprehensive file collection functionality via `handleFileCollection()` method.
+- The Android `platforms/android/app/src/main/java/com/buccancs/gsrcapture/network/NetworkClient.kt` includes comprehensive file collection functionality via `handleFileCollection()` method.
 - Automatic file transfer is triggered by `COLLECT_FILES` commands from the PC controller.
 - The system transfers all session files including video, audio, GSR data, and metadata.
 - File integrity checking and transfer status reporting are included.

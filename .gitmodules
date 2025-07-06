@@ -1,0 +1,12 @@
+[submodule "libs/labstreaminglayer"]
+	path = libs/labstreaminglayer
+	url = https://github.com/buccancs/labstreaminglayer
+[submodule "libs/FactorizePhys"]
+	path = libs/FactorizePhys
+	url = https://github.com/buccancs/FactorizePhys
+[submodule "libs/ShimmerAndroidAPI"]
+	path = libs/ShimmerAndroidAPI
+	url = https://github.com/buccancs/ShimmerAndroidAPI
+[submodule "libs/pylsl"]
+	path = libs/pylsl
+	url = https://github.com/buccancs/pylsl
