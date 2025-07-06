@@ -7,14 +7,15 @@ This module handles session management and manifest generation.
 Cross-platform support: Windows, macOS, Linux.
 """
 
-import os
-import json
 import datetime
+import json
 import logging
+import os
 import uuid
 from pathlib import Path
 
 from utils.logger import get_logger
+
 
 class SessionManager:
     """
@@ -36,9 +37,11 @@ class SessionManager:
         if base_dir is None:
             # Use default location: pc_controller/sessions
             self.base_dir = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                "sessions"
-            )
+                os.path.dirname(
+                    os.path.dirname(
+                        os.path.dirname(
+                            os.path.abspath(__file__)))),
+                "sessions")
         else:
             self.base_dir = base_dir
 
@@ -52,7 +55,9 @@ class SessionManager:
         self.session_end_time = None
         self.session_metadata = {}
 
-        self.logger.info(f"Session manager initialized with base directory: {self.base_dir}")
+        self.logger.info(
+            f"Session manager initialized with base directory: {
+                self.base_dir}")
 
     def create_new_session(self, session_id=None):
         """
@@ -116,13 +121,15 @@ class SessionManager:
 
         # Check if the directory exists
         if not os.path.isdir(session_dir):
-            self.logger.error(f"Session directory does not exist: {session_dir}")
+            self.logger.error(
+                f"Session directory does not exist: {session_dir}")
             return False
 
         # Check if the metadata file exists
         metadata_file = os.path.join(session_dir, "session_metadata.json")
         if not os.path.isfile(metadata_file):
-            self.logger.error(f"Session metadata file does not exist: {metadata_file}")
+            self.logger.error(
+                f"Session metadata file does not exist: {metadata_file}")
             return False
 
         try:
@@ -137,13 +144,15 @@ class SessionManager:
             # Parse timestamps
             start_time_str = self.session_metadata.get("start_time")
             if start_time_str:
-                self.session_start_time = datetime.datetime.fromisoformat(start_time_str)
+                self.session_start_time = datetime.datetime.fromisoformat(
+                    start_time_str)
             else:
                 self.session_start_time = None
 
             end_time_str = self.session_metadata.get("end_time")
             if end_time_str:
-                self.session_end_time = datetime.datetime.fromisoformat(end_time_str)
+                self.session_end_time = datetime.datetime.fromisoformat(
+                    end_time_str)
             else:
                 self.session_end_time = None
 
@@ -170,7 +179,8 @@ class SessionManager:
         try:
             # Set end time
             self.session_end_time = datetime.datetime.now()
-            self.session_metadata["end_time"] = self.session_end_time.isoformat()
+            self.session_metadata["end_time"] = self.session_end_time.isoformat(
+            )
 
             # Save metadata
             self._save_metadata()
@@ -245,7 +255,8 @@ class SessionManager:
 
         # Check if a session is open
         if not self.has_current_session():
-            self.logger.error("Cannot add device: no session is currently open")
+            self.logger.error(
+                "Cannot add device: no session is currently open")
             return False
 
         try:
@@ -317,25 +328,30 @@ class SessionManager:
 
         # Check if a session is open
         if not self.has_current_session():
-            self.logger.error("Cannot generate manifest: no session is currently open")
+            self.logger.error(
+                "Cannot generate manifest: no session is currently open")
             return False
 
         try:
             # Set end time if not already set
             if self.session_end_time is None:
                 self.session_end_time = datetime.datetime.now()
-                self.session_metadata["end_time"] = self.session_end_time.isoformat()
+                self.session_metadata["end_time"] = self.session_end_time.isoformat(
+                )
 
             # Calculate duration
             duration = self.get_session_duration()
             if duration is not None:
-                self.session_metadata["duration_seconds"] = duration.total_seconds()
+                self.session_metadata["duration_seconds"] = duration.total_seconds(
+                )
 
             # Save metadata
             self._save_metadata()
 
             # Create a more detailed manifest file
-            manifest_file = os.path.join(self.current_session_dir, "session_manifest.json")
+            manifest_file = os.path.join(
+                self.current_session_dir,
+                "session_manifest.json")
             with open(manifest_file, "w") as f:
                 json.dump(self.session_metadata, f, indent=2)
 
@@ -352,6 +368,8 @@ class SessionManager:
         if not self.has_current_session():
             return
 
-        metadata_file = os.path.join(self.current_session_dir, "session_metadata.json")
+        metadata_file = os.path.join(
+            self.current_session_dir,
+            "session_metadata.json")
         with open(metadata_file, "w") as f:
             json.dump(self.session_metadata, f, indent=2)

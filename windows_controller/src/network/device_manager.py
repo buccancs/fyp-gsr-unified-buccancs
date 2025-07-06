@@ -6,16 +6,18 @@ Device Manager for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
+import json
 import logging
+import socket
 import threading
 import time
-import socket
-import json
+
 from PySide6.QtCore import QObject, Signal, Slot
 from zeroconf import ServiceBrowser, Zeroconf
 
 from network.device import Device
 from utils.logger import get_logger
+
 
 class DeviceManager(QObject):
     """
@@ -69,11 +71,11 @@ class DeviceManager(QObject):
         listener = DeviceListener(self)
 
         # Browse for GSR capture services (matching Android app service type)
-        self.browser = ServiceBrowser(self.zeroconf, "_gsrcapture._tcp.local.", listener)
+        self.browser = ServiceBrowser(
+            self.zeroconf, "_gsrcapture._tcp.local.", listener)
 
         self.logger.info("Device discovery started")
         return True
-
 
     def connect_device(self, device_id):
         """
@@ -95,7 +97,8 @@ class DeviceManager(QObject):
 
             # Check if the device is discovered
             if device_id not in self.discovered_devices:
-                self.logger.error(f"Device {device_id} not found in discovered devices")
+                self.logger.error(
+                    f"Device {device_id} not found in discovered devices")
                 return False
 
             # Get the device
@@ -206,7 +209,8 @@ class DeviceManager(QObject):
         Returns:
             True if all devices started recording successfully, False otherwise
         """
-        self.logger.info(f"Starting recording on all devices with session ID: {session_id}")
+        self.logger.info(
+            f"Starting recording on all devices with session ID: {session_id}")
 
         # Get the list of connected devices
         with self.lock:
@@ -257,7 +261,8 @@ class DeviceManager(QObject):
         Returns:
             True if all files were collected successfully, False otherwise
         """
-        self.logger.info(f"Collecting files from all devices to: {destination_dir}")
+        self.logger.info(
+            f"Collecting files from all devices to: {destination_dir}")
 
         # Get the list of connected devices
         with self.lock:
@@ -364,11 +369,14 @@ class DeviceListener:
 
                 # Validate that we have required information
                 if not info.addresses or len(info.addresses) == 0:
-                    self.logger.warning(f"Service {name} has no addresses, skipping")
+                    self.logger.warning(
+                        f"Service {name} has no addresses, skipping")
                     return
 
                 if info.port is None or info.port <= 0:
-                    self.logger.warning(f"Service {name} has invalid port {info.port}, skipping")
+                    self.logger.warning(
+                        f"Service {name} has invalid port {
+                            info.port}, skipping")
                     return
 
                 # Parse the service info
@@ -380,17 +388,21 @@ class DeviceListener:
                 if info.properties:
                     for key, value in info.properties.items():
                         try:
-                            properties[key.decode('utf-8')] = value.decode('utf-8')
+                            properties[key.decode(
+                                'utf-8')] = value.decode('utf-8')
                         except (UnicodeDecodeError, AttributeError) as e:
-                            self.logger.warning(f"Failed to decode property {key}: {e}")
+                            self.logger.warning(
+                                f"Failed to decode property {key}: {e}")
 
                 # Create device ID - use service name if no ID property
-                device_id = properties.get('id', name.split('.')[0])  # Remove domain part
+                device_id = properties.get(
+                    'id', name.split('.')[0])  # Remove domain part
                 device_name = properties.get('name', name)
 
                 # Parse capabilities
                 capabilities_str = properties.get('capabilities', '')
-                capabilities = [cap.strip() for cap in capabilities_str.split(',') if cap.strip()]
+                capabilities = [
+                    cap.strip() for cap in capabilities_str.split(',') if cap.strip()]
 
                 # Create a device
                 device = Device(
@@ -405,19 +417,22 @@ class DeviceListener:
                 # Check if device already exists
                 with self.device_manager.lock:
                     if device_id in self.device_manager.discovered_devices:
-                        self.logger.info(f"Device {device_id} already discovered, updating info")
+                        self.logger.info(
+                            f"Device {device_id} already discovered, updating info")
 
                     self.device_manager.discovered_devices[device_id] = device
 
                 # Emit signal
                 self.device_manager.device_discovered.emit(device)
-                self.logger.info(f"Device added: {device_name} ({device_id}) at {address}:{port}")
+                self.logger.info(
+                    f"Device added: {device_name} ({device_id}) at {address}:{port}")
 
             else:
                 self.logger.warning(f"Could not get service info for {name}")
 
         except Exception as e:
-            self.logger.error(f"Error processing discovered service {name}: {e}")
+            self.logger.error(
+                f"Error processing discovered service {name}: {e}")
 
     def remove_service(self, zeroconf, service_type, name):
         """
@@ -434,7 +449,8 @@ class DeviceListener:
         device_to_remove = None
         with self.device_manager.lock:
             # Find the device by service name or other identifier
-            for device_id, device in list(self.device_manager.discovered_devices.items()):
+            for device_id, device in list(
+                    self.device_manager.discovered_devices.items()):
                 # Match by service name or device name
                 if device.name == name or device_id == name:
                     device_to_remove = device
@@ -444,6 +460,9 @@ class DeviceListener:
         # If device was found and removed, emit signal
         if device_to_remove:
             self.device_manager.device_removed.emit(device_to_remove)
-            self.logger.info(f"Device removed from discovered devices: {device_to_remove.name}")
+            self.logger.info(
+                f"Device removed from discovered devices: {
+                    device_to_remove.name}")
         else:
-            self.logger.warning(f"Could not find device to remove for service: {name}")
+            self.logger.warning(
+                f"Could not find device to remove for service: {name}")

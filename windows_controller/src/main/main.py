@@ -7,20 +7,22 @@ This script initializes the application and launches the main window.
 Cross-platform support: Windows, macOS, Linux.
 """
 
-import sys
-import os
-import logging
+from utils.logger import setup_logger
+from utils.camera_calibration import main as calibration_main
+from ui.main_window import MainWindow
 import argparse
-from PySide6.QtWidgets import QApplication
+import logging
+import os
+import sys
+
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
 
 # Add the parent directory to the path so we can import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import our modules
-from ui.main_window import MainWindow
-from utils.logger import setup_logger
-from utils.camera_calibration import main as calibration_main
+
 
 def main():
     """
@@ -47,31 +49,41 @@ Examples:
 
     # Add calibration mode flag
     parser.add_argument('--calibrate', action='store_true',
-                       help='Run in calibration mode (CLI)')
+                        help='Run in calibration mode (CLI)')
 
     # Calibration arguments (only used when --calibrate is specified)
     parser.add_argument('--rgb-video', type=str,
-                       help='Path to RGB video file (MP4)')
-    parser.add_argument('--thermal-frames', type=str,
-                       help='Path to directory containing thermal frame images')
+                        help='Path to RGB video file (MP4)')
+    parser.add_argument(
+        '--thermal-frames',
+        type=str,
+        help='Path to directory containing thermal frame images')
     parser.add_argument('--webcam-video', type=str,
-                       help='Path to webcam video file')
+                        help='Path to webcam video file')
     parser.add_argument('--rgb-frames', type=str,
-                       help='Path to directory containing RGB frame images')
-    parser.add_argument('--pattern', type=str, choices=['chessboard', 'charuco'],
-                       default='chessboard', help='Calibration pattern type')
+                        help='Path to directory containing RGB frame images')
+    parser.add_argument(
+        '--pattern',
+        type=str,
+        choices=[
+            'chessboard',
+            'charuco'],
+        default='chessboard',
+        help='Calibration pattern type')
     parser.add_argument('--grid-size', type=str, default='9x6',
-                       help='Pattern grid size as WIDTHxHEIGHT (e.g., 9x6)')
+                        help='Pattern grid size as WIDTHxHEIGHT (e.g., 9x6)')
     parser.add_argument('--square-size', type=float, default=0.025,
-                       help='Square size in meters (default: 0.025m = 25mm)')
-    parser.add_argument('--marker-size', type=float,
-                       help='ArUco marker size in meters (for ChArUco pattern)')
+                        help='Square size in meters (default: 0.025m = 25mm)')
+    parser.add_argument(
+        '--marker-size',
+        type=float,
+        help='ArUco marker size in meters (for ChArUco pattern)')
     parser.add_argument('--output', type=str,
-                       help='Output path for calibration JSON file')
+                        help='Output path for calibration JSON file')
     parser.add_argument('--max-frames', type=int, default=50,
-                       help='Maximum number of frames to extract from videos')
+                        help='Maximum number of frames to extract from videos')
     parser.add_argument('--verbose', '-v', action='store_true',
-                       help='Enable verbose logging')
+                        help='Enable verbose logging')
 
     args = parser.parse_args()
 
@@ -141,6 +153,7 @@ Examples:
 
     # Run the application event loop
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()

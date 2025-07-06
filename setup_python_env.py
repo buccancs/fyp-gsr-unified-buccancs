@@ -5,14 +5,20 @@ This script makes the repository self-sufficient by setting up the Python enviro
 """
 
 import os
-import sys
-import subprocess
 import platform
+import subprocess
+import sys
+
 
 def run_command(command, cwd=None):
     """Run a command and return the result."""
     try:
-        result = subprocess.run(command, shell=True, cwd=cwd, capture_output=True, text=True)
+        result = subprocess.run(
+            command,
+            shell=True,
+            cwd=cwd,
+            capture_output=True,
+            text=True)
         if result.returncode != 0:
             print(f"Error running command: {command}")
             print(f"Error output: {result.stderr}")
@@ -21,6 +27,7 @@ def run_command(command, cwd=None):
     except Exception as e:
         print(f"Exception running command {command}: {e}")
         return False
+
 
 def setup_python_environment():
     """Set up Python virtual environment and install dependencies."""
@@ -50,8 +57,10 @@ def setup_python_environment():
 
     # Install Windows controller dependencies
     print("Installing Windows controller dependencies...")
-    if not run_command(f"{pip_path} install -r windows_controller/requirements.txt"):
-        print("Warning: Some dependencies failed to install. Trying alternative approach...")
+    if not run_command(
+            f"{pip_path} install -r windows_controller/requirements.txt"):
+        print(
+            "Warning: Some dependencies failed to install. Trying alternative approach...")
         # Try installing core dependencies individually
         core_deps = [
             "numpy>=1.24.3",
@@ -70,13 +79,16 @@ def setup_python_environment():
                 failed_deps.append(dep)
 
         if failed_deps:
-            print(f"Warning: The following dependencies failed to install: {failed_deps}")
-            print("You may need to install them manually or install additional system dependencies.")
+            print(
+                f"Warning: The following dependencies failed to install: {failed_deps}")
+            print(
+                "You may need to install them manually or install additional system dependencies.")
 
         # Try to install PyQt6 separately
         print("Attempting to install PyQt6...")
         if not run_command(f"{pip_path} install PyQt6"):
-            print("Warning: PyQt6 installation failed. You may need to install Qt development tools.")
+            print(
+                "Warning: PyQt6 installation failed. You may need to install Qt development tools.")
             print("Alternative: Try 'pip install PySide6' for a different Qt binding.")
 
     # Install Windows app dependencies (if setup.py exists)
@@ -86,13 +98,14 @@ def setup_python_environment():
             return False
 
     print("Python environment setup completed successfully!")
-    print(f"To activate the environment:")
+    print("To activate the environment:")
     if platform.system() == "Windows":
         print(f"  {venv_path}\\Scripts\\activate")
     else:
         print(f"  source {venv_path}/bin/activate")
 
     return True
+
 
 if __name__ == "__main__":
     if setup_python_environment():

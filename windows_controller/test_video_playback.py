@@ -6,15 +6,15 @@ Test script for the Video Playback Window.
 This script tests the video playback functionality independently.
 """
 
-import sys
+from ui.video_playback_window import VideoPlaybackWindow
+from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton,
+                               QVBoxLayout, QWidget)
 import os
+import sys
 
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton
-from PySide6.QtCore import Qt
-from ui.video_playback_window import VideoPlaybackWindow
 
 class TestMainWindow(QMainWindow):
     """
@@ -81,6 +81,7 @@ class TestMainWindow(QMainWindow):
         """Handle playback stopped events."""
         print("Playback stopped")
 
+
 def main():
     """Main function to run the test."""
     app = QApplication(sys.argv)
@@ -98,6 +99,7 @@ def main():
 
     # Run the application
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()

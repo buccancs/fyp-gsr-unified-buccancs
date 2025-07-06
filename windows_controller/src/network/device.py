@@ -6,15 +6,17 @@ Device class for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
+import json
 import logging
+import os
 import socket
 import threading
 import time
-import json
-import os
+
 from PySide6.QtCore import QObject, Signal, Slot
 
 from utils.logger import get_logger
+
 
 class Device(QObject):
     """
@@ -23,9 +25,17 @@ class Device(QObject):
 
     # Define signals
     status_updated = Signal(object)
-    video_frame_received = Signal(object, str)  # device, frame_type (rgb/thermal)
+    # device, frame_type (rgb/thermal)
+    video_frame_received = Signal(object, str)
 
-    def __init__(self, id, name, address, port, device_type="phone", capabilities=None):
+    def __init__(
+            self,
+            id,
+            name,
+            address,
+            port,
+            device_type="phone",
+            capabilities=None):
         """
         Initialize the device.
 
@@ -111,7 +121,10 @@ class Device(QObject):
             self.logger.info(f"Connected to device: {self.name} ({self.id})")
             return True
         except Exception as e:
-            self.logger.error(f"Failed to connect to device {self.id}: {str(e)}")
+            self.logger.error(
+                f"Failed to connect to device {
+                    self.id}: {
+                    str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
@@ -157,10 +170,16 @@ class Device(QObject):
             # Emit status update
             self.status_updated.emit(self)
 
-            self.logger.info(f"Disconnected from device: {self.name} ({self.id})")
+            self.logger.info(
+                f"Disconnected from device: {
+                    self.name} ({
+                    self.id})")
             return True
         except Exception as e:
-            self.logger.error(f"Failed to disconnect from device {self.id}: {str(e)}")
+            self.logger.error(
+                f"Failed to disconnect from device {
+                    self.id}: {
+                    str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
@@ -178,7 +197,9 @@ class Device(QObject):
             True if command was sent and acknowledged successfully, False otherwise
         """
         if not self.connected or not self.socket:
-            self.logger.error(f"Cannot send command to device {self.id}: not connected")
+            self.logger.error(
+                f"Cannot send command to device {
+                    self.id}: not connected")
             return False
 
         try:
@@ -203,7 +224,10 @@ class Device(QObject):
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to send command to device {self.id}: {str(e)}")
+            self.logger.error(
+                f"Failed to send command to device {
+                    self.id}: {
+                    str(e)}")
             return False
 
     def start_recording(self, session_id):
@@ -216,11 +240,16 @@ class Device(QObject):
         Returns:
             True if recording was started successfully, False otherwise
         """
-        self.logger.info(f"Starting recording on device: {self.name} ({self.id}) with session ID: {session_id}")
+        self.logger.info(
+            f"Starting recording on device: {
+                self.name} ({
+                self.id}) with session ID: {session_id}")
 
         # Check if connected
         if not self.connected:
-            self.logger.error(f"Cannot start recording on device {self.id}: not connected")
+            self.logger.error(
+                f"Cannot start recording on device {
+                    self.id}: not connected")
             return False
 
         # Check if already recording
@@ -230,7 +259,9 @@ class Device(QObject):
 
         try:
             # Send start recording command to the device
-            success = self.send_command("START_RECORDING", {"session_id": session_id})
+            success = self.send_command(
+                "START_RECORDING", {
+                    "session_id": session_id})
 
             if success:
                 self.recording = True
@@ -245,14 +276,22 @@ class Device(QObject):
                 # Emit status update
                 self.status_updated.emit(self)
 
-                self.logger.info(f"Recording started on device: {self.name} ({self.id})")
+                self.logger.info(
+                    f"Recording started on device: {
+                        self.name} ({
+                        self.id})")
                 return True
             else:
-                self.logger.error(f"Failed to send start recording command to device {self.id}")
+                self.logger.error(
+                    f"Failed to send start recording command to device {
+                        self.id}")
                 return False
 
         except Exception as e:
-            self.logger.error(f"Failed to start recording on device {self.id}: {str(e)}")
+            self.logger.error(
+                f"Failed to start recording on device {
+                    self.id}: {
+                    str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
@@ -264,11 +303,16 @@ class Device(QObject):
         Returns:
             True if recording was stopped successfully, False otherwise
         """
-        self.logger.info(f"Stopping recording on device: {self.name} ({self.id})")
+        self.logger.info(
+            f"Stopping recording on device: {
+                self.name} ({
+                self.id})")
 
         # Check if connected
         if not self.connected:
-            self.logger.error(f"Cannot stop recording on device {self.id}: not connected")
+            self.logger.error(
+                f"Cannot stop recording on device {
+                    self.id}: not connected")
             return False
 
         # Check if not recording
@@ -292,14 +336,22 @@ class Device(QObject):
                 # Emit status update
                 self.status_updated.emit(self)
 
-                self.logger.info(f"Recording stopped on device: {self.name} ({self.id})")
+                self.logger.info(
+                    f"Recording stopped on device: {
+                        self.name} ({
+                        self.id})")
                 return True
             else:
-                self.logger.error(f"Failed to send stop recording command to device {self.id}")
+                self.logger.error(
+                    f"Failed to send stop recording command to device {
+                        self.id}")
                 return False
 
         except Exception as e:
-            self.logger.error(f"Failed to stop recording on device {self.id}: {str(e)}")
+            self.logger.error(
+                f"Failed to stop recording on device {
+                    self.id}: {
+                    str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
@@ -314,11 +366,16 @@ class Device(QObject):
         Returns:
             True if files were collected successfully, False otherwise
         """
-        self.logger.info(f"Collecting files from device: {self.name} ({self.id}) to: {destination_dir}")
+        self.logger.info(
+            f"Collecting files from device: {
+                self.name} ({
+                self.id}) to: {destination_dir}")
 
         # Check if connected
         if not self.connected:
-            self.logger.error(f"Cannot collect files from device {self.id}: not connected")
+            self.logger.error(
+                f"Cannot collect files from device {
+                    self.id}: not connected")
             return False
 
         try:
@@ -336,11 +393,16 @@ class Device(QObject):
                 # Wait for and handle file transfer
                 return self._handle_file_transfer(device_dir)
             else:
-                self.logger.error(f"Failed to send file collection command to device {self.id}")
+                self.logger.error(
+                    f"Failed to send file collection command to device {
+                        self.id}")
                 return False
 
         except Exception as e:
-            self.logger.error(f"Failed to collect files from device {self.id}: {str(e)}")
+            self.logger.error(
+                f"Failed to collect files from device {
+                    self.id}: {
+                    str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
@@ -367,7 +429,8 @@ class Device(QObject):
                 try:
                     # Read response from device
                     if self.socket and self.socket.fileno() != -1:
-                        self.socket.settimeout(10.0)  # 10 second timeout for each read
+                        # 10 second timeout for each read
+                        self.socket.settimeout(10.0)
                         response = self.socket.recv(4096).decode('utf-8')
 
                         if not response:
@@ -380,26 +443,33 @@ class Device(QObject):
                         if msg_type == "FILE_LIST":
                             total_files = data.get("count", 0)
                             files_info = data.get("files", [])
-                            self.logger.info(f"Expecting {total_files} files from device {self.id}")
+                            self.logger.info(
+                                f"Expecting {total_files} files from device {
+                                    self.id}")
 
                             for file_info in files_info:
-                                self.logger.info(f"  - {file_info.get('name')} ({file_info.get('size')} bytes)")
+                                self.logger.info(
+                                    f"  - {file_info.get('name')} ({file_info.get('size')} bytes)")
 
                         elif msg_type == "FILE_TRANSFER":
                             # Receive file
                             filename = data.get("name")
                             file_size = data.get("size", 0)
 
-                            if self._receive_file(device_dir, filename, file_size):
+                            if self._receive_file(
+                                    device_dir, filename, file_size):
                                 files_received += 1
-                                self.logger.info(f"Received file {files_received}/{total_files}: {filename}")
+                                self.logger.info(
+                                    f"Received file {files_received}/{total_files}: {filename}")
                             else:
-                                self.logger.error(f"Failed to receive file: {filename}")
+                                self.logger.error(
+                                    f"Failed to receive file: {filename}")
 
                         elif msg_type == "FILE_COLLECTION_RESPONSE":
                             success = data.get("success", False)
                             message = data.get("message", "")
-                            self.logger.info(f"File collection completed: {message}")
+                            self.logger.info(
+                                f"File collection completed: {message}")
                             return success and files_received == total_files
 
                 except socket.timeout:
@@ -413,14 +483,19 @@ class Device(QObject):
 
             # Check if we received all expected files
             if total_files > 0 and files_received == total_files:
-                self.logger.info(f"Successfully received all {files_received} files from device {self.id}")
+                self.logger.info(
+                    f"Successfully received all {files_received} files from device {
+                        self.id}")
                 return True
             else:
-                self.logger.warning(f"File transfer incomplete: received {files_received}/{total_files} files")
+                self.logger.warning(
+                    f"File transfer incomplete: received {files_received}/{total_files} files")
                 return False
 
         except Exception as e:
-            self.logger.error(f"Error handling file transfer from device {self.id}: {e}")
+            self.logger.error(
+                f"Error handling file transfer from device {
+                    self.id}: {e}")
             return False
 
     def _receive_file(self, device_dir, filename, file_size):
@@ -451,10 +526,12 @@ class Device(QObject):
                     bytes_received += len(chunk)
 
             if bytes_received == file_size:
-                self.logger.info(f"Successfully received file: {filename} ({bytes_received} bytes)")
+                self.logger.info(
+                    f"Successfully received file: {filename} ({bytes_received} bytes)")
                 return True
             else:
-                self.logger.error(f"File size mismatch for {filename}: expected {file_size}, got {bytes_received}")
+                self.logger.error(
+                    f"File size mismatch for {filename}: expected {file_size}, got {bytes_received}")
                 # Remove incomplete file
                 if os.path.exists(file_path):
                     os.remove(file_path)
@@ -479,18 +556,24 @@ class Device(QObject):
         """
         Thread for reading data from the device.
         """
-        self.logger.info(f"Reader thread started for device: {self.name} ({self.id})")
+        self.logger.info(
+            f"Reader thread started for device: {
+                self.name} ({
+                self.id})")
 
         while self.running:
             try:
                 # In a real implementation, we would read data from the socket
-                # For now, just simulate receiving status updates and video frames
+                # For now, just simulate receiving status updates and video
+                # frames
 
                 # Simulate receiving a status update
                 if self.connected:
                     # Update battery level and storage
-                    self.status["battery_level"] = min(100, self.status["battery_level"] + 1)
-                    self.status["storage_remaining"] = max(0, 100 - self.status["battery_level"])
+                    self.status["battery_level"] = min(
+                        100, self.status["battery_level"] + 1)
+                    self.status["storage_remaining"] = max(
+                        0, 100 - self.status["battery_level"])
 
                     # Emit status update
                     self.status_updated.emit(self)
@@ -511,20 +594,29 @@ class Device(QObject):
                 # Sleep to avoid busy waiting
                 time.sleep(1.0)
             except Exception as e:
-                self.logger.error(f"Error in reader thread for device {self.id}: {str(e)}")
+                self.logger.error(
+                    f"Error in reader thread for device {
+                        self.id}: {
+                        str(e)}")
                 self.status["error"] = str(e)
                 self.status_updated.emit(self)
 
                 # Sleep before retrying
                 time.sleep(1.0)
 
-        self.logger.info(f"Reader thread stopped for device: {self.name} ({self.id})")
+        self.logger.info(
+            f"Reader thread stopped for device: {
+                self.name} ({
+                self.id})")
 
     def _writer_thread(self):
         """
         Thread for writing data to the device.
         """
-        self.logger.info(f"Writer thread started for device: {self.name} ({self.id})")
+        self.logger.info(
+            f"Writer thread started for device: {
+                self.name} ({
+                self.id})")
 
         while self.running:
             try:
@@ -532,14 +624,20 @@ class Device(QObject):
                 # For now, just sleep to avoid busy waiting
                 time.sleep(1.0)
             except Exception as e:
-                self.logger.error(f"Error in writer thread for device {self.id}: {str(e)}")
+                self.logger.error(
+                    f"Error in writer thread for device {
+                        self.id}: {
+                        str(e)}")
                 self.status["error"] = str(e)
                 self.status_updated.emit(self)
 
                 # Sleep before retrying
                 time.sleep(1.0)
 
-        self.logger.info(f"Writer thread stopped for device: {self.name} ({self.id})")
+        self.logger.info(
+            f"Writer thread stopped for device: {
+                self.name} ({
+                self.id})")
 
     def __str__(self):
         """

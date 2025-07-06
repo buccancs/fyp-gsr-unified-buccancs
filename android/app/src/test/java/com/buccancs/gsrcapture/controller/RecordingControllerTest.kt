@@ -8,9 +8,9 @@ import com.buccancs.gsrcapture.camera.RgbCameraManager
 import com.buccancs.gsrcapture.camera.ThermalCameraManager
 import com.buccancs.gsrcapture.sensor.GsrSensorManager
 import com.buccancs.gsrcapture.utils.TimeManager
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.*
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations

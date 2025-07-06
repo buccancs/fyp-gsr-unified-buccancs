@@ -8,12 +8,14 @@ Cross-platform support: Windows, macOS, Linux.
 
 import logging
 import os
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                           QTextEdit, QPushButton, QComboBox, QFileDialog)
-from PySide6.QtCore import Qt, Slot, Signal, QTimer
-from PySide6.QtGui import QColor, QTextCharFormat, QFont, QTextCursor
+
+from PySide6.QtCore import Qt, QTimer, Signal, Slot
+from PySide6.QtGui import QColor, QFont, QTextCharFormat, QTextCursor
+from PySide6.QtWidgets import (QComboBox, QFileDialog, QHBoxLayout, QLabel,
+                               QPushButton, QTextEdit, QVBoxLayout, QWidget)
 
 from utils.logger import get_logger
+
 
 class LogViewer(QWidget):
     """
@@ -150,7 +152,8 @@ class LogViewer(QWidget):
                 log_format.setForeground(QColor("gray"))
 
             # Format the log entry
-            timestamp = record.asctime if hasattr(record, 'asctime') else record.created
+            timestamp = record.asctime if hasattr(
+                record, 'asctime') else record.created
             log_entry = f"{timestamp} - {record.name} - {record.levelname} - {record.getMessage()}\n"
 
             # Insert the log entry
@@ -172,7 +175,10 @@ class LogViewer(QWidget):
             index: The index of the selected level
         """
         self.log_level = self.level_combo.itemData(index)
-        self.logger.info(f"Log level changed to {logging.getLevelName(self.log_level)}")
+        self.logger.info(
+            f"Log level changed to {
+                logging.getLevelName(
+                    self.log_level)}")
 
         # Clear the log view and re-add all logs
         self.log_text.clear()

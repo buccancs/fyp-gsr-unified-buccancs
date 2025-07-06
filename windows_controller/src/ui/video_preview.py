@@ -7,12 +7,14 @@ Cross-platform support: Windows, macOS, Linux.
 """
 
 import logging
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                           QPushButton, QGroupBox, QSizePolicy)
-from PySide6.QtCore import Qt, Slot, Signal, QSize
-from PySide6.QtGui import QPixmap, QImage, QPainter, QColor, QFont
+
+from PySide6.QtCore import QSize, Qt, Signal, Slot
+from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
+from PySide6.QtWidgets import (QGroupBox, QHBoxLayout, QLabel, QPushButton,
+                               QSizePolicy, QVBoxLayout, QWidget)
 
 from utils.logger import get_logger
+
 
 class VideoPreview(QWidget):
     """
@@ -69,7 +71,8 @@ class VideoPreview(QWidget):
 
         # Create video frame
         self.frame_widget = VideoFrameWidget()
-        self.frame_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.frame_widget.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.frame_widget.setMinimumSize(320, 240)
         self.main_layout.addWidget(self.frame_widget)
 
@@ -173,7 +176,8 @@ class VideoFrameWidget(QWidget):
 
         if self.image:
             # Draw the image
-            scaled_image = self.image.scaled(self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            scaled_image = self.image.scaled(
+                self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
             x = (self.width() - scaled_image.width()) // 2
             y = (self.height() - scaled_image.height()) // 2
             painter.drawImage(x, y, scaled_image)

@@ -7,20 +7,23 @@ This module implements a video playback window that displays a series of videos
 while recording is happening, with annotation capabilities when new videos are played.
 """
 
-import os
 import logging
-from typing import List, Dict, Optional
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                           QPushButton, QGroupBox, QListWidget, QListWidgetItem,
-                           QTextEdit, QSlider, QSpinBox, QComboBox, QCheckBox,
-                           QFileDialog, QMessageBox, QSplitter, QProgressBar,
-                           QTableWidget, QTableWidgetItem, QHeaderView)
-from PySide6.QtCore import Qt, Slot, Signal, QTimer, QThread, QUrl
-from PySide6.QtGui import QPixmap, QImage, QPainter, QColor, QFont
+import os
+from typing import Dict, List, Optional
+
+from PySide6.QtCore import Qt, QThread, QTimer, QUrl, Signal, Slot
+from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
+from PySide6.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QGroupBox,
+                               QHBoxLayout, QHeaderView, QLabel, QListWidget,
+                               QListWidgetItem, QMessageBox, QProgressBar,
+                               QPushButton, QSlider, QSpinBox, QSplitter,
+                               QTableWidget, QTableWidgetItem, QTextEdit,
+                               QVBoxLayout, QWidget)
 
 from utils.logger import get_logger
+
 
 class VideoPlaybackWindow(QWidget):
     """
@@ -29,7 +32,8 @@ class VideoPlaybackWindow(QWidget):
 
     # Signals
     video_changed = Signal(str, dict)  # video_path, annotation_data
-    annotation_added = Signal(str, str, dict)  # video_path, timestamp, annotation
+    # video_path, timestamp, annotation
+    annotation_added = Signal(str, str, dict)
     playback_started = Signal()
     playback_stopped = Signal()
 
@@ -176,7 +180,8 @@ class VideoPlaybackWindow(QWidget):
 
         self.annotation_text = QTextEdit()
         self.annotation_text.setMaximumHeight(60)
-        self.annotation_text.setPlaceholderText("Enter annotation for current video...")
+        self.annotation_text.setPlaceholderText(
+            "Enter annotation for current video...")
         input_layout.addWidget(self.annotation_text)
 
         self.add_annotation_button = QPushButton("Add Annotation")
@@ -188,7 +193,8 @@ class VideoPlaybackWindow(QWidget):
         # Auto-annotation settings
         auto_layout = QHBoxLayout()
 
-        self.auto_annotate_checkbox = QCheckBox("Auto-annotate on video change")
+        self.auto_annotate_checkbox = QCheckBox(
+            "Auto-annotate on video change")
         self.auto_annotate_checkbox.setChecked(True)
         auto_layout.addWidget(self.auto_annotate_checkbox)
 
@@ -233,8 +239,10 @@ class VideoPlaybackWindow(QWidget):
 
         # Playlist widget
         self.playlist_widget = QListWidget()
-        self.playlist_widget.itemDoubleClicked.connect(self.on_playlist_item_double_clicked)
-        self.playlist_widget.currentRowChanged.connect(self.on_playlist_selection_changed)
+        self.playlist_widget.itemDoubleClicked.connect(
+            self.on_playlist_item_double_clicked)
+        self.playlist_widget.currentRowChanged.connect(
+            self.on_playlist_selection_changed)
         playlist_layout.addWidget(self.playlist_widget)
 
         layout.addWidget(playlist_group)
@@ -246,7 +254,8 @@ class VideoPlaybackWindow(QWidget):
         # Annotations table
         self.annotations_table = QTableWidget()
         self.annotations_table.setColumnCount(4)
-        self.annotations_table.setHorizontalHeaderLabels(["Video", "Timestamp", "Recording Time", "Annotation"])
+        self.annotations_table.setHorizontalHeaderLabels(
+            ["Video", "Timestamp", "Recording Time", "Annotation"])
 
         # Set column widths
         header = self.annotations_table.horizontalHeader()
@@ -294,7 +303,8 @@ class VideoPlaybackWindow(QWidget):
         self.media_player.stateChanged.connect(self.on_media_state_changed)
         self.media_player.positionChanged.connect(self.on_position_changed)
         self.media_player.durationChanged.connect(self.on_duration_changed)
-        self.media_player.mediaStatusChanged.connect(self.on_media_status_changed)
+        self.media_player.mediaStatusChanged.connect(
+            self.on_media_status_changed)
 
     def add_videos(self):
         """
@@ -348,7 +358,8 @@ class VideoPlaybackWindow(QWidget):
 
                 # Adjust current index if necessary
                 if current_row <= self.current_video_index:
-                    self.current_video_index = max(0, self.current_video_index - 1)
+                    self.current_video_index = max(
+                        0, self.current_video_index - 1)
 
     def clear_playlist(self):
         """
@@ -386,7 +397,8 @@ class VideoPlaybackWindow(QWidget):
         """
         Load the current video from the playlist.
         """
-        if not self.video_playlist or self.current_video_index >= len(self.video_playlist):
+        if not self.video_playlist or self.current_video_index >= len(
+                self.video_playlist):
             return
 
         video_path = self.video_playlist[self.current_video_index]
@@ -396,7 +408,8 @@ class VideoPlaybackWindow(QWidget):
             self.media_player.setSource(QUrl.fromLocalFile(video_path))
 
             # Update UI
-            self.video_info_label.setText(f"Video: {os.path.basename(video_path)}")
+            self.video_info_label.setText(
+                f"Video: {os.path.basename(video_path)}")
             self.playlist_widget.setCurrentRow(self.current_video_index)
 
             # Auto-annotate if enabled
@@ -413,7 +426,8 @@ class VideoPlaybackWindow(QWidget):
 
             self.logger.info(f"Loaded video: {video_path}")
         else:
-            QMessageBox.warning(self, "Error", f"Video file not found: {video_path}")
+            QMessageBox.warning(
+                self, "Error", f"Video file not found: {video_path}")
 
     def auto_annotate_video_change(self, video_path):
         """
@@ -444,7 +458,8 @@ class VideoPlaybackWindow(QWidget):
             self.media_player.pause()
         else:
             if not self.video_playlist:
-                QMessageBox.information(self, "Info", "Please add videos to the playlist first.")
+                QMessageBox.information(
+                    self, "Info", "Please add videos to the playlist first.")
                 return
 
             if not self.media_player.source().isValid():
@@ -470,7 +485,8 @@ class VideoPlaybackWindow(QWidget):
         """
         Play the next video in the playlist.
         """
-        if self.video_playlist and self.current_video_index < len(self.video_playlist) - 1:
+        if self.video_playlist and self.current_video_index < len(
+                self.video_playlist) - 1:
             self.current_video_index += 1
             self.load_current_video()
 
@@ -493,18 +509,15 @@ class VideoPlaybackWindow(QWidget):
 
         annotation_text = self.annotation_text.toPlainText().strip()
         if not annotation_text:
-            QMessageBox.information(self, "Info", "Please enter annotation text.")
+            QMessageBox.information(
+                self, "Info", "Please enter annotation text.")
             return
 
         video_path = self.video_playlist[self.current_video_index]
 
         import time
-        annotation = {
-            'text': annotation_text,
-            'timestamp': self.media_player.position(),
-            'recording_time': time.time() - self.recording_start_time if self.is_recording and self.recording_start_time else 0,
-            'auto_generated': False
-        }
+        annotation = {'text': annotation_text, 'timestamp': self.media_player.position(), 'recording_time': time.time(
+        ) - self.recording_start_time if self.is_recording and self.recording_start_time else 0, 'auto_generated': False}
 
         self.add_annotation_to_video(video_path, annotation)
         self.annotation_text.clear()
@@ -527,14 +540,18 @@ class VideoPlaybackWindow(QWidget):
         timestamp_str = self.format_time(annotation['timestamp'])
         self.annotation_added.emit(video_path, timestamp_str, annotation)
 
-        self.logger.info(f"Added annotation to {os.path.basename(video_path)}: {annotation['text']}")
+        self.logger.info(
+            f"Added annotation to {
+                os.path.basename(video_path)}: {
+                annotation['text']}")
 
     def update_annotations_table(self):
         """
         Update the annotations table.
         """
         # Count total annotations
-        total_annotations = sum(len(annotations) for annotations in self.annotations.values())
+        total_annotations = sum(len(annotations)
+                                for annotations in self.annotations.values())
         self.annotations_table.setRowCount(total_annotations)
 
         row = 0
@@ -543,15 +560,19 @@ class VideoPlaybackWindow(QWidget):
 
             for annotation in annotations:
                 # Video name
-                self.annotations_table.setItem(row, 0, QTableWidgetItem(video_name))
+                self.annotations_table.setItem(
+                    row, 0, QTableWidgetItem(video_name))
 
                 # Timestamp
                 timestamp_str = self.format_time(annotation['timestamp'])
-                self.annotations_table.setItem(row, 1, QTableWidgetItem(timestamp_str))
+                self.annotations_table.setItem(
+                    row, 1, QTableWidgetItem(timestamp_str))
 
                 # Recording time
-                recording_time_str = self.format_time(annotation['recording_time'] * 1000)  # Convert to ms
-                self.annotations_table.setItem(row, 2, QTableWidgetItem(recording_time_str))
+                recording_time_str = self.format_time(
+                    annotation['recording_time'] * 1000)  # Convert to ms
+                self.annotations_table.setItem(
+                    row, 2, QTableWidgetItem(recording_time_str))
 
                 # Annotation text
                 text_item = QTableWidgetItem(annotation['text'])
@@ -584,10 +605,15 @@ class VideoPlaybackWindow(QWidget):
                 else:
                     self.export_annotations_csv(file_path)
 
-                QMessageBox.information(self, "Success", f"Annotations exported to: {file_path}")
+                QMessageBox.information(
+                    self, "Success", f"Annotations exported to: {file_path}")
                 self.logger.info(f"Annotations exported to: {file_path}")
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to export annotations: {str(e)}")
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Failed to export annotations: {
+                        str(e)}")
                 self.logger.error(f"Failed to export annotations: {str(e)}")
 
     def export_annotations_csv(self, file_path):
@@ -601,7 +627,11 @@ class VideoPlaybackWindow(QWidget):
 
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Video', 'Timestamp', 'Recording Time', 'Annotation', 'Auto Generated'])
+            writer.writerow(['Video',
+                             'Timestamp',
+                             'Recording Time',
+                             'Annotation',
+                             'Auto Generated'])
 
             for video_path, annotations in self.annotations.items():
                 video_name = os.path.basename(video_path)
@@ -661,7 +691,8 @@ class VideoPlaybackWindow(QWidget):
 
         if is_recording:
             self.recording_status_label.setText("Recording Active")
-            self.recording_status_label.setStyleSheet("color: red; font-weight: bold;")
+            self.recording_status_label.setStyleSheet(
+                "color: red; font-weight: bold;")
             self.playback_started.emit()
         else:
             self.recording_status_label.setText("Not Recording")
@@ -675,7 +706,10 @@ class VideoPlaybackWindow(QWidget):
         if self.is_recording and self.recording_start_time:
             import time
             elapsed = time.time() - self.recording_start_time
-            self.recording_time_label.setText(f"Recording Time: {self.format_time(elapsed * 1000)}")
+            self.recording_time_label.setText(
+                f"Recording Time: {
+                    self.format_time(
+                        elapsed * 1000)}")
 
     def on_media_state_changed(self, state):
         """
@@ -701,7 +735,8 @@ class VideoPlaybackWindow(QWidget):
         # Update duration display
         duration = self.media_player.duration()
         if duration > 0:
-            self.duration_label.setText(f"{self.format_time(position)} / {self.format_time(duration)}")
+            self.duration_label.setText(
+                f"{self.format_time(position)} / {self.format_time(duration)}")
 
     def on_duration_changed(self, duration):
         """

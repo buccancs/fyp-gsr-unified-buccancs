@@ -6,14 +6,16 @@ Validation script for the Video Playback Window implementation.
 This script validates the code structure and integration without requiring GUI dependencies.
 """
 
-import os
-import sys
 import ast
 import inspect
+import os
+import sys
+
 
 def check_file_exists(file_path):
     """Check if a file exists."""
     return os.path.exists(file_path)
+
 
 def parse_python_file(file_path):
     """Parse a Python file and return the AST."""
@@ -25,6 +27,7 @@ def parse_python_file(file_path):
         print(f"Error parsing {file_path}: {e}")
         return None
 
+
 def get_class_methods(tree, class_name):
     """Get all methods of a specific class from AST."""
     methods = []
@@ -34,6 +37,7 @@ def get_class_methods(tree, class_name):
                 if isinstance(item, ast.FunctionDef):
                     methods.append(item.name)
     return methods
+
 
 def get_imports(tree):
     """Get all imports from AST."""
@@ -47,6 +51,7 @@ def get_imports(tree):
             for alias in node.names:
                 imports.append(f"{module}.{alias.name}")
     return imports
+
 
 def validate_video_playback_window():
     """Validate the VideoPlaybackWindow implementation."""
@@ -130,6 +135,7 @@ def validate_video_playback_window():
 
     return True
 
+
 def validate_main_window_integration():
     """Validate the main window integration."""
     print("\n=== Validating Main Window Integration ===")
@@ -152,7 +158,8 @@ def validate_main_window_integration():
 
     # Check for VideoPlaybackWindow import
     imports = get_imports(tree)
-    video_playback_import = any("VideoPlaybackWindow" in imp for imp in imports)
+    video_playback_import = any(
+        "VideoPlaybackWindow" in imp for imp in imports)
 
     if not video_playback_import:
         print("❌ VideoPlaybackWindow import not found")
@@ -202,6 +209,7 @@ def validate_main_window_integration():
 
     return True
 
+
 def validate_project_structure():
     """Validate the overall project structure."""
     print("\n=== Validating Project Structure ===")
@@ -229,6 +237,7 @@ def validate_project_structure():
 
     print("✅ All required files found")
     return True
+
 
 def main():
     """Main validation function."""
@@ -280,6 +289,7 @@ def main():
         print("Please check the errors above and fix the issues.")
 
     return all_passed
+
 
 if __name__ == "__main__":
     success = main()

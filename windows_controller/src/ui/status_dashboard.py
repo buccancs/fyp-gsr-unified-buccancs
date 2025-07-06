@@ -7,12 +7,14 @@ Cross-platform support: Windows, macOS, Linux.
 """
 
 import logging
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                           QTableWidget, QTableWidgetItem, QHeaderView)
-from PySide6.QtCore import Qt, Slot, Signal
-from PySide6.QtGui import QColor, QBrush
+
+from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtGui import QBrush, QColor
+from PySide6.QtWidgets import (QHBoxLayout, QHeaderView, QLabel, QTableWidget,
+                               QTableWidgetItem, QVBoxLayout, QWidget)
 
 from utils.logger import get_logger
+
 
 class StatusDashboard(QWidget):
     """
@@ -66,7 +68,7 @@ class StatusDashboard(QWidget):
         self.table = QTableWidget()
         self.table.setColumnCount(9)
         self.table.setHorizontalHeaderLabels([
-            "Device ID", "Name", "Connection", "Recording", 
+            "Device ID", "Name", "Connection", "Recording",
             "Battery", "Storage", "RGB Camera", "Thermal Camera", "GSR Sensor"
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -81,7 +83,8 @@ class StatusDashboard(QWidget):
         if not self.devices:
             self.status_label.setText("No devices connected")
         else:
-            self.status_label.setText(f"{len(self.devices)} device(s) connected")
+            self.status_label.setText(
+                f"{len(self.devices)} device(s) connected")
 
         # Update table
         self.table.setRowCount(len(self.devices))
@@ -97,13 +100,17 @@ class StatusDashboard(QWidget):
             self.table.setItem(i, 1, QTableWidgetItem(device.name))
 
             # Connection
-            connection_item = QTableWidgetItem("Connected" if status["connected"] else "Disconnected")
-            connection_item.setForeground(QBrush(QColor("green" if status["connected"] else "red")))
+            connection_item = QTableWidgetItem(
+                "Connected" if status["connected"] else "Disconnected")
+            connection_item.setForeground(
+                QBrush(QColor("green" if status["connected"] else "red")))
             self.table.setItem(i, 2, connection_item)
 
             # Recording
-            recording_item = QTableWidgetItem("Recording" if status["recording"] else "Not Recording")
-            recording_item.setForeground(QBrush(QColor("red" if status["recording"] else "black")))
+            recording_item = QTableWidgetItem(
+                "Recording" if status["recording"] else "Not Recording")
+            recording_item.setForeground(
+                QBrush(QColor("red" if status["recording"] else "black")))
             self.table.setItem(i, 3, recording_item)
 
             # Battery
@@ -127,18 +134,28 @@ class StatusDashboard(QWidget):
             self.table.setItem(i, 5, storage_item)
 
             # RGB Camera
-            rgb_item = QTableWidgetItem("Active" if status["rgb_camera_active"] else "Inactive")
-            rgb_item.setForeground(QBrush(QColor("green" if status["rgb_camera_active"] else "black")))
+            rgb_item = QTableWidgetItem(
+                "Active" if status["rgb_camera_active"] else "Inactive")
+            rgb_item.setForeground(
+                QBrush(
+                    QColor(
+                        "green" if status["rgb_camera_active"] else "black")))
             self.table.setItem(i, 6, rgb_item)
 
             # Thermal Camera
-            thermal_item = QTableWidgetItem("Active" if status["thermal_camera_active"] else "Inactive")
-            thermal_item.setForeground(QBrush(QColor("green" if status["thermal_camera_active"] else "black")))
+            thermal_item = QTableWidgetItem(
+                "Active" if status["thermal_camera_active"] else "Inactive")
+            thermal_item.setForeground(
+                QBrush(QColor("green" if status["thermal_camera_active"] else "black")))
             self.table.setItem(i, 7, thermal_item)
 
             # GSR Sensor
-            gsr_item = QTableWidgetItem("Active" if status["gsr_sensor_active"] else "Inactive")
-            gsr_item.setForeground(QBrush(QColor("green" if status["gsr_sensor_active"] else "black")))
+            gsr_item = QTableWidgetItem(
+                "Active" if status["gsr_sensor_active"] else "Inactive")
+            gsr_item.setForeground(
+                QBrush(
+                    QColor(
+                        "green" if status["gsr_sensor_active"] else "black")))
             self.table.setItem(i, 8, gsr_item)
 
     def add_device(self, device):

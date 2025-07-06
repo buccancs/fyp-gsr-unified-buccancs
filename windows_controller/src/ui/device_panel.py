@@ -7,13 +7,15 @@ Cross-platform support: Windows, macOS, Linux.
 """
 
 import logging
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                           QPushButton, QGroupBox, QGridLayout, QProgressBar)
-from PySide6.QtCore import Qt, Slot, Signal
-from PySide6.QtGui import QPixmap, QImage
+
+from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+                               QProgressBar, QPushButton, QVBoxLayout, QWidget)
 
 from ui.video_preview import VideoPreview
 from utils.logger import get_logger
+
 
 class DevicePanel(QWidget):
     """
@@ -47,7 +49,10 @@ class DevicePanel(QWidget):
         # Update UI
         self.update_ui()
 
-        self.logger.info(f"Device panel initialized for device: {device.name} ({device.id})")
+        self.logger.info(
+            f"Device panel initialized for device: {
+                device.name} ({
+                device.id})")
 
     def setup_ui(self):
         """
@@ -61,7 +66,8 @@ class DevicePanel(QWidget):
 
         # Device name and status
         self.device_name_label = QLabel(self.device.name)
-        self.device_name_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        self.device_name_label.setStyleSheet(
+            "font-weight: bold; font-size: 14px;")
         self.header_layout.addWidget(self.device_name_label)
 
         self.device_status_label = QLabel("Not Connected")
@@ -210,7 +216,9 @@ class DevicePanel(QWidget):
         """
         Handle the disconnect button click.
         """
-        self.logger.info(f"Disconnect button clicked for device: {self.device.id}")
+        self.logger.info(
+            f"Disconnect button clicked for device: {
+                self.device.id}")
         self.disconnect_requested.emit(self.device.id)
 
     @Slot(object)
