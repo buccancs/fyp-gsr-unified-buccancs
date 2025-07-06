@@ -5,16 +5,16 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-        // For Shimmer GSR+ SDK
-        maven { url 'https://jitpack.io' }
+        // Add JitPack for usb-serial-for-android
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
-rootProject.name = "GSR Capture"
-include ':app'
+rootProject.name = "GSRCapture"
+include(":app")
+
