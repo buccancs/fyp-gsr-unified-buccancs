@@ -1,0 +1,6 @@
+[Hardware]
+# Find this in Windows Bluetooth Settings -> More Bluetooth options -> COM Ports
+shimmer_com_port = COM5
+
+# Usually 0, but can change if multiple cameras are connected
+brio_camera_index = 0

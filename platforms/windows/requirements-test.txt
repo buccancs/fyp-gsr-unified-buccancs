@@ -1,0 +1,40 @@
+# Testing dependencies for Windows Controller
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+pytest-qt>=4.2.0
+pytest-xvfb>=3.0.0
+
+# Mocking and test utilities
+unittest-mock>=1.0.1
+responses>=0.23.0
+freezegun>=1.2.0
+
+# Code coverage and reporting
+coverage>=7.2.0
+coverage-badge>=1.1.0
+
+# Test data and fixtures
+factory-boy>=3.3.0
+faker>=19.0.0
+
+# Performance and load testing
+pytest-benchmark>=4.0.0
+pytest-timeout>=2.1.0
+
+# Parallel test execution
+pytest-xdist>=3.3.0
+
+# Test reporting and output
+pytest-html>=3.2.0
+pytest-json-report>=1.5.0
+allure-pytest>=2.13.0
+
+# Additional utilities for UI testing
+pyvirtualdisplay>=3.0.0
+selenium>=4.11.0
+
+# Network testing utilities
+httpretty>=1.1.4
