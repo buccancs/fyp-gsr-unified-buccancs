@@ -589,15 +589,22 @@ class MainWindow(QMainWindow):
             # Generate session manifest
             self.session_manager.generate_manifest()
 
+            # --- MODIFY THIS SECTION ---
             # Ask if user wants to collect files
             response = QMessageBox.question(
                 self,
                 "Collect Files",
-                "Do you want to collect files from devices?",
-                QMessageBox.Yes | QMessageBox.No)
+                "Recording stopped. Do you want to collect all recorded files from the remote devices now?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.Yes # Default to Yes
+            )
             if response == QMessageBox.Yes:
-                self.device_manager.collect_files(
-                    self.session_manager.get_session_directory())
+                self.statusBar().showMessage("Collecting files from devices...", 5000)
+                # The destination directory is managed by the SessionManager
+                destination_dir = self.session_manager.get_session_directory()
+                self.device_manager.collect_files(destination_dir)
+                self.statusBar().showMessage("File collection complete.", 3000)
+            # --- END OF MODIFICATION ---
         else:
             QMessageBox.warning(self, "Error", "Failed to stop recording")
 

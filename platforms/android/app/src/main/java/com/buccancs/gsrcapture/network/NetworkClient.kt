@@ -657,7 +657,7 @@ class NetworkClient(private val context: Context) {
             }
 
             // Find session directory
-            val sessionDir = File(appDir, sessionId)
+            val sessionDir = File(appDir, "GSRCapture/$sessionId") // Match the path from RecordingController
             if (!sessionDir.exists()) {
                 Log.e(TAG, "Session directory not found: ${sessionDir.absolutePath}")
                 sendFileCollectionResponse(false, "Session directory not found")

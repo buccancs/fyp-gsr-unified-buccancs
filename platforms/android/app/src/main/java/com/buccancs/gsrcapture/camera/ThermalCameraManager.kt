@@ -217,7 +217,10 @@ class ThermalCameraManager(
             frameCallback?.invoke(thermalFrame)
         }
 
-        // Send frame over network if streaming is enabled
+        // --- REMOVE THIS BLOCK ---
+        // The following block streams the full frame and should be disabled
+        // to prevent high bandwidth usage during recording.
+        /*
         if (isStreamingEnabled.get() && networkClient != null) {
             try {
                 val stream = ByteArrayOutputStream()
@@ -228,6 +231,8 @@ class ThermalCameraManager(
                 Log.e(TAG, "Error sending video frame over network", e)
             }
         }
+        */
+        // --- END OF REMOVAL ---
     }
 
     /**
