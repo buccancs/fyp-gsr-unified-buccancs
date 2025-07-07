@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.buccancs.gsrcapture"
-    compileSdk = 35
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.buccancs.gsrcapture"
-        minSdk = 24
-        targetSdk = 35
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -82,18 +82,18 @@ dependencies {
     // ---------- Unit-test dependencies ----------
     testImplementation(libs.junit)
 
-    // Mockito (using consistent versions from libs.versions.toml)
+    // Mockito
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.inline)
     testImplementation(libs.mockito.kotlin)
 
     // USB Serial for testing
-    testImplementation("com.github.mik3y:usb-serial-for-android:${libs.versions.usbSerial.get()}") // Add USB serial dependency for tests
+    testImplementation(libs.usb.serial.android)
 
-    // Robolectric (latest published stable)
-    testImplementation("org.robolectric:robolectric:4.11.1")
+    // Robolectric
+    testImplementation(libs.robolectric)
 
     // ---------- Instrumented-test dependencies ----------
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 }

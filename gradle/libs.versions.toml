@@ -1,30 +1,42 @@
 [versions]
 # Build Tools & Plugins
-agp = "8.4.2"
-kotlin = "2.0.0"
+agp = "8.4+"
+kotlin = "2.0+"
+
+# Android SDK versions
+compileSdk = "35"
+targetSdk = "35"
+minSdk = "24"
+buildTools = "33.0+"
+
 # AndroidX Libraries
-androidxCore = "1.13.1"
-androidxAppcompat = "1.7.0"
-androidxLifecycle = "2.8.1"
-androidxConstraintlayout = "2.2.0"
-cameraX = "1.3.3"
+androidxCore = "1.13+"
+androidxAppcompat = "1.7+"
+androidxLifecycle = "2.8+"
+androidxConstraintlayout = "2.2+"
+cameraX = "1.3+"
+
 # Material Design
-material = "1.11.0"
+material = "1.11+"
+
 # Third-Party
-nordicBle = "2.7.4"
-usbSerial = "3.7.0"
+nordicBle = "2.7+"
+usbSerial = "3.7+"
+
 # Network
-retrofit = "2.9.0"
-okhttp = "4.12.0"
+retrofit = "2.9+"
+okhttp = "4.12+"
+
 # Coroutines
-coroutines = "1.7.3"
+coroutines = "1.7+"
+
 # Testing
-junit = "4.13.2"
-mockito = "5.2.0"
-mockitoKotlin = "5.1.0" # Updated to match mockito core major version
-robolectric = "4.11.1" # Match version used in build.gradle.kts
-androidxTestExt = "1.1.5"
-espresso = "3.5.1"
+junit = "4.13+"
+mockito = "5.2+"
+mockitoKotlin = "5.1+"
+robolectric = "4.11+"
+androidxTestExt = "1.1+"
+espresso = "3.5+"
 
 [libraries]
 # AndroidX Core
