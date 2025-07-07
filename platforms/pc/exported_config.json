@@ -1,0 +1,33 @@
+{
+  "hardware": {
+    "shimmer_com_port": "COM3",
+    "shimmer_baud_rate": 115200,
+    "shimmer_timeout_ms": 1000,
+    "shimmer_buffer_size": 1024,
+    "webcam_index": 0,
+    "webcam_width": 3840,
+    "webcam_height": 2160,
+    "webcam_fps": 30,
+    "webcam_buffer_size": 1
+  },
+  "performance": {
+    "max_latency_ms": 0.8,
+    "max_jitter_ms": 0.5,
+    "min_data_rate_hz": 100,
+    "min_frame_rate_fps": 25,
+    "monitoring_interval_ms": 50,
+    "display_update_interval_s": 1.0,
+    "max_samples": 1000,
+    "alert_history_size": 100
+  },
+  "system": {
+    "log_level": "DEBUG",
+    "log_file": "./logs/development.log",
+    "data_output_dir": "./data",
+    "backup_enabled": true,
+    "backup_interval_s": 300,
+    "cpu_affinity": null,
+    "thread_priority": "normal",
+    "memory_limit_mb": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "hardware": {
+    "shimmer_com_port": "COM1",
+    "webcam_index": 0
+  },
+  "performance": {
+    "max_latency_ms": 0.5,
+    "monitoring_interval_ms": 10
+  },
+  "system": {
+    "log_level": "WARNING",
+    "log_file": "./logs/production.log",
+    "backup_enabled": true,
+    "thread_priority": "high"
+  }
+}

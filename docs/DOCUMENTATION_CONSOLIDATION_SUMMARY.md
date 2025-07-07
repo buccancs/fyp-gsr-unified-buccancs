@@ -24,13 +24,13 @@ Successfully updated all documentation files, consolidated duplicated content, a
 ### Old Structure → New Structure
 - `../DEVELOPMENT_SETUP.md` → `DEVELOPMENT_SETUP.md` (moved to docs/)
 - `../CHANGELOG.md` → `CHANGELOG.md` (moved to docs/)
-- `../windows_controller/` → `../platforms/windows/`
+- `../windows_controller/` → `../platforms/pc/`
 - `src/common/network/` → `shared/network/common/`
 - `src/android/network/` → `shared/network/android/`
 - `src/windows/network/` → `shared/network/windows/`
 - `MainActivity.kt` → `platforms/android/app/src/main/java/com/buccancs/gsrcapture/MainActivity.kt`
 - `NetworkClient.kt` → `platforms/android/app/src/main/java/com/buccancs/gsrcapture/network/NetworkClient.kt`
-- `windows_controller/src/` → `platforms/windows/src/`
+- `windows_controller/src/` → `platforms/pc/src/`
 
 ## 📈 Results Achieved
 
@@ -73,11 +73,10 @@ docs/
 ```
 platforms/
 ├── android/                            # Android app documentation
-└── windows/                            # Windows controller documentation
-    ├── README.md
-    ├── COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md
-    ├── TEST_SUITE_SUMMARY.md
-    └── UPGRADE_SUMMARY.md
+└── pc/                                 # PC platform documentation
+    ├── README.md                       # Quick start guide
+    ├── PC_PLATFORM_GUIDE.md           # Comprehensive implementation guide
+    └── FINAL_IMPLEMENTATION_SUMMARY.md # Technical implementation details
 ```
 
 ### Shared Components Documentation:

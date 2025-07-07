@@ -1,0 +1,14 @@
+{
+  "hardware": {
+    "shimmer_com_port": "MOCK",
+    "webcam_index": -1
+  },
+  "performance": {
+    "max_latency_ms": 5.0,
+    "monitoring_interval_ms": 100
+  },
+  "system": {
+    "log_level": "DEBUG",
+    "log_file": "./logs/testing.log"
+  }
+}

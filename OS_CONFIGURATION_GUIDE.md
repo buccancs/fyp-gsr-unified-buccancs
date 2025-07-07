@@ -1,14 +1,21 @@
 # OS-Specific Configuration Guide
 
-This guide explains how to configure the GSR-Unified project for different operating systems (Windows, macOS, Linux).
+This guide explains how to configure the GSR-Unified project for different operating systems (Windows, macOS, Linux), including both Android development and the new high-precision C++ backend requirements.
 
 ## Overview
 
-The project has been configured to support multiple operating systems with OS-specific SDK and JDK paths. The configuration is spread across several files:
+The project supports multiple operating systems with OS-specific configurations for:
 
+**Android Development:**
 - `gradle.properties` (root and Android platform)
 - `local.properties` (root and Android platform)  
 - `gradle/libs.versions.toml` (root and Android platform)
+
+**PC Platform C++ Backend:**
+- CMake build system for cross-platform C++ compilation
+- OpenCV development libraries for camera capture
+- pybind11 for Python-C++ bindings
+- Platform-specific compilers and build tools
 
 ## Quick Setup
 
@@ -36,6 +43,96 @@ The project is currently configured for macOS. If the default paths don't match 
 2. Edit `local.properties` files:
    - Uncomment the Linux SDK and JDK paths that match your installation
    - Comment out the current macOS paths
+
+### 2. C++ Backend Setup (PC Platform)
+
+#### Windows C++ Backend Setup
+1. **Install Build Tools**:
+   ```bash
+   # Install Visual Studio 2019+ with C++ tools
+   # Or install Build Tools for Visual Studio 2019+
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   # Install CMake
+   winget install Kitware.CMake
+
+   # Install OpenCV (via vcpkg recommended)
+   git clone https://github.com/Microsoft/vcpkg.git
+   cd vcpkg
+   .\bootstrap-vcpkg.bat
+   .\vcpkg install opencv4[contrib]:x64-windows
+   ```
+
+3. **Build C++ Backend**:
+   ```bash
+   cd platforms/pc
+   mkdir build && cd build
+   cmake .. -DCMAKE_TOOLCHAIN_FILE=path/to/vcpkg/scripts/buildsystems/vcpkg.cmake
+   cmake --build . --config Release
+   ```
+
+#### macOS C++ Backend Setup
+1. **Install Build Tools**:
+   ```bash
+   # Install Xcode Command Line Tools
+   xcode-select --install
+
+   # Install Homebrew (if not already installed)
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   # Install CMake and OpenCV
+   brew install cmake opencv
+
+   # pybind11 is included as git submodule
+   git submodule update --init --recursive
+   ```
+
+3. **Build C++ Backend**:
+   ```bash
+   cd platforms/pc
+   mkdir build && cd build
+   cmake ..
+   make
+   cp _hardware_backend*.so ../src/
+   ```
+
+#### Linux C++ Backend Setup
+1. **Install Build Tools**:
+   ```bash
+   # Ubuntu/Debian
+   sudo apt update
+   sudo apt install build-essential cmake git
+
+   # CentOS/RHEL/Fedora
+   sudo yum groupinstall "Development Tools"
+   sudo yum install cmake git
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   # Ubuntu/Debian
+   sudo apt install libopencv-dev python3-dev
+
+   # CentOS/RHEL/Fedora
+   sudo yum install opencv-devel python3-devel
+
+   # pybind11 is included as git submodule
+   git submodule update --init --recursive
+   ```
+
+3. **Build C++ Backend**:
+   ```bash
+   cd platforms/pc
+   mkdir build && cd build
+   cmake ..
+   make
+   cp _hardware_backend*.so ../src/
+   ```
 
 ## Detailed Configuration
 
@@ -97,8 +194,8 @@ These files contain version catalogs with optional OS-specific build tool versio
 ```toml
 [versions]
 # Build Tools & Plugins
-agp = "8.4.2"
-kotlin = "2.0.0"
+agp = "8+"
+kotlin = "2+"
 # OS-specific build tool versions (if needed for different platforms)
 # agp-windows = "8.4.2"
 # agp-macos = "8.4.2" 

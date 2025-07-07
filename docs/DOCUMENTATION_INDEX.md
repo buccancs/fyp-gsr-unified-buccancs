@@ -16,13 +16,13 @@ This system provides multiple levels of documentation to serve different user ty
 - **[Networking and Synchronization](Networking_and_Synchronization_Layer.md)** - Technical implementation details
 
 ### 📋 Implementation Documentation
-- **[Comprehensive Implementation Summary](../platforms/pc/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md)** - Complete system implementation overview
-- **[Test Suite Summary](../platforms/pc/TEST_SUITE_SUMMARY.md)** - Testing coverage and validation details
+- **[PC Platform Guide](../platforms/pc/PC_PLATFORM_GUIDE.md)** - Comprehensive PC platform implementation and usage guide
+- **[Final Implementation Summary](../platforms/pc/FINAL_IMPLEMENTATION_SUMMARY.md)** - Complete technical implementation details
 
 ### 📖 Reference Documentation
 - **[Main README](../README.md)** - System overview, features, and technical specifications
+- **[OS Configuration Guide](../OS_CONFIGURATION_GUIDE.md)** - Platform-specific setup instructions
 - **[Changelog](CHANGELOG.md)** - Version history and major changes
-- **[Windows Controller README](../platforms/pc/README.md)** - PC controller specific documentation
 
 ## 🎯 Choose Your Path
 
@@ -58,11 +58,11 @@ This guide provides:
 **Start With**: [Development Setup Guide](DEVELOPMENT_SETUP.md)
 
 Then explore:
-- [Comprehensive Implementation Summary](../platforms/pc/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) - Complete system overview
-- [Networking and Synchronization](Networking_and_Synchronization_Layer.md) - Technical implementation details
-- [Test Suite Summary](../platforms/pc/TEST_SUITE_SUMMARY.md) - Testing and validation
-- [Windows Controller README](../platforms/pc/README.md) - PC controller documentation
-- Source code in `platforms/android/` and `platforms/windows/` directories
+- [PC Platform Guide](../platforms/pc/PC_PLATFORM_GUIDE.md) - Complete PC platform implementation and usage
+- [Final Implementation Summary](../platforms/pc/FINAL_IMPLEMENTATION_SUMMARY.md) - Technical implementation details
+- [Networking and Synchronization](Networking_and_Synchronization_Layer.md) - Network layer documentation
+- [OS Configuration Guide](../OS_CONFIGURATION_GUIDE.md) - Platform-specific setup instructions
+- Source code in `platforms/android/` and `platforms/pc/` directories
 
 ## 📋 Quick Reference
 
@@ -78,9 +78,9 @@ Then explore:
 | Multi-device recording | [App Usage Guide](APP_USAGE_GUIDE.md#multi-device-recording) |
 | Data export and analysis | [App Usage Guide](APP_USAGE_GUIDE.md#data-management) |
 | Development environment | [Development Setup Guide](DEVELOPMENT_SETUP.md) |
-| Camera calibration | [Comprehensive Implementation Summary](../platforms/pc/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md#camera-calibration-system) |
-| System implementation overview | [Comprehensive Implementation Summary](../platforms/pc/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) |
-| Testing and validation | [Test Suite Summary](../platforms/pc/TEST_SUITE_SUMMARY.md) |
+| Camera calibration | [PC Platform Guide](../platforms/pc/PC_PLATFORM_GUIDE.md#troubleshooting) |
+| System implementation overview | [Final Implementation Summary](../platforms/pc/FINAL_IMPLEMENTATION_SUMMARY.md) |
+| PC platform setup and usage | [PC Platform Guide](../platforms/pc/PC_PLATFORM_GUIDE.md) |
 
 ### Hardware-Specific Guides
 

@@ -1,0 +1,14 @@
+{
+  "hardware": {
+    "shimmer_com_port": "COM3",
+    "webcam_index": 0
+  },
+  "performance": {
+    "max_latency_ms": 2.0,
+    "monitoring_interval_ms": 50
+  },
+  "system": {
+    "log_level": "DEBUG",
+    "log_file": "./logs/development.log"
+  }
+}

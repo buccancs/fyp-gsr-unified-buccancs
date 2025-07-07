@@ -18,6 +18,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "GSR-Unified"
 
+// Include the PC platform project
+include(":pc")
+project(":pc").projectDir = file("platforms/pc")
+
 // Tell Gradle about the 'android' platform project
 include(":android")
 project(":android").projectDir = file("platforms/android")

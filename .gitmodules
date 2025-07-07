@@ -10,3 +10,6 @@
 [submodule "third_party/pylsl"]
 	path = third_party/pylsl
 	url = https://github.com/buccancs/pylsl
+[submodule "third_party/pybind11"]
+	path = third_party/pybind11
+	url = https://github.com/pybind/pybind11.git
