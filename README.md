@@ -225,6 +225,202 @@ The system now supports PC-connected sensors and cameras as first-class data acq
 - **Raw Image Capture**: ~30 FPS with timestamp naming
 - **Multi-Device Support**: Tested with up to 4 simultaneous devices
 
+## 🔄 Platform Synchronization Architecture
+
+The system implements a robust two-tiered synchronization approach that ensures precise temporal alignment of all data streams across multiple devices. This architecture enables researchers to capture synchronized multimodal data with sub-millisecond accuracy for behavioral studies and physiological analysis.
+
+### PC Platform (platforms/pc) Synchronization
+
+The PC application acts as the central **Orchestrator**. Its primary goal is to start all devices (including itself) at the same time and ensure all data can be aligned later.
+
+#### 1. Coarse-Grained Start Synchronization (The "Go" Signal)
+- The **DeviceManager** in `network/device_manager.py` is responsible for this. When you click "Start Recording," its `start_recording` method iterates through all connected devices—both remote Android devices and the PC's own LocalDevice.
+- It sends the **START_RECORDING** command to each device sequentially in a very tight loop. This ensures that all participants receive the "start" signal within milliseconds of each other, providing a coarse, simultaneous start to the recording session.
+
+#### 2. Fine-Grained Timestamping (The Real Synchronization)
+- The PC knows that a perfect simultaneous start is impossible. The true synchronization mechanism is **per-sample timestamping**.
+- As seen in `src/local_device.py`, the PC treats its own hardware (Shimmer sensor, Brio webcam) as a first-class citizen.
+- When local recording starts, the hardware drivers (`shimmer_pc.py`, `webcam_pc.py`) are activated. Inside their data-reading threads, every single piece of data—each GSR/PPG reading, each video frame—is immediately captured along with a high-resolution system timestamp (`time.time()`).
+- This timestamp is saved directly into the data files (e.g., the GSR CSV).
+
+**In short**: The PC sends a "start" command to everyone at once, and then meticulously timestamps its own data, trusting that the Android devices are doing the same. The final, precise alignment of all data streams happens in post-processing using these timestamps.
+
+### Android Platform (platforms/android) Synchronization
+
+The Android app acts as a **Capture Node**. It needs to synchronize its internal data streams (RGB camera, thermal camera, GSR sensor) and also synchronize its entire clock with the PC controller.
+
+#### 1. Internal "Soft" Synchronization
+- Similar to the PC, the **RecordingController** in `controller/RecordingController.kt` acts as the on-device orchestrator.
+- When its `startRecording()` method is called (either by the user or a network command), it sequentially starts all the individual managers: `RgbCameraManager`, `ThermalCameraManager`, `GsrSensorManager`, and `AudioRecorder`. This provides a coarse, simultaneous start for all on-device sensors.
+
+#### 2. Internal Fine-Grained Timestamping (The Key to On-Device Sync)
+- The core of Android's synchronization is the **TimeManager** utility in `utils/TimeManager.kt`. It uses `SystemClock.elapsedRealtimeNanos()`, a monotonic clock that is not affected by system time changes, making it ideal for measuring precise time intervals.
+- Every data-producing component uses TimeManager to timestamp its data:
+  - **GsrSensorManager.kt**: In `processShimmerData()`, it wraps every sensor reading in a `TimestampedData` object.
+  - **RgbCameraManager.kt & ThermalCameraManager.kt**: When saving frames, they generate filenames using `TimeManager.getCurrentTimestampNanos()`. This effectively timestamps each captured image file.
+
+#### 3. External Cross-Device Synchronization (The Key to System-Wide Sync)
+- The Android app knows its local clock will drift from the PC's clock. The **CommandProtocolClient.kt** and **NetworkClient.kt** implement a network time synchronization protocol.
+- The PC controller can send a **SYNC_PING** or **SYNC_TIME** command.
+- The Android device receives this, and the `TimeManager.synchronizeWithNetwork()` function is called. This function calculates the time difference (offset) between the PC's clock and the Android device's clock, accounting for network latency.
+- From that point on, every timestamp generated on the Android device can be accurately converted to the PC controller's time domain.
+
+### Synchronization Summary
+
+| Platform | Role | Synchronization Method |
+| :--- | :--- | :--- |
+| **PC** | Orchestrator | 1. Sends simultaneous START commands to all devices. <br> 2. Timestamps every local data sample for later alignment. |
+| **Android** | Capture Node | 1. Starts all its internal sensors simultaneously. <br> 2. Timestamps every local data sample using a monotonic clock. <br> 3. Synchronizes its clock with the PC over the network to ensure all its timestamps can be aligned with the master session time. |
+
+This robust, two-tiered approach ensures that even though the devices are physically separate, all the data they collect can be precisely aligned on a single timeline for analysis.
+
+## ⚙️ OS-Specific Development Environment Setup
+
+### Overview
+
+The project supports multiple operating systems (Windows, macOS, Linux) with OS-specific SDK and JDK configurations. This section provides comprehensive setup instructions for each platform to ensure proper Android development environment configuration.
+
+### 🔧 Configuration Files
+
+The OS-specific configuration is managed through several files:
+- `gradle.properties` (root and Android platform)
+- `local.properties` (root and Android platform)  
+- `gradle/libs.versions.toml` (root and Android platform)
+
+### 🚀 Quick Setup by Operating System
+
+#### 🪟 Windows Setup
+
+1. **Edit `gradle.properties` files** (both root and `platforms/android/`):
+   ```properties
+   # Comment out macOS path and uncomment Windows path
+   # org.gradle.java.home=/Users/duyantran/Library/Java/JavaVirtualMachines/openjdk-24.0.1/Contents/Home
+   org.gradle.java.home=C:/Program Files/Java/jdk-17
+   ```
+
+2. **Edit `local.properties` files** (both root and `platforms/android/`):
+   ```properties
+   # Comment out macOS paths and uncomment Windows paths
+   sdk.dir=C:/Users/%USERNAME%/AppData/Local/Android/Sdk
+   jdk.dir=C:/Program Files/Java/jdk-17
+   ```
+
+3. **Environment Variables Alternative**:
+   ```cmd
+   set ANDROID_HOME=C:\Users\%USERNAME%\AppData\Local\Android\Sdk
+   set JAVA_HOME=C:\Program Files\Java\jdk-17
+   ```
+
+#### 🍎 macOS Setup
+
+The project is currently configured for macOS. If default paths don't match your installation:
+
+1. **Update `gradle.properties` files**:
+   ```properties
+   # Choose the path that matches your installation
+   org.gradle.java.home=/opt/homebrew/Cellar/openjdk@17/17.0.8/libexec/openjdk.jdk/Contents/Home
+   # org.gradle.java.home=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
+   ```
+
+2. **Update `local.properties` files**:
+   ```properties
+   sdk.dir=/Users/%USERNAME%/Library/Android/sdk
+   jdk.dir=/opt/homebrew/Cellar/openjdk@17/17.0.8/libexec/openjdk.jdk/Contents/Home
+   ```
+
+3. **Environment Variables Alternative**:
+   ```bash
+   export ANDROID_HOME=/Users/$USER/Library/Android/sdk
+   export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.8/libexec/openjdk.jdk/Contents/Home
+   ```
+
+#### 🐧 Linux Setup
+
+1. **Edit `gradle.properties` files**:
+   ```properties
+   # Comment out macOS path and uncomment Linux path
+   # org.gradle.java.home=/Users/duyantran/Library/Java/JavaVirtualMachines/openjdk-24.0.1/Contents/Home
+   org.gradle.java.home=/usr/lib/jvm/java-17-openjdk-amd64
+   ```
+
+2. **Edit `local.properties` files**:
+   ```properties
+   # Comment out macOS paths and uncomment Linux paths
+   sdk.dir=/home/%USERNAME%/Android/Sdk
+   jdk.dir=/usr/lib/jvm/java-17-openjdk-amd64
+   ```
+
+3. **Environment Variables Alternative**:
+   ```bash
+   export ANDROID_HOME=/home/$USER/Android/Sdk
+   export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+   ```
+
+### 📍 Common Installation Paths
+
+#### Android SDK Locations
+- **Windows**: `C:/Users/%USERNAME%/AppData/Local/Android/Sdk`
+- **macOS**: `/Users/%USERNAME%/Library/Android/sdk`
+- **Linux**: `/home/%USERNAME%/Android/Sdk`
+
+#### JDK Installation Paths
+- **Windows**: 
+  - `C:/Program Files/Java/jdk-17`
+  - `C:/Program Files/Eclipse Adoptium/jdk-17.0.8.101-hotspot`
+  - `C:/Program Files/OpenJDK/openjdk-17`
+- **macOS**: 
+  - `/opt/homebrew/Cellar/openjdk@17/17.0.8/libexec/openjdk.jdk/Contents/Home` (Homebrew)
+  - `/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home` (Oracle)
+- **Linux**: 
+  - `/usr/lib/jvm/java-17-openjdk-amd64` (Ubuntu/Debian)
+  - `/usr/lib/jvm/default-java`
+  - `/opt/jdk-17`
+
+### 🔍 Finding Your Installations
+
+#### macOS
+```bash
+# Find Java installations
+/usr/libexec/java_home -V
+
+# Find Android SDK (if installed via Android Studio)
+ls ~/Library/Android/sdk
+```
+
+#### Windows
+```cmd
+# Find Java installations
+where java
+dir "C:\Program Files\Java"
+
+# Find Android SDK
+dir "%LOCALAPPDATA%\Android\Sdk"
+```
+
+#### Linux
+```bash
+# Find Java installations
+update-alternatives --list java
+ls /usr/lib/jvm/
+
+# Find Android SDK
+ls ~/Android/Sdk
+```
+
+### 🛠️ Troubleshooting
+
+- **Build fails with Java version error**: Ensure you're using Java 17 or higher
+- **Android SDK not found**: Verify the SDK path exists and contains required components
+- **Permission errors**: Ensure user has read/write access to SDK and JDK directories
+- **Path with spaces**: Use quotes around paths containing spaces in environment variables
+
+### 📝 Important Notes
+
+- **Java Version**: Project requires Java 17 or higher for Android Gradle Plugin compatibility
+- **Environment Variables**: Take precedence over `local.properties` settings
+- **Consistency**: Both root and Android platform configuration files should be updated consistently
+- **Current Default**: Configuration is set up for macOS - modify as needed for your OS
+
 ## 📷 Camera Calibration System
 
 ### Overview
@@ -310,17 +506,22 @@ Calibration results are saved in JSON format containing:
   },
   "cameras": {
     "rgb_camera": {
-      "camera_matrix": [[fx, 0, cx], [0, fy, cy], [0, 0, 1]],
-      "distortion_coefficients": [k1, k2, p1, p2, k3],
+      "camera_matrix": [[1000.0, 0, 960.0], [0, 1000.0, 540.0], [0, 0, 1]],
+      "distortion_coefficients": [-0.1, 0.05, 0.001, 0.002, -0.01],
       "image_size": [1920, 1080],
       "reprojection_error": 0.3
     },
-    "thermal_camera": { ... }
+    "thermal_camera": {
+      "camera_matrix": [[400.0, 0, 160.0], [0, 400.0, 120.0], [0, 0, 1]],
+      "distortion_coefficients": [-0.05, 0.02, 0.0, 0.0, 0.0],
+      "image_size": [320, 240],
+      "reprojection_error": 0.5
+    }
   },
   "extrinsics": {
     "rgb_to_thermal": {
-      "rotation_matrix": [...],
-      "translation_vector": [x, y, z]
+      "rotation_matrix": [[0.99, -0.01, 0.02], [0.01, 0.99, -0.01], [-0.02, 0.01, 0.99]],
+      "translation_vector": [0.05, 0.02, 0.01]
     }
   }
 }
@@ -1525,6 +1726,7 @@ This project includes extensive documentation to help you get started and make t
 | I want to... | Go to... |
 |--------------|----------|
 | Set up the system for the first time | [Setup and Connection Guide](docs/SETUP_AND_CONNECTION_GUIDE.md) |
+| Configure my OS for Android development | [OS-Specific Development Environment Setup](#️-os-specific-development-environment-setup) |
 | Learn how to use the apps | [App Usage Guide](docs/APP_USAGE_GUIDE.md) |
 | Control the system with Python code | [Python API Guide](docs/PYTHON_API_GUIDE.md) |
 | Develop or modify the system | [Development Setup Guide](DEVELOPMENT_SETUP.md) |

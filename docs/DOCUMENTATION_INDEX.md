@@ -16,13 +16,13 @@ This system provides multiple levels of documentation to serve different user ty
 - **[Networking and Synchronization](Networking_and_Synchronization_Layer.md)** - Technical implementation details
 
 ### 📋 Implementation Documentation
-- **[Comprehensive Implementation Summary](../platforms/windows/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md)** - Complete system implementation overview
-- **[Test Suite Summary](../platforms/windows/TEST_SUITE_SUMMARY.md)** - Testing coverage and validation details
+- **[Comprehensive Implementation Summary](../platforms/pc/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md)** - Complete system implementation overview
+- **[Test Suite Summary](../platforms/pc/TEST_SUITE_SUMMARY.md)** - Testing coverage and validation details
 
 ### 📖 Reference Documentation
 - **[Main README](../README.md)** - System overview, features, and technical specifications
 - **[Changelog](CHANGELOG.md)** - Version history and major changes
-- **[Windows Controller README](../platforms/windows/README.md)** - PC controller specific documentation
+- **[Windows Controller README](../platforms/pc/README.md)** - PC controller specific documentation
 
 ## 🎯 Choose Your Path
 
@@ -58,10 +58,10 @@ This guide provides:
 **Start With**: [Development Setup Guide](DEVELOPMENT_SETUP.md)
 
 Then explore:
-- [Comprehensive Implementation Summary](../platforms/windows/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) - Complete system overview
+- [Comprehensive Implementation Summary](../platforms/pc/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) - Complete system overview
 - [Networking and Synchronization](Networking_and_Synchronization_Layer.md) - Technical implementation details
-- [Test Suite Summary](../platforms/windows/TEST_SUITE_SUMMARY.md) - Testing and validation
-- [Windows Controller README](../platforms/windows/README.md) - PC controller documentation
+- [Test Suite Summary](../platforms/pc/TEST_SUITE_SUMMARY.md) - Testing and validation
+- [Windows Controller README](../platforms/pc/README.md) - PC controller documentation
 - Source code in `platforms/android/` and `platforms/windows/` directories
 
 ## 📋 Quick Reference
@@ -78,9 +78,9 @@ Then explore:
 | Multi-device recording | [App Usage Guide](APP_USAGE_GUIDE.md#multi-device-recording) |
 | Data export and analysis | [App Usage Guide](APP_USAGE_GUIDE.md#data-management) |
 | Development environment | [Development Setup Guide](DEVELOPMENT_SETUP.md) |
-| Camera calibration | [Comprehensive Implementation Summary](../platforms/windows/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md#camera-calibration-system) |
-| System implementation overview | [Comprehensive Implementation Summary](../platforms/windows/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) |
-| Testing and validation | [Test Suite Summary](../platforms/windows/TEST_SUITE_SUMMARY.md) |
+| Camera calibration | [Comprehensive Implementation Summary](../platforms/pc/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md#camera-calibration-system) |
+| System implementation overview | [Comprehensive Implementation Summary](../platforms/pc/COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md) |
+| Testing and validation | [Test Suite Summary](../platforms/pc/TEST_SUITE_SUMMARY.md) |
 
 ### Hardware-Specific Guides
 

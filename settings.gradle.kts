@@ -1,7 +1,3 @@
-// Root-level settings.gradle.kts
-// This file allows Gradle commands to be run from the project root
-// and delegates to the Android platform build
-
 pluginManagement {
     repositories {
         google()
@@ -15,16 +11,17 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven(url = "https://jitpack.io")
+        // Add JitPack for any dependencies that require it
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
 rootProject.name = "GSR-Unified"
 
-// Include the Android platform as a subproject
+// Tell Gradle about the 'android' platform project
 include(":android")
 project(":android").projectDir = file("platforms/android")
 
-// // Include the Android app subproject
+// **CRITICAL**: Tell Gradle that ':android' contains a sub-project called ':app'
 include(":android:app")
 project(":android:app").projectDir = file("platforms/android/app")
