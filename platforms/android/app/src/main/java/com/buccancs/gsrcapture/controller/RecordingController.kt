@@ -6,6 +6,7 @@ import android.util.Log
 import com.buccancs.gsrcapture.audio.AudioRecorder
 import com.buccancs.gsrcapture.camera.RgbCameraManager
 import com.buccancs.gsrcapture.camera.ThermalCameraManager
+import com.buccancs.gsrcapture.network.CommandProtocolClient
 import com.buccancs.gsrcapture.sensor.GsrSensorManager
 import com.buccancs.gsrcapture.utils.TimeManager
 import java.io.File
@@ -151,6 +152,14 @@ class RecordingController(private val context: Context) {
      */
     fun setThermalPreviewView(textureView: android.view.TextureView) {
         thermalCameraManager.setPreviewView(textureView)
+    }
+
+    /**
+     * Sets the network client for streaming video frames from the thermal camera.
+     * @param client CommandProtocolClient instance for sending frames
+     */
+    fun setNetworkClient(client: CommandProtocolClient?) {
+        thermalCameraManager.setNetworkClient(client)
     }
 
     /**

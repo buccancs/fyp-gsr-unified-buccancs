@@ -168,6 +168,12 @@ class MainWindow(QMainWindow):
         discover_action.triggered.connect(self.on_discover_devices)
         devices_menu.addAction(discover_action)
 
+        discover_usb_action = QAction("Discover &USB Devices", self)
+        discover_usb_action.triggered.connect(self.on_discover_usb_devices)
+        devices_menu.addAction(discover_usb_action)
+
+        devices_menu.addSeparator()
+
         connect_all_action = QAction("Connect &All", self)
         connect_all_action.triggered.connect(self.on_connect_all)
         devices_menu.addAction(connect_all_action)
@@ -407,6 +413,21 @@ class MainWindow(QMainWindow):
         self.logger.info("Discovering devices")
         self.statusBar().showMessage("Discovering devices...")
         self.device_manager.discover_devices()
+
+    @Slot()
+    def on_discover_usb_devices(self):
+        """
+        Handle the Discover USB Devices action.
+        """
+        self.logger.info("Discovering USB devices")
+        self.statusBar().showMessage("Discovering USB devices...")
+        success = self.device_manager.discover_usb_devices()
+        if success:
+            self.statusBar().showMessage("USB device discovery completed", 3000)
+        else:
+            self.statusBar().showMessage("USB device discovery failed", 3000)
+            QMessageBox.warning(self, "USB Discovery", 
+                              "Failed to discover USB devices. Make sure ADB is available and devices are connected with USB debugging enabled.")
 
     @Slot()
     def on_connect_all(self):

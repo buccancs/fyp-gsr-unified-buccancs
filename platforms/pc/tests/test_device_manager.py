@@ -441,6 +441,116 @@ class TestDeviceManager(unittest.TestCase):
         # Operations should complete without error
         self.assertTrue(True)
 
+    @patch('src.network.device_manager.AdbClient')
+    def test_discover_usb_devices_success(self, mock_adb_client_class):
+        """
+        Test successful USB device discovery.
+        """
+        # Mock ADB client and devices
+        mock_adb_client = Mock()
+        mock_adb_client_class.return_value = mock_adb_client
+
+        # Mock ADB device
+        mock_adb_device = Mock()
+        mock_adb_device.serial = "test_device_123"
+        mock_adb_device.reverse.return_value = True
+
+        mock_adb_client.devices.return_value = [mock_adb_device]
+
+        # Call discover_usb_devices
+        result = self.device_manager.discover_usb_devices()
+
+        # Verify success
+        self.assertTrue(result)
+
+        # Verify ADB client was created with correct parameters
+        mock_adb_client_class.assert_called_once_with(host="127.0.0.1", port=5037)
+
+        # Verify devices() was called
+        mock_adb_client.devices.assert_called_once()
+
+        # Verify reverse port forwarding was set up
+        mock_adb_device.reverse.assert_called_once_with("tcp:5000", "tcp:5000")
+
+        # Verify device was added to discovered devices
+        self.assertIn("test_device_123", self.device_manager.discovered_devices)
+
+        # Verify device properties
+        discovered_device = self.device_manager.discovered_devices["test_device_123"]
+        self.assertEqual(discovered_device.id, "test_device_123")
+        self.assertEqual(discovered_device.name, "USB Device (test_device_123)")
+        self.assertEqual(discovered_device.address, "127.0.0.1")
+        self.assertEqual(discovered_device.port, 5000)
+        self.assertEqual(discovered_device.device_type, "usb_phone")
+
+    @patch('src.network.device_manager.AdbClient')
+    def test_discover_usb_devices_no_devices(self, mock_adb_client_class):
+        """
+        Test USB device discovery when no devices are connected.
+        """
+        # Mock ADB client with no devices
+        mock_adb_client = Mock()
+        mock_adb_client_class.return_value = mock_adb_client
+        mock_adb_client.devices.return_value = []
+
+        # Call discover_usb_devices
+        result = self.device_manager.discover_usb_devices()
+
+        # Verify success (no devices is still a successful discovery)
+        self.assertTrue(result)
+
+        # Verify no devices were added
+        self.assertEqual(len(self.device_manager.discovered_devices), 0)
+
+    @patch('src.network.device_manager.AdbClient')
+    def test_discover_usb_devices_port_forward_failure(self, mock_adb_client_class):
+        """
+        Test USB device discovery when port forwarding fails.
+        """
+        # Mock ADB client and device with failed port forwarding
+        mock_adb_client = Mock()
+        mock_adb_client_class.return_value = mock_adb_client
+
+        mock_adb_device = Mock()
+        mock_adb_device.serial = "test_device_456"
+        mock_adb_device.reverse.return_value = False  # Port forwarding fails
+
+        mock_adb_client.devices.return_value = [mock_adb_device]
+
+        # Call discover_usb_devices
+        result = self.device_manager.discover_usb_devices()
+
+        # Verify success (method completes even if port forwarding fails)
+        self.assertTrue(result)
+
+        # Verify device was not added due to port forwarding failure
+        self.assertNotIn("test_device_456", self.device_manager.discovered_devices)
+
+    @patch('src.network.device_manager.AdbClient')
+    def test_discover_usb_devices_adb_exception(self, mock_adb_client_class):
+        """
+        Test USB device discovery when ADB client raises an exception.
+        """
+        # Mock ADB client to raise an exception
+        mock_adb_client_class.side_effect = Exception("ADB connection failed")
+
+        # Call discover_usb_devices
+        result = self.device_manager.discover_usb_devices()
+
+        # Verify failure
+        self.assertFalse(result)
+
+    @patch('src.network.device_manager.ADB_AVAILABLE', False)
+    def test_discover_usb_devices_adb_not_available(self):
+        """
+        Test USB device discovery when ADB library is not available.
+        """
+        # Call discover_usb_devices
+        result = self.device_manager.discover_usb_devices()
+
+        # Verify failure
+        self.assertFalse(result)
+
 
 class TestDeviceListener(unittest.TestCase):
     """

@@ -202,9 +202,11 @@ class DevicePanel(QWidget):
 
         # Update connection status
         if status["connected"]:
-            self.connection_status_label.setText("Connected")
+            # Determine connection type based on device address
+            connection_type = "USB" if getattr(self.device, 'address', '') == "127.0.0.1" else "Wi-Fi"
+            self.connection_status_label.setText(f"Connected ({connection_type})")
             self.connection_status_label.setStyleSheet("color: green;")
-            self.device_status_label.setText("Connected")
+            self.device_status_label.setText(f"Connected ({connection_type})")
             self.device_status_label.setStyleSheet("color: green;")
         else:
             self.connection_status_label.setText("Not Connected")

@@ -19,6 +19,11 @@ public class CommandProtocol {
         CMD_STOP(2),        // Stop recording on device
         CMD_STATUS(3),      // Query device status
 
+        // Data streaming commands
+        DATA_GSR(4),        // Stream GSR sensor data
+        DATA_HEART_RATE(5), // Stream heart rate data
+        DATA_VIDEO_FRAME(6), // Stream video frame data
+
         // Synchronization commands
         SYNC_PING(101),     // Time synchronization ping
         SYNC_PONG(102),     // Time synchronization response

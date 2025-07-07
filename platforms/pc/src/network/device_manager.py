@@ -15,6 +15,13 @@ import time
 from PySide6.QtCore import QObject, Signal, Slot
 from zeroconf import ServiceBrowser, Zeroconf
 
+try:
+    from ppadb.client import Client as AdbClient
+    from ppadb.device import Device as AdbDevice
+    ADB_AVAILABLE = True
+except ImportError:
+    ADB_AVAILABLE = False
+
 from network.device import Device
 from local_device import LocalDevice
 from utils.logger import get_logger
@@ -104,6 +111,76 @@ class DeviceManager(QObject):
 
         self.logger.info("Device discovery started")
         return True
+
+    def discover_usb_devices(self):
+        """
+        Discover Android devices connected via USB using ADB.
+
+        Returns:
+            True if USB discovery was successful, False otherwise
+        """
+        if not ADB_AVAILABLE:
+            self.logger.error("ADB library not available. Install pure-python-adb to use USB discovery.")
+            return False
+
+        self.logger.info("Starting USB device discovery")
+
+        try:
+            # Connect to ADB server
+            adb_client = AdbClient(host="127.0.0.1", port=5037)
+
+            # Get list of connected devices
+            adb_devices = adb_client.devices()
+
+            if not adb_devices:
+                self.logger.info("No USB devices found")
+                return True
+
+            # Process each USB device
+            for adb_device in adb_devices:
+                try:
+                    device_serial = adb_device.serial
+                    self.logger.info(f"Found USB device: {device_serial}")
+
+                    # Set up reverse port forwarding (Android port 5000 -> PC port 5000)
+                    forward_port = 5000
+                    result = adb_device.reverse(f"tcp:{forward_port}", f"tcp:{forward_port}")
+
+                    if result:
+                        self.logger.info(f"Port forwarding established for device {device_serial}")
+
+                        # Create Device object for USB connection
+                        device = Device(
+                            id=device_serial,
+                            name=f"USB Device ({device_serial})",
+                            address="127.0.0.1",  # Localhost due to port forwarding
+                            port=forward_port,
+                            device_type="usb_phone",
+                            capabilities=["gsr", "video", "thermal", "audio"]
+                        )
+
+                        # Add to discovered devices
+                        with self.lock:
+                            self.discovered_devices[device_serial] = device
+
+                        # Emit discovery signal
+                        self.device_discovered.emit(device)
+
+                        self.logger.info(f"USB device {device_serial} added to discovered devices")
+
+                    else:
+                        self.logger.error(f"Failed to set up port forwarding for device {device_serial}")
+
+                except Exception as e:
+                    self.logger.error(f"Error processing USB device {device_serial}: {e}")
+                    continue
+
+            self.logger.info("USB device discovery completed")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"USB device discovery failed: {e}")
+            return False
 
     def connect_device(self, device_id):
         """

@@ -12,7 +12,6 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.buccancs.gsrcapture.controller.RecordingController
-import com.buccancs.gsrcapture.network.NetworkClient
 import com.buccancs.gsrcapture.network.CommandProtocolClient
 
 /**
@@ -35,7 +34,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recordingController: RecordingController
 
     // Network client for remote control
-    private lateinit var networkClient: NetworkClient
     private lateinit var commandProtocolClient: CommandProtocolClient
 
     // Permission request codes
@@ -68,9 +66,6 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize recording controller
         recordingController = RecordingController(this)
-
-        // Initialize network client
-        networkClient = NetworkClient(this)
 
         // Initialize CommandProtocol client for PC integration
         commandProtocolClient = CommandProtocolClient(this)
@@ -117,11 +112,11 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.error_gsr_sensor_unavailable), Toast.LENGTH_SHORT).show()
         }
 
-        // Start network client
-        networkClient.start()
-
         // Start CommandProtocol client for PC integration
         commandProtocolClient.start()
+
+        // Connect network client to thermal camera for video streaming
+        recordingController.setNetworkClient(commandProtocolClient)
     }
 
     private fun setupCallbacks() {
@@ -134,24 +129,19 @@ class MainActivity : AppCompatActivity() {
         recordingController.setGsrValueCallback { value ->
             gsrStatusText.text = getString(R.string.gsr_value, value)
             // Stream GSR data to PC controller
-            networkClient.streamGsrData(value, System.currentTimeMillis())
+            commandProtocolClient.streamGsrData(value, System.currentTimeMillis())
         }
 
         // Set up heart rate callback
         recordingController.setHeartRateCallback { value ->
             heartRateText.text = getString(R.string.heart_rate, value)
             // Stream heart rate data to PC controller
-            networkClient.streamHeartRateData(value, System.currentTimeMillis())
+            commandProtocolClient.streamHeartRateData(value, System.currentTimeMillis())
         }
 
         // Set up error callback
         recordingController.setErrorCallback { errorMessage ->
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-        }
-
-        // Set up network command callback
-        networkClient.setCommandCallback { command ->
-            handleNetworkCommand(command)
         }
 
         // Set up CommandProtocol client callbacks
@@ -295,7 +285,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         recordingController.shutdown()
-        networkClient.stop()
         commandProtocolClient.stop()
     }
 }

@@ -9,7 +9,7 @@ import android.hardware.usb.UsbManager
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
-import com.buccancs.gsrcapture.network.NetworkClient
+import com.buccancs.gsrcapture.network.CommandProtocolClient
 import com.buccancs.gsrcapture.utils.TimeManager
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
@@ -52,7 +52,7 @@ class ThermalCameraManager(
     private var frameCallback: ((Bitmap) -> Unit)? = null
 
     // Network streaming
-    private var networkClient: NetworkClient? = null
+    private var networkClient: CommandProtocolClient? = null
     private var isStreamingEnabled = AtomicBoolean(false)
 
     // Recording state
@@ -267,9 +267,9 @@ class ThermalCameraManager(
 
     /**
      * Sets the network client for streaming video frames.
-     * @param client NetworkClient instance for sending frames
+     * @param client CommandProtocolClient instance for sending frames
      */
-    fun setNetworkClient(client: NetworkClient?) {
+    fun setNetworkClient(client: CommandProtocolClient?) {
         networkClient = client
     }
 
