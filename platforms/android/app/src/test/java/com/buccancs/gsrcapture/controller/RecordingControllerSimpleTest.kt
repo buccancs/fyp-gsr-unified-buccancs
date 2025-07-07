@@ -1,7 +1,9 @@
 package com.buccancs.gsrcapture.controller
 
+import android.content.Context
 import org.junit.Test
 import org.junit.Assert.*
+import org.mockito.Mockito.mock
 
 /**
  * Simple unit tests for RecordingController that don't require Android context.
@@ -14,7 +16,7 @@ class RecordingControllerSimpleTest {
         // Create a mock context - this will fail but let's see what happens
         val mockContext = org.mockito.Mockito.mock(android.content.Context::class.java)
         val recordingController = RecordingController(mockContext)
-        
+
         // Test session ID generation
         val sessionId1 = recordingController.generateSessionIdForTesting()
         val sessionId2 = recordingController.generateSessionIdForTesting()
@@ -49,7 +51,7 @@ class RecordingControllerSimpleTest {
     fun testInitialRecordingState() {
         val mockContext = org.mockito.Mockito.mock(android.content.Context::class.java)
         val recordingController = RecordingController(mockContext)
-        
+
         // Test initial recording state
         assertFalse("Should not be recording initially", recordingController.isRecordingState)
     }
@@ -58,7 +60,7 @@ class RecordingControllerSimpleTest {
     fun testCallbackRegistration() {
         val mockContext = org.mockito.Mockito.mock(android.content.Context::class.java)
         val recordingController = RecordingController(mockContext)
-        
+
         var recordingStateChanged = false
         var gsrValueReceived = false
         var heartRateReceived = false

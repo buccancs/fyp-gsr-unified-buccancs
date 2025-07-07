@@ -6,19 +6,20 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
 import android.view.TextureView
-import com.buccancs.gsrcapture.utils.TimeManager
+import com.hoho.android.usbserial.driver.UsbSerialDriver
+import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.*
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.*
 import java.io.File
+import java.util.HashMap // Import Java's HashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class ThermalCameraManagerTest {
-
     @Mock
     private lateinit var mockContext: Context
 
@@ -34,284 +35,212 @@ class ThermalCameraManagerTest {
     @Mock
     private lateinit var mockTextureView: TextureView
 
+    @Mock
+    private lateinit var mockDriver: UsbSerialDriver
+
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var thermalCameraManager: ThermalCameraManager
+
+    // A temporary directory for test artifacts
+    private lateinit var tempDir: File
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         cameraExecutor = Executors.newSingleThreadExecutor()
+        tempDir =
+            File.createTempFile("test", "dir").apply {
+                delete()
+                mkdirs()
+            }
 
-        // Mock USB system service
-        `when`(mockContext.getSystemService(Context.USB_SERVICE)).thenReturn(mockUsbManager)
-        `when`(mockUsbManager.deviceList).thenReturn(mapOf("device1" to mockUsbDevice))
-        `when`(mockUsbManager.openDevice(mockUsbDevice)).thenReturn(mockUsbConnection)
+        // CORRECTED: Use java.util.HashMap to match the expected type from the Android SDK
+        val mockDeviceMap = HashMap<String, UsbDevice>()
+        mockDeviceMap["device1"] = mockUsbDevice
+
+        // Mock the standard Android USB service behavior
+        whenever(mockContext.getSystemService(Context.USB_SERVICE)).thenReturn(mockUsbManager)
+        whenever(mockUsbManager.deviceList).thenReturn(mockDeviceMap)
+        whenever(mockUsbManager.openDevice(any())).thenReturn(mockUsbConnection)
+
+        // Mock the behavior of a found Topdon device
+        whenever(mockUsbDevice.vendorId).thenReturn(0x1A86) // Real Topdon Vendor ID
+        whenever(mockUsbDevice.productId).thenReturn(0x5512) // Real Topdon Product ID
 
         thermalCameraManager = ThermalCameraManager(mockContext, cameraExecutor)
     }
 
+    @After
+    fun tearDown() {
+        // Shut down the executor and clean up the temp directory
+        cameraExecutor.shutdownNow()
+        tempDir.deleteRecursively()
+    }
+
     @Test
-    fun testInitialization() {
-        // Test that the thermal camera manager initializes correctly
+    fun `initialize sets initial state correctly`() {
         thermalCameraManager.initialize()
         assertFalse("Should not be connected initially", thermalCameraManager.isConnectedValue)
         assertFalse("Should not be recording initially", thermalCameraManager.isRecordingValue)
     }
 
     @Test
-    fun testInitializationWithoutUsbManager() {
-        // Test initialization when USB manager is not available
-        `when`(mockContext.getSystemService(Context.USB_SERVICE)).thenReturn(null)
-
+    fun `initialize does not crash when UsbManager is unavailable`() {
+        // Arrange: Simulate a device without USB host capabilities
+        whenever(mockContext.getSystemService(Context.USB_SERVICE)).thenReturn(null)
         val cameraManager = ThermalCameraManager(mockContext, cameraExecutor)
-        cameraManager.initialize()
-        // Since initialize() returns Unit, we can't directly test its return value
-        // Instead, we test that it doesn't crash and the manager remains unconnected
+
+        // Act & Assert: Initialization should complete without throwing an exception
+        try {
+            cameraManager.initialize()
+        } catch (e: Exception) {
+            fail("Initialization crashed when UsbManager was null: $e")
+        }
     }
 
     @Test
-    fun testConnectionToCamera() {
+    fun `connectToCamera successfully opens device connection when Topdon camera is found`() {
+        // Arrange
         thermalCameraManager.initialize()
 
-        // Mock USB device properties for Topdon thermal camera
-        `when`(mockUsbDevice.vendorId).thenReturn(0x1234) // Mock vendor ID
-        `when`(mockUsbDevice.productId).thenReturn(0x5678) // Mock product ID
-
-        // Test connection attempt
+        // Act
         val result = thermalCameraManager.connectToCamera()
 
-        // Connection might fail in test environment, but should not crash
-        assertNotNull("Connection result should not be null", result)
+        // Assert
+        assertTrue("Connection should be successful", result)
+        assertTrue("isConnectedValue should be true after connection", thermalCameraManager.isConnectedValue)
+        // Verify that we actually tried to open the device
+        verify(mockUsbManager).openDevice(mockUsbDevice)
     }
 
     @Test
-    fun testPreviewViewSetup() {
+    fun `connectToCamera fails when no Topdon camera is found`() {
+        // Arrange: Mock a non-Topdon device
+        whenever(mockUsbDevice.vendorId).thenReturn(0x1234)
+        whenever(mockUsbDevice.productId).thenReturn(0x5678)
         thermalCameraManager.initialize()
 
-        // Test setting preview view
-        thermalCameraManager.setPreviewView(mockTextureView)
+        // Act
+        val result = thermalCameraManager.connectToCamera()
 
-        // Verify that the preview view was set (no exception thrown)
-        assertTrue("Preview view setup should complete without error", true)
+        // Assert
+        assertFalse("Connection should fail if no Topdon camera is found", result)
+        assertFalse("isConnectedValue should remain false", thermalCameraManager.isConnectedValue)
+        // Verify we never tried to open a device we didn't identify
+        verify(mockUsbManager, never()).openDevice(any())
     }
 
     @Test
-    fun testFrameCallbackRegistration() {
-        var receivedFrame: Bitmap? = null
-        val callback: (Bitmap) -> Unit = { frame -> receivedFrame = frame }
+    fun `setFrameCallback registers callback without error`() {
+        // Arrange
+        var frameReceived = false
+        val callback: (Bitmap) -> Unit = { frame -> frameReceived = true }
 
+        // Act: Set the callback - this should complete without error
         thermalCameraManager.setFrameCallback(callback)
 
-        // Create a test bitmap
-        val testBitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-
-        // Note: updatePreview is private, so we can't test it directly
-        // We just verify that the callback registration works
-
-        // Note: In actual implementation, callback would be called asynchronously
-        // For unit test, we verify callback registration doesn't crash
-        assertNotNull("Frame callback should be registered", callback)
+        // Assert: The method should complete successfully
+        // Note: We can't directly test the private frameCallback property,
+        // but we can verify the method doesn't throw an exception
+        assertTrue("setFrameCallback should complete successfully", true)
     }
 
     @Test
-    fun testThermalDataProcessing() {
-        thermalCameraManager.initialize()
-
-        // Note: processThermalData is private, so we can't test it directly
-        // This test verifies that initialization works without errors
-        assertTrue("Thermal camera manager should initialize without errors", true)
-    }
-
-    @Test
-    fun testRecordingStartStop() {
-        val outputDir = File.createTempFile("test", "dir").apply { 
-            delete()
-            mkdirs()
-        }
+    fun `startRecording returns true and creates session directory`() {
+        // Arrange
         val sessionId = "test_thermal_session"
-
-        try {
-            thermalCameraManager.initialize()
-
-            // Test starting recording
-            val startResult = thermalCameraManager.startRecording(outputDir, sessionId)
-            assertTrue("Recording should start successfully", startResult)
-            assertTrue("Should be recording after start", thermalCameraManager.isRecordingValue)
-
-            // Test stopping recording
-            thermalCameraManager.stopRecording()
-            assertFalse("Should not be recording after stop", thermalCameraManager.isRecordingValue)
-
-        } finally {
-            outputDir.deleteRecursively()
-        }
-    }
-
-    @Test
-    fun testFrameSaving() {
-        val outputDir = File.createTempFile("test", "dir").apply { 
-            delete()
-            mkdirs()
-        }
-        val sessionId = "test_frame_save"
-
-        try {
-            thermalCameraManager.initialize()
-            thermalCameraManager.startRecording(outputDir, sessionId)
-
-            // Note: saveFrame is private, so we can't test it directly
-            // We test that recording can be started and stopped without errors
-            assertTrue("Recording should be active", thermalCameraManager.isRecordingValue)
-
-            // Verify thermal frames directory structure
-            val thermalDir = File(outputDir, "thermal_test_frame_save")
-            // Directory creation is handled internally during recording
-
-        } finally {
-            outputDir.deleteRecursively()
-        }
-    }
-
-    @Test
-    fun testMultipleFrameProcessing() {
         thermalCameraManager.initialize()
+        thermalCameraManager.connectToCamera() // Must be connected to record
 
-        val frameCount = 5
-        val processedFrames = mutableListOf<Bitmap>()
+        // Act
+        val startResult = thermalCameraManager.startRecording(tempDir, sessionId)
 
-        // Set frame callback to collect processed frames
-        thermalCameraManager.setFrameCallback { frame -> processedFrames.add(frame) }
+        // Assert
+        assertTrue("Recording should start successfully", startResult)
+        assertTrue("isRecordingValue should be true after start", thermalCameraManager.isRecordingValue)
 
-        // Note: processThermalData and updatePreview are private methods
-        // We test that frame callback registration works without errors
-        assertTrue("Frame callback should be set without error", processedFrames.isEmpty())
-
-        // Test that multiple callback registrations work
-        repeat(frameCount) { index ->
-            thermalCameraManager.setFrameCallback { frame -> processedFrames.add(frame) }
-        }
-
-        assertTrue("Multiple frame callback registrations should work", true)
+        val expectedDir = File(tempDir, "thermal_test_thermal_session")
+        assertTrue("Session directory should have been created", expectedDir.exists() && expectedDir.isDirectory)
     }
 
     @Test
-    fun testDisconnection() {
+    fun `stopRecording sets recording flag to false`() {
+        // Arrange
         thermalCameraManager.initialize()
+        thermalCameraManager.connectToCamera()
+        thermalCameraManager.startRecording(tempDir, "session_to_stop")
+        assertTrue("Precondition failed: should be recording", thermalCameraManager.isRecordingValue)
 
-        // Test disconnection
+        // Act
+        thermalCameraManager.stopRecording()
+
+        // Assert
+        assertFalse("Should not be recording after stop", thermalCameraManager.isRecordingValue)
+    }
+
+    @Test
+    fun `disconnect closes connection and resets state`() {
+        // Arrange
+        thermalCameraManager.initialize()
+        thermalCameraManager.connectToCamera()
+        assertTrue("Precondition failed: should be connected", thermalCameraManager.isConnectedValue)
+
+        // Act
         thermalCameraManager.disconnect()
 
+        // Assert
         assertFalse("Should not be connected after disconnect", thermalCameraManager.isConnectedValue)
         assertFalse("Should not be recording after disconnect", thermalCameraManager.isRecordingValue)
+        // Verify that the underlying connection was actually closed
+        verify(mockUsbConnection).close()
     }
 
     @Test
-    fun testShutdown() {
+    fun `shutdown disconnects and terminates executor`() {
+        // Arrange
         thermalCameraManager.initialize()
+        thermalCameraManager.connectToCamera()
 
-        // Test shutdown
+        // Act
         thermalCameraManager.shutdown()
 
+        // Assert
         assertFalse("Should not be connected after shutdown", thermalCameraManager.isConnectedValue)
-        assertFalse("Should not be recording after shutdown", thermalCameraManager.isRecordingValue)
+        assertTrue("Executor should be shut down", cameraExecutor.isShutdown)
     }
 
     @Test
-    fun testErrorHandling() {
-        // Test connection without initialization
-        val result = thermalCameraManager.connectToCamera()
-        assertFalse("Connection should fail without initialization", result)
-
-        // Test recording without connection
-        val outputDir = File.createTempFile("test", "dir").apply { 
-            delete()
-            mkdirs()
-        }
-
-        try {
-            val recordingResult = thermalCameraManager.startRecording(outputDir, "test")
-            // Should handle gracefully even without connection
-            assertNotNull("Recording start should return a result", recordingResult)
-        } finally {
-            outputDir.deleteRecursively()
-        }
-    }
-
-    @Test
-    fun testInvalidThermalData() {
+    fun `startRecording fails if not connected`() {
+        // Arrange
         thermalCameraManager.initialize()
+        assertFalse("Precondition: should not be connected", thermalCameraManager.isConnectedValue)
 
-        // Note: processThermalData is private, so we can't test it directly
-        // We test that the manager handles initialization correctly
-        assertTrue("Manager should initialize without errors", true)
+        // Act
+        val recordingResult = thermalCameraManager.startRecording(tempDir, "test")
 
-        // Test that the manager can handle connection attempts gracefully
-        val connectionResult = thermalCameraManager.connectToCamera()
-        // Connection may fail in test environment, but should not crash
-        assertNotNull("Connection attempt should return a result", connectionResult)
+        // Assert
+        assertFalse("Recording should fail if not connected", recordingResult)
     }
 
     @Test
-    fun testConcurrentOperations() {
-        thermalCameraManager.initialize()
+    fun `findTopdonDriver returns correct driver from list`() {
+        // Arrange
+        whenever(mockDriver.device).thenReturn(mockUsbDevice)
+        val driverList = listOf(mockDriver)
 
-        val outputDir = File.createTempFile("test", "dir").apply { 
-            delete()
-            mkdirs()
-        }
+        // Act
+        val result = thermalCameraManager.findTopdonDriver(driverList)
 
-        try {
-            // Start recording
-            thermalCameraManager.startRecording(outputDir, "concurrent_test")
-
-            // Note: processThermalData and saveFrame are private methods
-            // We test concurrent recording operations instead
-            val threads = (1..3).map { threadId ->
-                Thread {
-                    repeat(5) { frameId ->
-                        // Test concurrent access to public methods
-                        thermalCameraManager.setFrameCallback { /* no-op */ }
-                        Thread.sleep(1) // Small delay to simulate processing
-                    }
-                }
-            }
-
-            threads.forEach { it.start() }
-            threads.forEach { it.join() }
-
-            // Stop recording
-            thermalCameraManager.stopRecording()
-
-            assertTrue("Concurrent operations should complete successfully", true)
-
-        } finally {
-            outputDir.deleteRecursively()
-        }
+        // Assert
+        assertEquals("Should have found the mock driver", mockDriver, result)
     }
 
     @Test
-    fun testTopdonDriverDetection() {
-        thermalCameraManager.initialize()
+    fun `findTopdonDriver returns null for empty driver list`() {
+        // Act
+        val result = thermalCameraManager.findTopdonDriver(emptyList())
 
-        // This test would require actual USB serial drivers to be meaningful
-        // For unit test, we verify the method doesn't crash
-        val emptyDriverList = emptyList<com.hoho.android.usbserial.driver.UsbSerialDriver>()
-        val result = thermalCameraManager.findTopdonDriver(emptyDriverList)
-
+        // Assert
         assertNull("Should return null for empty driver list", result)
-    }
-
-    @Test
-    fun testPreviewViewLifecycle() {
-        thermalCameraManager.initialize()
-        thermalCameraManager.setPreviewView(mockTextureView)
-
-        // Test that preview view can be set multiple times
-        thermalCameraManager.setPreviewView(mockTextureView)
-
-        // Test disconnection clears preview
-        thermalCameraManager.disconnect()
-
-        assertTrue("Preview view lifecycle should be handled correctly", true)
     }
 }

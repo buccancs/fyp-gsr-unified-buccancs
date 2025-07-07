@@ -8,6 +8,7 @@ This system enables researchers to capture synchronized physiological and visual
 
 - **📱 Android Capture App**: Records GSR, RGB video, thermal video, raw images, and audio with nanosecond precision
 - **💻 PC Controller**: Modern PySide6 interface for managing multiple devices, live monitoring, and coordinated recording sessions
+- **🔌 PC-Connected Hardware**: Direct support for Shimmer GSR sensors and webcams connected to the PC
 - **🔗 Shared Components**: Common networking, synchronization, and data management utilities
 - **📊 Analysis Tools**: Video playback, annotation system, and data export capabilities
 
@@ -80,6 +81,32 @@ This system enables researchers to capture synchronized physiological and visual
   - Device discovery and automatic pairing
 
 ### 💻 PC Controller - Modern Cross-Platform Interface
+
+#### 🔌 PC-Connected Hardware Support *(NEW)*
+The system now supports PC-connected sensors and cameras as first-class data acquisition nodes:
+
+- **🖥️ LocalDevice Integration**:
+  - PC hardware treated identically to remote Android devices
+  - Unified interface for local and remote device management
+  - Seamless integration with existing device discovery and control systems
+
+- **📊 Supported PC Hardware**:
+  - **Shimmer GSR Sensors**: Direct USB/Bluetooth connection via pyshimmer library
+  - **USB/Bluetooth Webcams**: OpenCV-based camera capture (including Logitech Brio 4K)
+  - **Configurable Hardware**: Support for multiple camera indices and COM ports
+  - **Real-time Data Streaming**: Live GSR data and video frame capture
+
+- **🎛️ Hardware Abstraction Layer**:
+  - **PCConnectedSensor**: Abstract base class for all PC sensors
+  - **PCConnectedCamera**: Abstract base class for all PC cameras
+  - **Threaded Operations**: Non-blocking hardware communication
+  - **Signal-based Architecture**: Qt signals for real-time data updates
+
+- **📁 Unified Recording**:
+  - Synchronized recording with remote Android devices
+  - Local file storage with timestamp-based naming
+  - CSV export for GSR data, MP4 for video recordings
+  - Session-based file organization
 
 #### 🖥️ Modern PySide6 GUI Framework
 - **Professional Interface Design**:
@@ -343,7 +370,6 @@ Calibration results are saved in JSON format containing:
 - **Extended Hardware Support**:
   - Additional GSR sensor models
   - Multiple thermal camera brands
-  - PC-connected sensors (USB/Bluetooth)
 
 - **Advanced Features**:
   - Machine learning integration for real-time analysis

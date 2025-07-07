@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.buccancs.gsrcapture"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.buccancs.gsrcapture"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -21,7 +21,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -79,12 +79,21 @@ dependencies {
     implementation(files("libs/shimmerdriverpc-0.11.3_beta.jar"))
     implementation(files("libs/topdon_sdk_1.5.aar"))
 
-    // Testing dependencies
+    // ---------- Unit-test dependencies ----------
     testImplementation(libs.junit)
+
+    // Mockito (using consistent versions from libs.versions.toml)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.inline)
     testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.robolectric)
-    androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.test.espresso.core)
+
+    // USB Serial for testing
+    testImplementation("com.github.mik3y:usb-serial-for-android:${libs.versions.usbSerial.get()}") // Add USB serial dependency for tests
+
+    // Robolectric (latest published stable)
+    testImplementation("org.robolectric:robolectric:4.11.1")
+
+    // ---------- Instrumented-test dependencies ----------
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

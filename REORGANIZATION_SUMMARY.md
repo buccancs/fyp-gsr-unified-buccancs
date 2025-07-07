@@ -35,7 +35,12 @@ fyp-gsr-unified-buccancs/
 │   ├── integration/             # Integration tests
 │   └── validation/              # Validation scripts
 ├── tools/                       # Development and setup tools
-└── environments/                # Virtual environments
+├── environments/                # Virtual environments
+└── libs/                        # Third-party dependencies
+    ├── labstreaminglayer/       # Lab Streaming Layer library
+    ├── FactorizePhys/           # FactorizePhys library
+    ├── ShimmerAndroidAPI/       # Shimmer Android API
+    └── pylsl/                   # Python LSL bindings
 ```
 
 ## Key Improvements
@@ -47,6 +52,7 @@ fyp-gsr-unified-buccancs/
 5. **Centralized Documentation**: All documentation is now in the `docs/` directory
 6. **Proper Tool Organization**: Development tools are in the `tools/` directory
 7. **Environment Management**: Virtual environments are contained in `environments/`
+8. **Third-Party Dependency Management**: External libraries are organized under `libs/` as git submodules
 
 ## Files Moved
 
@@ -75,6 +81,25 @@ fyp-gsr-unified-buccancs/
 
 ### Environments
 - venv/ → environments/
+
+### Third-Party Libraries → libs/
+- labstreaminglayer (git submodule from https://github.com/buccancs/labstreaminglayer)
+- FactorizePhys (git submodule from https://github.com/buccancs/FactorizePhys)
+- ShimmerAndroidAPI (git submodule from https://github.com/buccancs/ShimmerAndroidAPI)
+- pylsl (git submodule from https://github.com/buccancs/pylsl)
+
+**Note**: RGBTPhys_CPP from https://github.com/PhysiologicAILab/RGBTPhys_CPP could not be added as a git submodule due to the repository not existing (404 error). 
+
+**Resolution**: RGBT (RGB-Thermal) functionality is already available through the existing FactorizePhys submodule, which includes:
+- Pre-trained RGBT models: `iBVP_RGBT_FactorizePhys_Base.pth`, `iBVP_RGBT_FactorizePhys_FSAM_Res.pth`
+- RGBT configuration files for training and inference
+- RGBT data processing capabilities in the data loader
+- Multiple model architectures supporting RGBT data mode
+
+**Alternative Solutions**:
+1. Use the existing FactorizePhys RGBT functionality (recommended)
+2. If RGBTPhys_CPP becomes available, check for forks under the buccancs organization
+3. Contact the original repository maintainers for access or alternative sources
 
 ## Removed Redundancies
 - Empty `src/` directory

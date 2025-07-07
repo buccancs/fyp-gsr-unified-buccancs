@@ -15,8 +15,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // Add JitPack for usb-serial-for-android
-        maven { url = uri("https://jitpack.io") }
+        maven(url = "https://jitpack.io")
     }
 }
 
@@ -26,6 +25,6 @@ rootProject.name = "GSR-Unified"
 include(":android")
 project(":android").projectDir = file("platforms/android")
 
-// Include the Android app subproject
+// // Include the Android app subproject
 include(":android:app")
 project(":android:app").projectDir = file("platforms/android/app")

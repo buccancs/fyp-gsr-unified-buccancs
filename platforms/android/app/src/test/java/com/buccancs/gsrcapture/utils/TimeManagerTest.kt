@@ -1,14 +1,12 @@
 package com.buccancs.gsrcapture.utils
 
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.math.abs
 
 class TimeManagerTest {
-
     @Before
     fun setUp() {
         // Initialize TimeManager session before each test
@@ -59,11 +57,12 @@ class TimeManagerTest {
         val customTimestamp = 1234567890L
         val customSessionOffset = 9876543210L
 
-        val timestampedData = TimeManager.TimestampedData(
-            data = testData,
-            timestampNanos = customTimestamp,
-            sessionOffsetNanos = customSessionOffset
-        )
+        val timestampedData =
+            TimeManager.TimestampedData(
+                data = testData,
+                timestampNanos = customTimestamp,
+                sessionOffsetNanos = customSessionOffset,
+            )
 
         assertEquals("Data should match", testData, timestampedData.data)
         assertEquals("Timestamp should match", customTimestamp, timestampedData.timestampNanos)
@@ -135,8 +134,8 @@ class TimeManagerTest {
         // Check that timestamps are monotonically increasing or equal
         for (i in 1 until timestamps.size) {
             assertTrue(
-                "Timestamps should be monotonically increasing: ${timestamps[i-1]} <= ${timestamps[i]}",
-                timestamps[i-1] <= timestamps[i]
+                "Timestamps should be monotonically increasing: ${timestamps[i - 1]} <= ${timestamps[i]}",
+                timestamps[i - 1] <= timestamps[i],
             )
         }
     }
@@ -153,8 +152,8 @@ class TimeManagerTest {
         // Check that device times are monotonically increasing
         for (i in 1 until deviceTimes.size) {
             assertTrue(
-                "Device times should be monotonically increasing: ${deviceTimes[i-1]} <= ${deviceTimes[i]}",
-                deviceTimes[i-1] <= deviceTimes[i]
+                "Device times should be monotonically increasing: ${deviceTimes[i - 1]} <= ${deviceTimes[i]}",
+                deviceTimes[i - 1] <= deviceTimes[i],
             )
         }
     }
