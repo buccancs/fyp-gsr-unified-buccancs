@@ -2,12 +2,15 @@
 .gradle/
 build/
 
+environments/venv/
+
 # Local configuration file (sdk path, etc)
 local.properties
 
 # Log/OS Files
 *.log
 
+__pycache__/
 # Android Studio generated files and folders
 captures/
 .externalNativeBuild/
