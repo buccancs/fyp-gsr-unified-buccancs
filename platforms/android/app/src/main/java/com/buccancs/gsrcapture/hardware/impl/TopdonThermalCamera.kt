@@ -23,9 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class TopdonThermalCamera(
     private val context: Context,
-    private val executor: ExecutorService
+    private val executor: ExecutorService,
 ) : ThermalCamera {
-
     companion object {
         private const val TAG = "TopdonThermalCamera"
 
@@ -60,8 +59,8 @@ class TopdonThermalCamera(
     private var recordingDir: File? = null
     private var sessionId: String? = null
 
-    override fun initialize(): Boolean {
-        return try {
+    override fun initialize(): Boolean =
+        try {
             usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
             Log.d(TAG, "Topdon thermal camera initialized")
             true
@@ -69,7 +68,6 @@ class TopdonThermalCamera(
             Log.e(TAG, "Failed to initialize Topdon thermal camera", e)
             false
         }
-    }
 
     override fun connect(deviceIdentifier: String?): Boolean {
         if (isConnected.get()) {
@@ -175,7 +173,10 @@ class TopdonThermalCamera(
         textureView = view
     }
 
-    override fun startRecording(outputDir: File, sessionId: String): Boolean {
+    override fun startRecording(
+        outputDir: File,
+        sessionId: String,
+    ): Boolean {
         if (!isConnected.get()) {
             Log.w(TAG, "Cannot start recording - device not connected")
             return false
@@ -208,24 +209,24 @@ class TopdonThermalCamera(
         }
     }
 
-    override fun getCameraSpecs(): ThermalCamera.CameraSpecs {
-        return ThermalCamera.CameraSpecs(
+    override fun getCameraSpecs(): ThermalCamera.CameraSpecs =
+        ThermalCamera.CameraSpecs(
             width = THERMAL_WIDTH,
             height = THERMAL_HEIGHT,
             temperatureRange = Pair(MIN_TEMPERATURE, MAX_TEMPERATURE),
             frameRate = FRAME_RATE.toFloat(),
-            additionalSpecs = mapOf(
-                "thermalSensitivity" to "0.1°C",
-                "spectralRange" to "8-14μm",
-                "fieldOfView" to "50° × 38°",
-                "focusType" to "Fixed",
-                "operatingTemperature" to "-10°C to +50°C"
-            )
+            additionalSpecs =
+                mapOf(
+                    "thermalSensitivity" to "0.1°C",
+                    "spectralRange" to "8-14μm",
+                    "fieldOfView" to "50° × 38°",
+                    "focusType" to "Fixed",
+                    "operatingTemperature" to "-10°C to +50°C",
+                ),
         )
-    }
 
-    override fun getHardwareInfo(): Map<String, String> {
-        return mapOf(
+    override fun getHardwareInfo(): Map<String, String> =
+        mapOf(
             "manufacturer" to "Topdon",
             "model" to "TC001",
             "type" to "Thermal Camera",
@@ -233,9 +234,8 @@ class TopdonThermalCamera(
             "connectionType" to "USB",
             "firmwareVersion" to getFirmwareVersion(),
             "serialNumber" to getSerialNumber(),
-            "deviceId" to (usbDevice?.deviceName ?: "Unknown")
+            "deviceId" to (usbDevice?.deviceName ?: "Unknown"),
         )
-    }
 
     override fun configure(settings: Map<String, Any>): Boolean {
         if (!isConnected.get()) {
@@ -261,15 +261,14 @@ class TopdonThermalCamera(
         }
     }
 
-    override fun getAvailableSettings(): Map<String, List<Any>> {
-        return mapOf(
+    override fun getAvailableSettings(): Map<String, List<Any>> =
+        mapOf(
             "emissivity" to listOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 0.95f, 1.0f),
             "temperatureUnit" to listOf("Celsius", "Fahrenheit", "Kelvin"),
             "colorPalette" to listOf("Iron", "Rainbow", "White Hot", "Black Hot", "Red Hot", "Cool"),
             "imageFormat" to listOf("JPEG", "PNG", "RAW"),
-            "autoShutter" to listOf(true, false)
+            "autoShutter" to listOf(true, false),
         )
-    }
 
     override fun captureFrame(): ThermalCamera.ThermalFrame? {
         if (!isConnected.get()) {
@@ -306,7 +305,7 @@ class TopdonThermalCamera(
 
     private fun findTopdonDriver(
         availableDrivers: List<UsbSerialDriver>,
-        deviceIdentifier: String?
+        deviceIdentifier: String?,
     ): UsbSerialDriver? {
         for (driver in availableDrivers) {
             val device = driver.device
@@ -349,8 +348,11 @@ class TopdonThermalCamera(
         }
     }
 
-    private fun processThermalData(buffer: ByteArray, len: Int): ThermalCamera.ThermalFrame? {
-        return try {
+    private fun processThermalData(
+        buffer: ByteArray,
+        len: Int,
+    ): ThermalCamera.ThermalFrame? =
+        try {
             val timestamp = TimeManager.getCurrentTimestampNanos()
 
             // Parse thermal data from Topdon TC001 format
@@ -361,21 +363,24 @@ class TopdonThermalCamera(
                 timestamp = timestamp,
                 bitmap = bitmap,
                 temperatureData = temperatureData,
-                metadata = mapOf(
-                    "deviceId" to (usbDevice?.deviceName ?: "unknown"),
-                    "frameSize" to len,
-                    "minTemp" to (temperatureData?.flatMap { it.toList() }?.minOrNull() ?: 0.0f),
-                    "maxTemp" to (temperatureData?.flatMap { it.toList() }?.maxOrNull() ?: 0.0f)
-                )
+                metadata =
+                    mapOf(
+                        "deviceId" to (usbDevice?.deviceName ?: "unknown"),
+                        "frameSize" to len,
+                        "minTemp" to (temperatureData?.flatMap { it.toList() }?.minOrNull() ?: 0.0f),
+                        "maxTemp" to (temperatureData?.flatMap { it.toList() }?.maxOrNull() ?: 0.0f),
+                    ),
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error processing thermal data", e)
             null
         }
-    }
 
-    private fun parseTopdonThermalData(buffer: ByteArray, len: Int): Array<FloatArray>? {
-        return try {
+    private fun parseTopdonThermalData(
+        buffer: ByteArray,
+        len: Int,
+    ): Array<FloatArray>? =
+        try {
             // This is a simplified parser for demonstration
             // In a real implementation, you would parse the actual Topdon TC001 data format
             val temperatureData = Array(THERMAL_HEIGHT) { FloatArray(THERMAL_WIDTH) }
@@ -385,8 +390,9 @@ class TopdonThermalCamera(
                 for (x in 0 until THERMAL_WIDTH) {
                     if (bufferIndex + 1 < len) {
                         // Convert raw bytes to temperature (simplified)
-                        val rawValue = ((buffer[bufferIndex].toInt() and 0xFF) shl 8) or 
-                                      (buffer[bufferIndex + 1].toInt() and 0xFF)
+                        val rawValue =
+                            ((buffer[bufferIndex].toInt() and 0xFF) shl 8) or
+                                (buffer[bufferIndex + 1].toInt() and 0xFF)
                         temperatureData[y][x] = rawValue / 100.0f // Convert to Celsius
                         bufferIndex += 2
                     } else {
@@ -400,7 +406,6 @@ class TopdonThermalCamera(
             Log.e(TAG, "Error parsing thermal data", e)
             null
         }
-    }
 
     private fun createThermalBitmap(temperatureData: Array<FloatArray>?): Bitmap {
         val bitmap = Bitmap.createBitmap(THERMAL_WIDTH, THERMAL_HEIGHT, Bitmap.Config.ARGB_8888)
@@ -415,11 +420,12 @@ class TopdonThermalCamera(
             for (y in 0 until THERMAL_HEIGHT) {
                 for (x in 0 until THERMAL_WIDTH) {
                     val temp = temperatureData[y][x]
-                    val normalizedTemp = if (tempRange > 0) {
-                        ((temp - minTemp) / tempRange).coerceIn(0.0f, 1.0f)
-                    } else {
-                        0.5f
-                    }
+                    val normalizedTemp =
+                        if (tempRange > 0) {
+                            ((temp - minTemp) / tempRange).coerceIn(0.0f, 1.0f)
+                        } else {
+                            0.5f
+                        }
 
                     // Apply iron color palette
                     val color = applyIronPalette(normalizedTemp)
@@ -444,23 +450,26 @@ class TopdonThermalCamera(
         // Iron color palette implementation
         val value = (normalizedValue * 255).toInt().coerceIn(0, 255)
 
-        val red = when {
-            value < 64 -> 0
-            value < 128 -> (value - 64) * 4
-            else -> 255
-        }
+        val red =
+            when {
+                value < 64 -> 0
+                value < 128 -> (value - 64) * 4
+                else -> 255
+            }
 
-        val green = when {
-            value < 64 -> value * 4
-            value < 192 -> 255
-            else -> 255 - (value - 192) * 4
-        }
+        val green =
+            when {
+                value < 64 -> value * 4
+                value < 192 -> 255
+                else -> 255 - (value - 192) * 4
+            }
 
-        val blue = when {
-            value < 128 -> 0
-            value < 192 -> (value - 128) * 4
-            else -> 255
-        }
+        val blue =
+            when {
+                value < 128 -> 0
+                value < 192 -> (value - 128) * 4
+                else -> 255
+            }
 
         return 0xFF000000.toInt() or (red shl 16) or (green shl 8) or blue
     }
@@ -494,8 +503,11 @@ class TopdonThermalCamera(
         }
     }
 
-    private fun sendConfigurationCommand(command: String, value: String): Boolean {
-        return try {
+    private fun sendConfigurationCommand(
+        command: String,
+        value: String,
+    ): Boolean =
+        try {
             val commandString = "$command:$value\n"
             val bytes = commandString.toByteArray()
             val written = usbSerialPort?.write(bytes, 1000) ?: 0
@@ -504,25 +516,22 @@ class TopdonThermalCamera(
             Log.e(TAG, "Error sending configuration command", e)
             false
         }
-    }
 
-    private fun getFirmwareVersion(): String {
-        return try {
+    private fun getFirmwareVersion(): String =
+        try {
             sendConfigurationCommand("GET_VERSION", "")
             // In a real implementation, you would read the response
             "1.0.0"
         } catch (e: Exception) {
             "Unknown"
         }
-    }
 
-    private fun getSerialNumber(): String {
-        return try {
+    private fun getSerialNumber(): String =
+        try {
             sendConfigurationCommand("GET_SERIAL", "")
             // In a real implementation, you would read the response
             usbDevice?.serialNumber ?: "Unknown"
         } catch (e: Exception) {
             "Unknown"
         }
-    }
 }

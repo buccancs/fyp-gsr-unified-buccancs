@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Real-time Plot Widget for the PC Controller App.
+"""Real-time Plot Widget for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
@@ -21,16 +20,15 @@ except ImportError:
     pg = None
 
 from utils.logger import get_logger
+from typing import Any, Dict, List, Optional, Union
 
 
 class RealTimePlotWidget(QWidget):
-    """
-    Real-time plotting widget for displaying GSR and heart rate data.
+    """Real-time plotting widget for displaying GSR and heart rate data.
     """
 
-    def __init__(self, parent=None):
-        """
-        Initialize the real-time plot widget.
+    def __init__(self, parent=None) -> None:
+        """Initialize the real-time plot widget.
 
         Args:
             parent: The parent widget (default: None)
@@ -60,9 +58,8 @@ class RealTimePlotWidget(QWidget):
 
         self.logger.info("Real-time plot widget initialized")
 
-    def setup_ui(self):
-        """
-        Set up the UI for the plot widget.
+    def setup_ui(self) -> None:
+        """Set up the UI for the plot widget.
         """
         # Create main layout
         self.main_layout = QVBoxLayout(self)
@@ -99,9 +96,8 @@ class RealTimePlotWidget(QWidget):
             error_label.setStyleSheet("color: red; font-weight: bold;")
             self.main_layout.addWidget(error_label)
 
-    def setup_plots(self):
-        """
-        Set up the pyqtgraph plot widgets.
+    def setup_plots(self) -> None:
+        """Set up the pyqtgraph plot widgets.
         """
         # GSR plot
         self.gsr_plot_widget = pg.PlotWidget(title="GSR Data (μS)")
@@ -128,9 +124,8 @@ class RealTimePlotWidget(QWidget):
         self.main_layout.addWidget(self.hr_plot_widget)
 
     @Slot(float, int)
-    def update_gsr_data(self, gsr_value, timestamp):
-        """
-        Update GSR data.
+    def update_gsr_data(self, gsr_value, timestamp) -> None:
+        """Update GSR data.
 
         Args:
             gsr_value: GSR value in microSiemens
@@ -148,9 +143,8 @@ class RealTimePlotWidget(QWidget):
         self.logger.debug(f"Updated GSR data: {gsr_value:.2f} μS")
 
     @Slot(int, int)
-    def update_heart_rate_data(self, heart_rate, timestamp):
-        """
-        Update heart rate data.
+    def update_heart_rate_data(self, heart_rate, timestamp) -> None:
+        """Update heart rate data.
 
         Args:
             heart_rate: Heart rate in BPM
@@ -166,9 +160,8 @@ class RealTimePlotWidget(QWidget):
 
         self.logger.debug(f"Updated heart rate data: {heart_rate} BPM")
 
-    def update_plots(self):
-        """
-        Update the plot displays.
+    def update_plots(self) -> None:
+        """Update the plot displays.
         """
         if not PYQTGRAPH_AVAILABLE:
             return
@@ -186,9 +179,8 @@ class RealTimePlotWidget(QWidget):
             if len(self.heart_rate_data) > 0:
                 self.hr_line.setData(relative_times[-len(self.heart_rate_data):], list(self.heart_rate_data))
 
-    def clear_data(self):
-        """
-        Clear all plot data.
+    def clear_data(self) -> None:
+        """Clear all plot data.
         """
         self.gsr_data.clear()
         self.heart_rate_data.clear()
@@ -207,9 +199,8 @@ class RealTimePlotWidget(QWidget):
 
         self.logger.info("Cleared all plot data")
 
-    def connect_device_signals(self, device):
-        """
-        Connect to device signals for real-time data updates.
+    def connect_device_signals(self, device) -> None:
+        """Connect to device signals for real-time data updates.
 
         Args:
             device: The device to connect to

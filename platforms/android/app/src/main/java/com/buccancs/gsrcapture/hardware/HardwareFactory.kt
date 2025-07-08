@@ -1,9 +1,8 @@
 package com.buccancs.gsrcapture.hardware
 
+import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.hardware.usb.UsbManager
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
 import android.util.Log
 import com.buccancs.gsrcapture.hardware.interfaces.PhysiologicalSensor
 import com.buccancs.gsrcapture.hardware.interfaces.ThermalCamera
@@ -14,8 +13,9 @@ import java.util.concurrent.ExecutorService
  * and creates appropriate interface implementations.
  * This allows the system to support multiple hardware types dynamically.
  */
-class HardwareFactory(private val context: Context) {
-
+class HardwareFactory(
+    private val context: Context,
+) {
     companion object {
         private const val TAG = "HardwareFactory"
 
@@ -32,7 +32,7 @@ class HardwareFactory(private val context: Context) {
         SHIMMER_GSR,
         TOPDON_THERMAL,
         GENERIC_THERMAL,
-        UNKNOWN
+        UNKNOWN,
     }
 
     /**
@@ -42,7 +42,7 @@ class HardwareFactory(private val context: Context) {
         val type: HardwareType,
         val identifier: String,
         val name: String,
-        val metadata: Map<String, Any> = emptyMap()
+        val metadata: Map<String, Any> = emptyMap(),
     )
 
     /**
@@ -66,11 +66,12 @@ class HardwareFactory(private val context: Context) {
                                 type = HardwareType.SHIMMER_GSR,
                                 identifier = device.address,
                                 name = device.name ?: "Unknown Shimmer Device",
-                                metadata = mapOf(
-                                    "bluetoothAddress" to device.address,
-                                    "deviceClass" to device.bluetoothClass.toString()
-                                )
-                            )
+                                metadata =
+                                    mapOf(
+                                        "bluetoothAddress" to device.address,
+                                        "deviceClass" to device.bluetoothClass.toString(),
+                                    ),
+                            ),
                         )
                     }
                 }
@@ -102,12 +103,13 @@ class HardwareFactory(private val context: Context) {
                                 type = HardwareType.TOPDON_THERMAL,
                                 identifier = usbDevice.deviceName,
                                 name = "Topdon TC001 Thermal Camera",
-                                metadata = mapOf(
-                                    "vendorId" to usbDevice.vendorId,
-                                    "productId" to usbDevice.productId,
-                                    "deviceName" to usbDevice.deviceName
-                                )
-                            )
+                                metadata =
+                                    mapOf(
+                                        "vendorId" to usbDevice.vendorId,
+                                        "productId" to usbDevice.productId,
+                                        "deviceName" to usbDevice.deviceName,
+                                    ),
+                            ),
                         )
                     }
                     // Check for other thermal cameras (generic USB thermal devices)
@@ -117,12 +119,13 @@ class HardwareFactory(private val context: Context) {
                                 type = HardwareType.GENERIC_THERMAL,
                                 identifier = usbDevice.deviceName,
                                 name = "Generic Thermal Camera",
-                                metadata = mapOf(
-                                    "vendorId" to usbDevice.vendorId,
-                                    "productId" to usbDevice.productId,
-                                    "deviceName" to usbDevice.deviceName
-                                )
-                            )
+                                metadata =
+                                    mapOf(
+                                        "vendorId" to usbDevice.vendorId,
+                                        "productId" to usbDevice.productId,
+                                        "deviceName" to usbDevice.deviceName,
+                                    ),
+                            ),
                         )
                     }
                 }
@@ -142,9 +145,9 @@ class HardwareFactory(private val context: Context) {
      */
     fun createPhysiologicalSensor(
         hardware: DetectedHardware,
-        executor: ExecutorService
-    ): PhysiologicalSensor? {
-        return try {
+        executor: ExecutorService,
+    ): PhysiologicalSensor? =
+        try {
             when (hardware.type) {
                 HardwareType.SHIMMER_GSR -> {
                     // Create Shimmer-specific implementation
@@ -159,7 +162,6 @@ class HardwareFactory(private val context: Context) {
             Log.e(TAG, "Error creating physiological sensor", e)
             null
         }
-    }
 
     /**
      * Create a thermal camera instance based on detected hardware
@@ -169,9 +171,9 @@ class HardwareFactory(private val context: Context) {
      */
     fun createThermalCamera(
         hardware: DetectedHardware,
-        executor: ExecutorService
-    ): ThermalCamera? {
-        return try {
+        executor: ExecutorService,
+    ): ThermalCamera? =
+        try {
             when (hardware.type) {
                 HardwareType.TOPDON_THERMAL -> {
                     // Create Topdon-specific implementation
@@ -190,7 +192,6 @@ class HardwareFactory(private val context: Context) {
             Log.e(TAG, "Error creating thermal camera", e)
             null
         }
-    }
 
     /**
      * Get all available hardware (sensors and cameras)
@@ -205,7 +206,10 @@ class HardwareFactory(private val context: Context) {
 
     // Private helper methods
 
-    private fun isGenericThermalCamera(vendorId: Int, productId: Int): Boolean {
+    private fun isGenericThermalCamera(
+        vendorId: Int,
+        productId: Int,
+    ): Boolean {
         // Add logic to identify other thermal camera vendors/products
         // This is a placeholder - in a real implementation, you would maintain
         // a list of known thermal camera vendor/product ID combinations
@@ -214,13 +218,14 @@ class HardwareFactory(private val context: Context) {
 
     private fun createShimmerSensor(
         hardware: DetectedHardware,
-        executor: ExecutorService
-    ): PhysiologicalSensor? {
-        return try {
-            val shimmerSensor = com.buccancs.gsrcapture.hardware.impl.ShimmerPhysiologicalSensor(
-                context = context,
-                executor = executor
-            )
+        executor: ExecutorService,
+    ): PhysiologicalSensor? =
+        try {
+            val shimmerSensor =
+                com.buccancs.gsrcapture.hardware.impl.ShimmerPhysiologicalSensor(
+                    context = context,
+                    executor = executor,
+                )
 
             if (shimmerSensor.initialize()) {
                 Log.d(TAG, "Created Shimmer sensor for ${hardware.identifier}")
@@ -233,17 +238,17 @@ class HardwareFactory(private val context: Context) {
             Log.e(TAG, "Error creating Shimmer sensor", e)
             null
         }
-    }
 
     private fun createTopdonThermalCamera(
         hardware: DetectedHardware,
-        executor: ExecutorService
-    ): ThermalCamera? {
-        return try {
-            val topdonCamera = com.buccancs.gsrcapture.hardware.impl.TopdonThermalCamera(
-                context = context,
-                executor = executor
-            )
+        executor: ExecutorService,
+    ): ThermalCamera? =
+        try {
+            val topdonCamera =
+                com.buccancs.gsrcapture.hardware.impl.TopdonThermalCamera(
+                    context = context,
+                    executor = executor,
+                )
 
             if (topdonCamera.initialize()) {
                 Log.d(TAG, "Created Topdon thermal camera for ${hardware.identifier}")
@@ -256,23 +261,23 @@ class HardwareFactory(private val context: Context) {
             Log.e(TAG, "Error creating Topdon thermal camera", e)
             null
         }
-    }
 
     private fun createGenericThermalCamera(
         hardware: DetectedHardware,
-        executor: ExecutorService
-    ): ThermalCamera? {
-        return try {
+        executor: ExecutorService,
+    ): ThermalCamera? =
+        try {
             // Create device info map from hardware metadata
             val deviceInfo = mutableMapOf<String, Any>()
             deviceInfo.putAll(hardware.metadata)
             deviceInfo["model"] = hardware.name
 
-            val genericCamera = com.buccancs.gsrcapture.hardware.impl.GenericThermalCamera(
-                context = context,
-                executor = executor,
-                deviceInfo = deviceInfo
-            )
+            val genericCamera =
+                com.buccancs.gsrcapture.hardware.impl.GenericThermalCamera(
+                    context = context,
+                    executor = executor,
+                    deviceInfo = deviceInfo,
+                )
 
             if (genericCamera.initialize()) {
                 Log.d(TAG, "Created generic thermal camera for ${hardware.identifier}")
@@ -285,5 +290,4 @@ class HardwareFactory(private val context: Context) {
             Log.e(TAG, "Error creating generic thermal camera", e)
             null
         }
-    }
 }

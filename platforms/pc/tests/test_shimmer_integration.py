@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test script to verify the Shimmer C++ integration.
+"""Test script to verify the Shimmer C++ integration.
 
 This script tests that the updated ShimmerPC class can use the C++ backend
 and that the integration maintains API compatibility.
@@ -13,7 +12,7 @@ import time
 # Add the src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-def test_shimmer_integration():
+def test_shimmer_integration() -> None:
     """Test the ShimmerPC integration with C++ backend."""
     try:
         from hardware.shimmer_pc import ShimmerPC
@@ -46,7 +45,7 @@ def test_shimmer_integration():
         traceback.print_exc()
         return False
 
-def test_backend_availability():
+def test_backend_availability() -> None:
     """Test which backends are available."""
     print("=== Backend Availability ===")
     
@@ -60,11 +59,12 @@ def test_backend_availability():
     
     try:
         import pyshimmer
+from typing import Any, Dict, List, Optional, Union
         print("✓ pyshimmer library available")
     except ImportError:
         print("✗ pyshimmer library not available")
 
-def main():
+def main() -> None:
     """Run all integration tests."""
     print("=== Shimmer C++ Integration Test ===\n")
     

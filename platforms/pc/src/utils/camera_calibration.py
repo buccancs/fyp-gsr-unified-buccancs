@@ -1,5 +1,4 @@
-"""
-Camera Calibration Module for Multi-Camera System
+"""Camera Calibration Module for Multi-Camera System
 
 This module provides comprehensive camera calibration functionality for the
 FYP-GSR Unified Recording and Calibration System. It supports:
@@ -29,9 +28,8 @@ class CalibrationPattern:
     """Represents a calibration pattern (chessboard or ChArUco board)."""
 
     def __init__(self, pattern_type: str, grid_size: Tuple[int, int],
-                 square_size: float, marker_size: float = None):
-        """
-        Initialize calibration pattern.
+                 square_size: float, marker_size: float = None) -> None:
+        """Initialize calibration pattern.
 
         Args:
             pattern_type: 'chessboard' or 'charuco'
@@ -66,9 +64,8 @@ class CameraCalibrator:
     """Main camera calibration class."""
 
     def __init__(self, pattern: CalibrationPattern,
-                 logger: logging.Logger = None):
-        """
-        Initialize camera calibrator.
+                 logger: logging.Logger = None) -> None:
+        """Initialize camera calibrator.
 
         Args:
             pattern: Calibration pattern to use
@@ -82,8 +79,7 @@ class CameraCalibrator:
 
     def detect_pattern_in_image(
             self, image: np.ndarray) -> Tuple[bool, np.ndarray]:
-        """
-        Detect calibration pattern in an image.
+        """Detect calibration pattern in an image.
 
         Args:
             image: Input image (BGR or grayscale)
@@ -133,8 +129,7 @@ class CameraCalibrator:
     def extract_frames_from_video(self,
                                   video_path: str,
                                   max_frames: int = 50) -> List[np.ndarray]:
-        """
-        Extract frames from video file.
+        """Extract frames from video file.
 
         Args:
             video_path: Path to video file
@@ -169,8 +164,7 @@ class CameraCalibrator:
         return frames
 
     def load_image_sequence(self, image_dir: str) -> List[np.ndarray]:
-        """
-        Load images from directory.
+        """Load images from directory.
 
         Args:
             image_dir: Directory containing images
@@ -193,8 +187,7 @@ class CameraCalibrator:
 
     def calibrate_camera_intrinsics(self, camera_name: str,
                                     images: List[np.ndarray]) -> Dict:
-        """
-        Calibrate intrinsic parameters for a single camera.
+        """Calibrate intrinsic parameters for a single camera.
 
         Args:
             camera_name: Name identifier for the camera
@@ -234,8 +227,7 @@ class CameraCalibrator:
 
         if len(object_points) < 10:
             raise ValueError(
-                f"Insufficient calibration images for {camera_name}. " f"Found {
-                    len(object_points)}, need at least 10.")
+                f"Insufficient calibration images for {camera_name}. " f"Found {len(object_points)}, need at least 10.")
 
         self.logger.info(f"Using {len(object_points)} images for calibration")
 
@@ -279,8 +271,7 @@ class CameraCalibrator:
                                     camera2_name: str,
                                     images1: List[np.ndarray],
                                     images2: List[np.ndarray]) -> Dict:
-        """
-        Calibrate extrinsic parameters between two cameras.
+        """Calibrate extrinsic parameters between two cameras.
 
         Args:
             camera1_name: Name of first camera
@@ -364,8 +355,7 @@ class CameraCalibrator:
         return extrinsic_data
 
     def save_calibration_results(self, output_path: str) -> None:
-        """
-        Save calibration results to JSON file.
+        """Save calibration results to JSON file.
 
         Args:
             output_path: Path to output JSON file
@@ -390,8 +380,7 @@ class CameraCalibrator:
         self.logger.info(f"Calibration results saved to {output_path}")
 
     def load_calibration_results(self, input_path: str) -> None:
-        """
-        Load calibration results from JSON file.
+        """Load calibration results from JSON file.
 
         Args:
             input_path: Path to input JSON file
@@ -419,8 +408,7 @@ def create_cli_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Camera Calibration Tool for FYP-GSR System",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
+        epilog="""Examples:
   # Calibrate RGB camera from video
   python camera_calibration.py --rgb-video session1/rgb_video.mp4 --output calibration.json
 
@@ -479,7 +467,7 @@ Examples:
     return parser
 
 
-def main():
+def main() -> None:
     """Main function for CLI usage."""
     parser = create_cli_parser()
     args = parser.parse_args()
@@ -498,8 +486,7 @@ def main():
         grid_size = (grid_width, grid_height)
     except ValueError:
         logger.error(
-            f"Invalid grid size format: {
-                args.grid_size}. Use WIDTHxHEIGHT (e.g., 9x6)")
+            f"Invalid grid size format: {args.grid_size}. Use WIDTHxHEIGHT (e.g., 9x6)")
         return 1
 
     # Create calibration pattern

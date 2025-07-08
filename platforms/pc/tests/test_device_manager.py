@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Comprehensive unit tests for the DeviceManager class.
+"""Comprehensive unit tests for the DeviceManager class.
 """
 
 from src.network.device_manager import DeviceListener, DeviceManager
@@ -15,19 +14,18 @@ import threading
 import time
 import unittest
 from unittest.mock import Mock, patch
+from typing import Any, Dict, List, Optional, Union
 
 # Add the parent directory to the path so we can import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class TestDeviceManager(unittest.TestCase):
-    """
-    Test case for the DeviceManager class.
+    """Test case for the DeviceManager class.
     """
 
-    def setUp(self):
-        """
-        Set up the test case.
+    def setUp(self) -> None:
+        """Set up the test case.
         """
         self.device_manager = DeviceManager()
 
@@ -48,15 +46,13 @@ class TestDeviceManager(unittest.TestCase):
         self.mock_device2.is_connected = False
         self.mock_device2.is_recording = False
 
-    def tearDown(self):
-        """
-        Clean up after the test case.
+    def tearDown(self) -> None:
+        """Clean up after the test case.
         """
         self.device_manager.cleanup()
 
-    def test_initialization(self):
-        """
-        Test DeviceManager initialization.
+    def test_initialization(self) -> None:
+        """Test DeviceManager initialization.
         """
         self.assertIsNotNone(self.device_manager)
         self.assertEqual(len(self.device_manager.devices), 0)
@@ -64,9 +60,8 @@ class TestDeviceManager(unittest.TestCase):
 
     @patch('src.network.device_manager.Zeroconf')
     @patch('src.network.device_manager.ServiceBrowser')
-    def test_discover_devices(self, mock_service_browser, mock_zeroconf):
-        """
-        Test device discovery functionality.
+    def test_discover_devices(self, mock_service_browser, mock_zeroconf) -> None:
+        """Test device discovery functionality.
         """
         # Mock zeroconf and service browser
         mock_zeroconf_instance = Mock()
@@ -85,9 +80,8 @@ class TestDeviceManager(unittest.TestCase):
         mock_zeroconf.assert_called_once()
         mock_service_browser.assert_called_once()
 
-    def test_add_device(self):
-        """
-        Test adding devices to the manager.
+    def test_add_device(self) -> None:
+        """Test adding devices to the manager.
         """
         # Add first device
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -101,9 +95,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertEqual(len(self.device_manager.devices), 2)
         self.assertIn(self.mock_device2.device_id, self.device_manager.devices)
 
-    def test_connect_device(self):
-        """
-        Test connecting to a specific device.
+    def test_connect_device(self) -> None:
+        """Test connecting to a specific device.
         """
         # Add device to manager
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -119,16 +112,14 @@ class TestDeviceManager(unittest.TestCase):
         self.assertTrue(result)
         self.mock_device1.connect.assert_called_once()
 
-    def test_connect_nonexistent_device(self):
-        """
-        Test connecting to a device that doesn't exist.
+    def test_connect_nonexistent_device(self) -> None:
+        """Test connecting to a device that doesn't exist.
         """
         result = self.device_manager.connect_device("nonexistent_device")
         self.assertFalse(result)
 
-    def test_connect_device_failure(self):
-        """
-        Test handling connection failure.
+    def test_connect_device_failure(self) -> None:
+        """Test handling connection failure.
         """
         # Add device to manager
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -143,9 +134,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertFalse(result)
         self.mock_device1.connect.assert_called_once()
 
-    def test_disconnect_device(self):
-        """
-        Test disconnecting from a specific device.
+    def test_disconnect_device(self) -> None:
+        """Test disconnecting from a specific device.
         """
         # Add connected device
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -162,16 +152,14 @@ class TestDeviceManager(unittest.TestCase):
         self.assertTrue(result)
         self.mock_device1.disconnect.assert_called_once()
 
-    def test_disconnect_nonexistent_device(self):
-        """
-        Test disconnecting from a device that doesn't exist.
+    def test_disconnect_nonexistent_device(self) -> None:
+        """Test disconnecting from a device that doesn't exist.
         """
         result = self.device_manager.disconnect_device("nonexistent_device")
         self.assertFalse(result)
 
-    def test_connect_all_devices(self):
-        """
-        Test connecting to all devices.
+    def test_connect_all_devices(self) -> None:
+        """Test connecting to all devices.
         """
         # Add devices to manager
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -189,9 +177,8 @@ class TestDeviceManager(unittest.TestCase):
         self.mock_device1.connect.assert_called_once()
         self.mock_device2.connect.assert_called_once()
 
-    def test_connect_all_devices_mixed_results(self):
-        """
-        Test connecting to all devices with mixed success/failure.
+    def test_connect_all_devices_mixed_results(self) -> None:
+        """Test connecting to all devices with mixed success/failure.
         """
         # Add devices to manager
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -208,9 +195,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertTrue(results[self.mock_device1.device_id])
         self.assertFalse(results[self.mock_device2.device_id])
 
-    def test_disconnect_all_devices(self):
-        """
-        Test disconnecting from all devices.
+    def test_disconnect_all_devices(self) -> None:
+        """Test disconnecting from all devices.
         """
         # Add connected devices
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -230,9 +216,8 @@ class TestDeviceManager(unittest.TestCase):
         self.mock_device1.disconnect.assert_called_once()
         self.mock_device2.disconnect.assert_called_once()
 
-    def test_start_recording(self):
-        """
-        Test starting recording on all connected devices.
+    def test_start_recording(self) -> None:
+        """Test starting recording on all connected devices.
         """
         session_id = "test_session_123"
 
@@ -254,9 +239,8 @@ class TestDeviceManager(unittest.TestCase):
         self.mock_device1.start_recording.assert_called_once_with(session_id)
         self.mock_device2.start_recording.assert_called_once_with(session_id)
 
-    def test_start_recording_disconnected_devices(self):
-        """
-        Test starting recording with some disconnected devices.
+    def test_start_recording_disconnected_devices(self) -> None:
+        """Test starting recording with some disconnected devices.
         """
         session_id = "test_session_456"
 
@@ -279,9 +263,8 @@ class TestDeviceManager(unittest.TestCase):
         self.mock_device1.start_recording.assert_called_once_with(session_id)
         self.mock_device2.start_recording.assert_not_called()
 
-    def test_stop_recording(self):
-        """
-        Test stopping recording on all devices.
+    def test_stop_recording(self) -> None:
+        """Test stopping recording on all devices.
         """
         # Add recording devices
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -301,9 +284,8 @@ class TestDeviceManager(unittest.TestCase):
         self.mock_device1.stop_recording.assert_called_once()
         self.mock_device2.stop_recording.assert_called_once()
 
-    def test_collect_files(self):
-        """
-        Test collecting files from all devices.
+    def test_collect_files(self) -> None:
+        """Test collecting files from all devices.
         """
         destination_dir = tempfile.mkdtemp()
 
@@ -332,9 +314,8 @@ class TestDeviceManager(unittest.TestCase):
         finally:
             shutil.rmtree(destination_dir)
 
-    def test_get_device_status(self):
-        """
-        Test getting status of a specific device.
+    def test_get_device_status(self) -> None:
+        """Test getting status of a specific device.
         """
         # Add device
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -356,16 +337,14 @@ class TestDeviceManager(unittest.TestCase):
         self.assertEqual(status, expected_status)
         self.mock_device1.get_status.assert_called_once()
 
-    def test_get_device_status_nonexistent(self):
-        """
-        Test getting status of a nonexistent device.
+    def test_get_device_status_nonexistent(self) -> None:
+        """Test getting status of a nonexistent device.
         """
         status = self.device_manager.get_device_status("nonexistent_device")
         self.assertIsNone(status)
 
-    def test_get_all_device_statuses(self):
-        """
-        Test getting status of all devices.
+    def test_get_all_device_statuses(self) -> None:
+        """Test getting status of all devices.
         """
         # Add devices
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -388,9 +367,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertEqual(statuses[self.mock_device1.device_id], status1)
         self.assertEqual(statuses[self.mock_device2.device_id], status2)
 
-    def test_cleanup(self):
-        """
-        Test cleanup functionality.
+    def test_cleanup(self) -> None:
+        """Test cleanup functionality.
         """
         # Add devices
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -407,9 +385,8 @@ class TestDeviceManager(unittest.TestCase):
         self.mock_device1.disconnect.assert_called_once()
         self.mock_device2.disconnect.assert_called_once()
 
-    def test_concurrent_operations(self):
-        """
-        Test concurrent device operations.
+    def test_concurrent_operations(self) -> None:
+        """Test concurrent device operations.
         """
         # Add devices
         self.device_manager.devices[self.mock_device1.device_id] = self.mock_device1
@@ -422,10 +399,10 @@ class TestDeviceManager(unittest.TestCase):
         self.mock_device2.disconnect.return_value = True
 
         # Perform concurrent operations
-        def connect_operation():
+        def connect_operation() -> None:
             self.device_manager.connect_all_devices()
 
-        def disconnect_operation():
+        def disconnect_operation() -> None:
             time.sleep(0.1)  # Small delay
             self.device_manager.disconnect_all_devices()
 
@@ -442,9 +419,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertTrue(True)
 
     @patch('src.network.device_manager.AdbClient')
-    def test_discover_usb_devices_success(self, mock_adb_client_class):
-        """
-        Test successful USB device discovery.
+    def test_discover_usb_devices_success(self, mock_adb_client_class) -> None:
+        """Test successful USB device discovery.
         """
         # Mock ADB client and devices
         mock_adb_client = Mock()
@@ -484,9 +460,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertEqual(discovered_device.device_type, "usb_phone")
 
     @patch('src.network.device_manager.AdbClient')
-    def test_discover_usb_devices_no_devices(self, mock_adb_client_class):
-        """
-        Test USB device discovery when no devices are connected.
+    def test_discover_usb_devices_no_devices(self, mock_adb_client_class) -> None:
+        """Test USB device discovery when no devices are connected.
         """
         # Mock ADB client with no devices
         mock_adb_client = Mock()
@@ -503,9 +478,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertEqual(len(self.device_manager.discovered_devices), 0)
 
     @patch('src.network.device_manager.AdbClient')
-    def test_discover_usb_devices_port_forward_failure(self, mock_adb_client_class):
-        """
-        Test USB device discovery when port forwarding fails.
+    def test_discover_usb_devices_port_forward_failure(self, mock_adb_client_class) -> None:
+        """Test USB device discovery when port forwarding fails.
         """
         # Mock ADB client and device with failed port forwarding
         mock_adb_client = Mock()
@@ -527,9 +501,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertNotIn("test_device_456", self.device_manager.discovered_devices)
 
     @patch('src.network.device_manager.AdbClient')
-    def test_discover_usb_devices_adb_exception(self, mock_adb_client_class):
-        """
-        Test USB device discovery when ADB client raises an exception.
+    def test_discover_usb_devices_adb_exception(self, mock_adb_client_class) -> None:
+        """Test USB device discovery when ADB client raises an exception.
         """
         # Mock ADB client to raise an exception
         mock_adb_client_class.side_effect = Exception("ADB connection failed")
@@ -541,9 +514,8 @@ class TestDeviceManager(unittest.TestCase):
         self.assertFalse(result)
 
     @patch('src.network.device_manager.ADB_AVAILABLE', False)
-    def test_discover_usb_devices_adb_not_available(self):
-        """
-        Test USB device discovery when ADB library is not available.
+    def test_discover_usb_devices_adb_not_available(self) -> None:
+        """Test USB device discovery when ADB library is not available.
         """
         # Call discover_usb_devices
         result = self.device_manager.discover_usb_devices()
@@ -553,20 +525,17 @@ class TestDeviceManager(unittest.TestCase):
 
 
 class TestDeviceListener(unittest.TestCase):
-    """
-    Test case for the DeviceListener class.
+    """Test case for the DeviceListener class.
     """
 
-    def setUp(self):
-        """
-        Set up the test case.
+    def setUp(self) -> None:
+        """Set up the test case.
         """
         self.mock_device_manager = Mock(spec=DeviceManager)
         self.device_listener = DeviceListener(self.mock_device_manager)
 
-    def test_initialization(self):
-        """
-        Test DeviceListener initialization.
+    def test_initialization(self) -> None:
+        """Test DeviceListener initialization.
         """
         self.assertIsNotNone(self.device_listener)
         self.assertEqual(
@@ -574,9 +543,8 @@ class TestDeviceListener(unittest.TestCase):
             self.mock_device_manager)
 
     @patch('src.network.device_manager.socket.inet_ntoa')
-    def test_add_service(self, mock_inet_ntoa):
-        """
-        Test adding a service (device discovery).
+    def test_add_service(self, mock_inet_ntoa) -> None:
+        """Test adding a service (device discovery).
         """
         # Mock zeroconf and service info
         mock_zeroconf = Mock()
@@ -599,9 +567,8 @@ class TestDeviceListener(unittest.TestCase):
         mock_zeroconf.get_service_info.assert_called_once_with(
             service_type, service_name)
 
-    def test_add_service_no_info(self):
-        """
-        Test adding a service when service info is not available.
+    def test_add_service_no_info(self) -> None:
+        """Test adding a service when service info is not available.
         """
         # Mock zeroconf returning None for service info
         mock_zeroconf = Mock()
@@ -619,9 +586,8 @@ class TestDeviceListener(unittest.TestCase):
         mock_zeroconf.get_service_info.assert_called_once_with(
             service_type, service_name)
 
-    def test_remove_service(self):
-        """
-        Test removing a service (device disconnection).
+    def test_remove_service(self) -> None:
+        """Test removing a service (device disconnection).
         """
         # Mock zeroconf
         mock_zeroconf = Mock()

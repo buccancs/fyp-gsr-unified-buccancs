@@ -1,5 +1,4 @@
-"""
-Shimmer GSR sensor driver for PC.
+"""Shimmer GSR sensor driver for PC.
 
 This module implements the concrete driver for Shimmer GSR sensors connected
 to the PC via Bluetooth/COM port using the pyshimmer library.
@@ -8,7 +7,6 @@ to the PC via Bluetooth/COM port using the pyshimmer library.
 import configparser
 import csv
 import os
-import threading
 import time
 from typing import Optional
 
@@ -29,8 +27,7 @@ except ImportError:
 
 
 class ShimmerDataThread(QThread):
-    """
-    Dedicated thread for reading Shimmer sensor data.
+    """Dedicated thread for reading Shimmer sensor data.
 
     This thread polls the C++ NativeShimmer backend's non-blocking getData() method
     to retrieve high-precision timestamped data.
@@ -39,14 +36,14 @@ class ShimmerDataThread(QThread):
     data_received = Signal(dict)
     error_occurred = Signal(str)
 
-    def __init__(self, shimmer_device, use_cpp_backend=True, parent=None):
+    def __init__(self, shimmer_device, use_cpp_backend=True, parent=None) -> None:
         super().__init__(parent)
         self.shimmer_device = shimmer_device
         self.use_cpp_backend = use_cpp_backend
         self.running = False
         self.logger = get_logger(self.__class__.__name__)
 
-    def run(self):
+    def run(self) -> None:
         """Main thread loop for reading Shimmer data."""
         self.running = True
         self.logger.info("Shimmer data thread started")
@@ -92,14 +89,13 @@ class ShimmerDataThread(QThread):
                 self.error_occurred.emit(str(e))
                 self.msleep(1000)  # Wait 1 second before retrying
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the data reading thread."""
         self.running = False
         self.logger.info("Stopping Shimmer data thread")
 
-    def _parse_cpp_shimmer_data(self, timestamped_data):
-        """
-        Parse C++ timestamped Shimmer data into a structured dictionary.
+    def _parse_cpp_shimmer_data(self, timestamped_data) -> None:
+        """Parse C++ timestamped Shimmer data into a structured dictionary.
 
         Args:
             timestamped_data: TimestampedData object from C++ backend
@@ -109,9 +105,8 @@ class ShimmerDataThread(QThread):
         """
         try:
             # Convert C++ timestamp to Python timestamp
-            cpp_timestamp = timestamped_data.timestamp
-            # Convert steady_clock timestamp to epoch time
-            timestamp = time.time()  # For now, use current time - could be improved
+            # For now, use current time - could be improved with proper timestamp conversion
+            timestamp = time.time()
 
             # Get raw data packet
             data_packet = timestamped_data.data_packet
@@ -145,9 +140,8 @@ class ShimmerDataThread(QThread):
             self.logger.error(f"Error parsing C++ Shimmer data: {e}")
             return None
 
-    def _parse_shimmer_data(self, raw_data):
-        """
-        Parse raw Shimmer data into a structured dictionary.
+    def _parse_shimmer_data(self, raw_data) -> None:
+        """Parse raw Shimmer data into a structured dictionary.
 
         Args:
             raw_data: Raw data from pyshimmer
@@ -184,14 +178,13 @@ class ShimmerDataThread(QThread):
 
 
 class ShimmerPC(PCConnectedSensor):
-    """
-    Concrete implementation of Shimmer GSR sensor driver for PC.
+    """Concrete implementation of Shimmer GSR sensor driver for PC.
 
     This class uses the pyshimmer library to communicate with Shimmer sensors
     connected via Bluetooth/COM port.
     """
 
-    def __init__(self, com_port=None, parent=None):
+    def __init__(self, com_port=None, parent=None) -> None:
         super().__init__(parent)
         self.com_port = com_port or self._load_com_port_from_config()
         self.shimmer_device = None
@@ -208,7 +201,7 @@ class ShimmerPC(PCConnectedSensor):
         else:
             self.logger.info("Using pyshimmer library (fallback mode)")
 
-    def _load_com_port_from_config(self):
+    def _load_com_port_from_config(self) -> None:
         """Load COM port from configuration file."""
         try:
             config = configparser.ConfigParser()
@@ -224,7 +217,7 @@ class ShimmerPC(PCConnectedSensor):
             self.logger.error(f"Error loading config: {e}")
             return 'COM5'
 
-    def connect(self):
+    def connect(self) -> None:
         """Connect to the Shimmer sensor."""
         if self.use_cpp_backend and _hardware_backend:
             try:
@@ -263,7 +256,7 @@ class ShimmerPC(PCConnectedSensor):
         else:
             self.error.emit("No Shimmer backend available (neither C++ nor pyshimmer)")
 
-    def start_streaming(self):
+    def start_streaming(self) -> None:
         """Start streaming data from the Shimmer sensor."""
         if not self._is_connected or not self.shimmer_device:
             self.error.emit("Shimmer not connected")
@@ -303,7 +296,7 @@ class ShimmerPC(PCConnectedSensor):
             self.logger.error(f"Error starting Shimmer streaming: {e}")
             self.error.emit(str(e))
 
-    def stop_streaming(self):
+    def stop_streaming(self) -> None:
         """Stop streaming data from the Shimmer sensor."""
         try:
             self._is_streaming = False
@@ -330,7 +323,7 @@ class ShimmerPC(PCConnectedSensor):
             self.logger.error(f"Error stopping Shimmer streaming: {e}")
             self.error.emit(str(e))
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from the Shimmer sensor."""
         try:
             # Stop streaming first
@@ -350,9 +343,8 @@ class ShimmerPC(PCConnectedSensor):
             self.logger.error(f"Error disconnecting from Shimmer: {e}")
             self.error.emit(str(e))
 
-    def start_recording(self, output_file):
-        """
-        Start recording data to a CSV file.
+    def start_recording(self, output_file) -> None:
+        """Start recording data to a CSV file.
 
         Args:
             output_file (str): Path to the output CSV file
@@ -370,12 +362,12 @@ class ShimmerPC(PCConnectedSensor):
             self.logger.error(f"Error starting recording: {e}")
             self.error.emit(str(e))
 
-    def stop_recording(self):
+    def stop_recording(self) -> None:
         """Stop recording data."""
         self._close_csv_file()
         self.logger.info("Stopped recording")
 
-    def _close_csv_file(self):
+    def _close_csv_file(self) -> None:
         """Close the CSV file if open."""
         if self.csv_writer:
             self.csv_writer = None
@@ -383,7 +375,7 @@ class ShimmerPC(PCConnectedSensor):
             self.csv_file.close()
             self.csv_file = None
 
-    def _on_data_received(self, data):
+    def _on_data_received(self, data) -> None:
         """Handle data received from the data thread."""
         # Write to CSV if recording
         if self.csv_writer:
@@ -397,6 +389,6 @@ class ShimmerPC(PCConnectedSensor):
         # Emit the data signal
         self.data_received.emit(data)
 
-    def _on_thread_error(self, error_msg):
+    def _on_thread_error(self, error_msg) -> None:
         """Handle errors from the data thread."""
         self.error.emit(error_msg)

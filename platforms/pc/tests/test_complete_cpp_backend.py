@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test script to verify the complete C++ backend functionality.
+"""Test script to verify the complete C++ backend functionality.
 
 This script tests the C++ backend without requiring PySide6 or other GUI dependencies.
 It demonstrates that the high-precision hardware layer implementation is complete.
@@ -12,7 +11,7 @@ import os
 # Add the src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-def test_cpp_backend_complete():
+def test_cpp_backend_complete() -> None:
     """Test the complete C++ backend functionality."""
     try:
         import _hardware_backend
@@ -62,7 +61,7 @@ def test_cpp_backend_complete():
         traceback.print_exc()
         return False
 
-def test_data_structures():
+def test_data_structures() -> None:
     """Test data structures and type handling."""
     try:
         import _hardware_backend
@@ -93,11 +92,12 @@ def test_data_structures():
         print(f"✗ Data structure test failed: {e}")
         return False
 
-def test_cross_platform_compatibility():
+def test_cross_platform_compatibility() -> None:
     """Test cross-platform compatibility features."""
     try:
         import _hardware_backend
         import platform
+from typing import Any, Dict, List, Optional, Union
         
         print(f"\n=== Testing Cross-Platform Compatibility ===")
         print(f"✓ Platform: {platform.system()} {platform.release()}")
@@ -116,7 +116,7 @@ def test_cross_platform_compatibility():
         print(f"✗ Cross-platform test failed: {e}")
         return False
 
-def main():
+def main() -> None:
     """Run all C++ backend tests."""
     print("=== Complete C++ Backend Test ===\n")
     

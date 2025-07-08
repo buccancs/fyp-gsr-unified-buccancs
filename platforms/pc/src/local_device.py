@@ -1,5 +1,4 @@
-"""
-LocalDevice class for managing PC hardware as a first-class data acquisition node.
+"""LocalDevice class for managing PC hardware as a first-class data acquisition node.
 
 This module implements the LocalDevice class that makes the PC's hardware
 look and act exactly like a remote Android device, providing a unified
@@ -20,8 +19,7 @@ from utils.logger import get_logger
 
 
 class LocalDevice(QObject):
-    """
-    LocalDevice class that manages PC hardware as a unified device.
+    """LocalDevice class that manages PC hardware as a unified device.
     
     This class provides the same public interface as the remote Device class,
     allowing the DeviceManager to treat local PC hardware identically to
@@ -36,7 +34,7 @@ class LocalDevice(QObject):
     recording_stopped = Signal()
     error_occurred = Signal(str)
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         
         # Device identification (matching Device class interface)
@@ -67,7 +65,7 @@ class LocalDevice(QObject):
         # Connect hardware signals
         self._connect_hardware_signals()
     
-    def _connect_hardware_signals(self):
+    def _connect_hardware_signals(self) -> None:
         """Connect signals from hardware drivers to local device signals."""
         # Shimmer signals
         self.shimmer.connected.connect(self._on_shimmer_connected)
@@ -82,16 +80,16 @@ class LocalDevice(QObject):
         self.webcam.error.connect(self._on_webcam_error)
     
     @property
-    def is_connected(self):
+    def is_connected(self) -> None:
         """Return True if device is connected."""
         return self._is_connected
     
     @property
-    def is_recording(self):
+    def is_recording(self) -> None:
         """Return True if device is recording."""
         return self._is_recording
     
-    def connect(self):
+    def connect(self) -> None:
         """Connect to all PC hardware."""
         try:
             self.logger.info("Connecting to local PC hardware")
@@ -115,7 +113,7 @@ class LocalDevice(QObject):
             self.logger.error(f"Error connecting to local hardware: {e}")
             self.error_occurred.emit(str(e))
     
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from all PC hardware."""
         try:
             self.logger.info("Disconnecting from local PC hardware")
@@ -137,9 +135,8 @@ class LocalDevice(QObject):
             self.logger.error(f"Error disconnecting from local hardware: {e}")
             self.error_occurred.emit(str(e))
     
-    def start_recording(self, session_id, enabled_sensors=None):
-        """
-        Start recording from enabled sensors.
+    def start_recording(self, session_id, enabled_sensors=None) -> None:
+        """Start recording from enabled sensors.
         
         Args:
             session_id (str): Unique session identifier
@@ -180,7 +177,7 @@ class LocalDevice(QObject):
             self.logger.error(f"Error starting recording: {e}")
             self.error_occurred.emit(str(e))
     
-    def stop_recording(self):
+    def stop_recording(self) -> None:
         """Stop recording from all sensors."""
         if not self._is_recording:
             return
@@ -210,9 +207,8 @@ class LocalDevice(QObject):
             self.logger.error(f"Error stopping recording: {e}")
             self.error_occurred.emit(str(e))
     
-    def collect_files(self, destination_dir):
-        """
-        Collect recorded files (no-op for local device since files are already local).
+    def collect_files(self, destination_dir) -> None:
+        """Collect recorded files (no-op for local device since files are already local).
         
         Args:
             destination_dir (str): Destination directory (ignored for local device)
@@ -233,9 +229,8 @@ class LocalDevice(QObject):
         self.logger.info(f"Local files available: {files}")
         return files
     
-    def get_status(self):
-        """
-        Get device status information.
+    def get_status(self) -> None:
+        """Get device status information.
         
         Returns:
             dict: Device status information
@@ -262,9 +257,8 @@ class LocalDevice(QObject):
             }
         }
     
-    def _create_session_directory(self, session_id):
-        """
-        Create directory for session files.
+    def _create_session_directory(self, session_id) -> None:
+        """Create directory for session files.
         
         Args:
             session_id (str): Session identifier
@@ -282,51 +276,51 @@ class LocalDevice(QObject):
         
         return session_dir
     
-    def _emit_status_update(self):
+    def _emit_status_update(self) -> None:
         """Emit status update signal."""
         self.status_updated.emit(self)
     
     # Hardware signal handlers
-    def _on_shimmer_connected(self):
+    def _on_shimmer_connected(self) -> None:
         """Handle Shimmer connection."""
         self.logger.info("Shimmer sensor connected")
         self._emit_status_update()
     
-    def _on_shimmer_disconnected(self):
+    def _on_shimmer_disconnected(self) -> None:
         """Handle Shimmer disconnection."""
         self.logger.info("Shimmer sensor disconnected")
         self._emit_status_update()
     
-    def _on_shimmer_data(self, data):
+    def _on_shimmer_data(self, data) -> None:
         """Handle Shimmer data received."""
         # Data is automatically written to CSV by the ShimmerPC driver
         pass
     
-    def _on_shimmer_error(self, error_msg):
+    def _on_shimmer_error(self, error_msg) -> None:
         """Handle Shimmer error."""
         self.logger.error(f"Shimmer error: {error_msg}")
         self.error_occurred.emit(f"Shimmer: {error_msg}")
     
-    def _on_webcam_connected(self):
+    def _on_webcam_connected(self) -> None:
         """Handle webcam connection."""
         self.logger.info("Webcam connected")
         self._emit_status_update()
     
-    def _on_webcam_disconnected(self):
+    def _on_webcam_disconnected(self) -> None:
         """Handle webcam disconnection."""
         self.logger.info("Webcam disconnected")
         self._emit_status_update()
     
-    def _on_webcam_frame(self, frame):
+    def _on_webcam_frame(self, frame) -> None:
         """Handle webcam frame received."""
         # Frames are automatically written to video by the WebcamPC driver
         pass
     
-    def _on_webcam_error(self, error_msg):
+    def _on_webcam_error(self, error_msg) -> None:
         """Handle webcam error."""
         self.logger.error(f"Webcam error: {error_msg}")
         self.error_occurred.emit(f"Webcam: {error_msg}")
     
-    def __str__(self):
+    def __str__(self) -> None:
         """String representation of the device."""
         return f"LocalDevice(id={self.id}, connected={self._is_connected}, recording={self._is_recording})"

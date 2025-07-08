@@ -10,8 +10,8 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
-import androidx.camera.video.Recording
 import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class RgbCameraManager(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
-    private val cameraExecutor: ExecutorService
+    private val cameraExecutor: ExecutorService,
 ) {
     private val TAG = "RgbCameraManager"
 
@@ -55,22 +55,28 @@ class RgbCameraManager(
             cameraProvider = cameraProviderFuture.get()
 
             // Preview
-            preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
+            preview =
+                Preview
+                    .Builder()
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
 
             // Video Capture
-            val recorder = Recorder.Builder()
-                .setQualitySelector(QualitySelector.from(Quality.FHD))
-                .build()
+            val recorder =
+                Recorder
+                    .Builder()
+                    .setQualitySelector(QualitySelector.from(Quality.FHD))
+                    .build()
             videoCapture = VideoCapture.withOutput(recorder)
 
             // Image Capture for raw images
-            imageCapture = ImageCapture.Builder()
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .build()
+            imageCapture =
+                ImageCapture
+                    .Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .build()
 
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -81,13 +87,15 @@ class RgbCameraManager(
 
                 // Bind use cases to camera
                 cameraProvider?.bindToLifecycle(
-                    lifecycleOwner, cameraSelector, preview, videoCapture, imageCapture
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                    videoCapture,
+                    imageCapture,
                 )
-
             } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
-
         }, ContextCompat.getMainExecutor(context))
     }
 
@@ -97,37 +105,40 @@ class RgbCameraManager(
      * @param sessionId Unique identifier for the recording session
      * @return True if recording started successfully, false otherwise
      */
-    fun startRecording(outputDirectory: File, sessionId: String): Boolean {
+    fun startRecording(
+        outputDirectory: File,
+        sessionId: String,
+    ): Boolean {
         val videoCapture = videoCapture ?: return false
 
         // Create output file
         val timestamp = TimeManager.getCurrentTimestamp()
-        val videoFile = File(outputDirectory, "RGB_${sessionId}_${timestamp}.mp4")
+        val videoFile = File(outputDirectory, "RGB_${sessionId}_$timestamp.mp4")
 
         // Create output options object
         val outputOptions = FileOutputOptions.Builder(videoFile).build()
 
         // Configure Recorder
-        recording = videoCapture.output
-            .prepareRecording(context, outputOptions)
-            .apply {
-                // Enable audio recording
-                withAudioEnabled()
-            }
-            .start(ContextCompat.getMainExecutor(context)) { recordEvent ->
-                when(recordEvent) {
-                    is VideoRecordEvent.Start -> {
-                        Log.d(TAG, "Recording started")
-                    }
-                    is VideoRecordEvent.Finalize -> {
-                        if (recordEvent.hasError()) {
-                            Log.e(TAG, "Video recording error: ${recordEvent.error}")
-                        } else {
-                            Log.d(TAG, "Recording saved to ${videoFile.absolutePath}")
+        recording =
+            videoCapture.output
+                .prepareRecording(context, outputOptions)
+                .apply {
+                    // Enable audio recording
+                    withAudioEnabled()
+                }.start(ContextCompat.getMainExecutor(context)) { recordEvent ->
+                    when (recordEvent) {
+                        is VideoRecordEvent.Start -> {
+                            Log.d(TAG, "Recording started")
+                        }
+                        is VideoRecordEvent.Finalize -> {
+                            if (recordEvent.hasError()) {
+                                Log.e(TAG, "Video recording error: ${recordEvent.error}")
+                            } else {
+                                Log.d(TAG, "Recording saved to ${videoFile.absolutePath}")
+                            }
                         }
                     }
                 }
-            }
 
         return true
     }
@@ -146,7 +157,10 @@ class RgbCameraManager(
      * @param sessionId Unique identifier for the recording session
      * @return True if raw image capture started successfully, false otherwise
      */
-    fun startRawImageCapture(outputDirectory: File, sessionId: String): Boolean {
+    fun startRawImageCapture(
+        outputDirectory: File,
+        sessionId: String,
+    ): Boolean {
         if (imageCapture == null) {
             Log.e(TAG, "Cannot start raw image capture: ImageCapture not initialized")
             return false
@@ -162,7 +176,7 @@ class RgbCameraManager(
         rawImageFrameCount = 0
 
         // Create a subdirectory for raw images
-        val rawImageDir = File(outputDirectory, "raw_rgb_${sessionId}")
+        val rawImageDir = File(outputDirectory, "raw_rgb_$sessionId")
         if (!rawImageDir.exists()) {
             rawImageDir.mkdirs()
         }
@@ -212,7 +226,7 @@ class RgbCameraManager(
 
         try {
             val timestamp = TimeManager.getCurrentTimestampNanos()
-            val imageFile = File(outputDir, "raw_rgb_${sessionId}/frame_${timestamp}.jpg")
+            val imageFile = File(outputDir, "raw_rgb_$sessionId/frame_$timestamp.jpg")
 
             val outputFileOptions = ImageCapture.OutputFileOptions.Builder(imageFile).build()
 
@@ -228,7 +242,7 @@ class RgbCameraManager(
                     override fun onError(exception: ImageCaptureException) {
                         Log.e(TAG, "Error capturing raw image", exception)
                     }
-                }
+                },
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error in captureRawFrame", e)

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Test script for camera calibration functionality.
+"""Test script for camera calibration functionality.
 
 This script performs basic tests to ensure the calibration system
 is working correctly and can be imported without issues.
@@ -23,7 +22,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'src'))
 
 
-def test_imports():
+def test_imports() -> None:
     """Test that all required modules can be imported."""
     print("Testing imports...")
 
@@ -52,7 +51,7 @@ def test_imports():
     return True
 
 
-def test_calibration_pattern():
+def test_calibration_pattern() -> None:
     """Test calibration pattern creation."""
     print("\nTesting calibration pattern creation...")
 
@@ -73,7 +72,7 @@ def test_calibration_pattern():
         return False
 
 
-def test_calibrator_creation():
+def test_calibrator_creation() -> None:
     """Test camera calibrator creation."""
     print("\nTesting camera calibrator creation...")
 
@@ -91,7 +90,7 @@ def test_calibrator_creation():
         return False
 
 
-def test_synthetic_calibration():
+def test_synthetic_calibration() -> None:
     """Test calibration with synthetic data."""
     print("\nTesting synthetic calibration...")
 
@@ -131,7 +130,7 @@ def test_synthetic_calibration():
         return False
 
 
-def test_json_export():
+def test_json_export() -> None:
     """Test JSON export functionality."""
     print("\nTesting JSON export...")
 
@@ -175,7 +174,7 @@ def test_json_export():
         return False
 
 
-def test_gui_imports():
+def test_gui_imports() -> None:
     """Test GUI-related imports."""
     print("\nTesting GUI imports...")
 
@@ -184,6 +183,7 @@ def test_gui_imports():
         print("✓ PySide6 available")
 
         from ui.calibration_dialog import CalibrationDialog
+from typing import Any, Dict, List, Optional, Union
         print("✓ Calibration dialog can be imported")
 
         return True
@@ -196,7 +196,7 @@ def test_gui_imports():
         return False
 
 
-def main():
+def main() -> None:
     """Run all tests."""
     print("Camera Calibration System Test Suite")
     print("=" * 50)

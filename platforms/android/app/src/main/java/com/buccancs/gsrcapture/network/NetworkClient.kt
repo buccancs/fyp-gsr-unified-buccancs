@@ -6,13 +6,13 @@ import android.content.IntentFilter
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.BatteryManager
-import android.os.StatFs
 import android.os.Environment
+import android.os.StatFs
 import android.util.Log
 import com.buccancs.gsrcapture.utils.TimeManager
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.File
-import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket
@@ -22,13 +22,14 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import org.json.JSONObject
 
 /**
  * Handles network communication with the Windows PC controller.
  * Implements the Network Remote Control Client feature.
  */
-class NetworkClient(private val context: Context) {
+class NetworkClient(
+    private val context: Context,
+) {
     private val TAG = "NetworkClient"
 
     // Network components
@@ -198,7 +199,6 @@ class NetworkClient(private val context: Context) {
 
             // Send acknowledgment
             sendAcknowledgment(command)
-
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing command: $commandJson", e)
         }
@@ -260,8 +260,8 @@ class NetworkClient(private val context: Context) {
     /**
      * Gets the current battery level as a percentage.
      */
-    private fun getBatteryLevel(): String {
-        return try {
+    private fun getBatteryLevel(): String =
+        try {
             val batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
             val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
             val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
@@ -276,13 +276,12 @@ class NetworkClient(private val context: Context) {
             Log.e(TAG, "Error getting battery level", e)
             "Unknown"
         }
-    }
 
     /**
      * Gets the remaining storage space.
      */
-    private fun getStorageRemaining(): String {
-        return try {
+    private fun getStorageRemaining(): String =
+        try {
             val stat = StatFs(Environment.getExternalStorageDirectory().path)
             val availableBytes = stat.availableBlocksLong * stat.blockSizeLong
             val availableGB = availableBytes / (1024 * 1024 * 1024)
@@ -291,7 +290,6 @@ class NetworkClient(private val context: Context) {
             Log.e(TAG, "Error getting storage remaining", e)
             "Unknown"
         }
-    }
 
     /**
      * Gets the status of active streams.
@@ -305,12 +303,11 @@ class NetworkClient(private val context: Context) {
     /**
      * Gets the device ID.
      */
-    private fun getDeviceId(): String {
-        return android.provider.Settings.Secure.getString(
+    private fun getDeviceId(): String =
+        android.provider.Settings.Secure.getString(
             context.contentResolver,
-            android.provider.Settings.Secure.ANDROID_ID
+            android.provider.Settings.Secure.ANDROID_ID,
         ) ?: "unknown"
-    }
 
     /**
      * Starts periodic device status reporting.
@@ -320,9 +317,10 @@ class NetworkClient(private val context: Context) {
         stopStatusReporting()
 
         // Start new periodic status reporting
-        statusReportingTask = statusExecutor.scheduleAtFixedRate({
-            sendDeviceStatus()
-        }, 5, 30, TimeUnit.SECONDS) // Send status every 30 seconds, starting after 5 seconds
+        statusReportingTask =
+            statusExecutor.scheduleAtFixedRate({
+                sendDeviceStatus()
+            }, 5, 30, TimeUnit.SECONDS) // Send status every 30 seconds, starting after 5 seconds
     }
 
     /**
@@ -338,7 +336,10 @@ class NetworkClient(private val context: Context) {
      * @param remoteTime Remote time in milliseconds
      * @param roundTripTime Round-trip time in milliseconds
      */
-    internal fun sendTimeSync(remoteTime: Long, roundTripTime: Long) {
+    internal fun sendTimeSync(
+        remoteTime: Long,
+        roundTripTime: Long,
+    ) {
         try {
             val json = JSONObject()
             json.put("type", "TIME_SYNC")
@@ -375,48 +376,57 @@ class NetworkClient(private val context: Context) {
         nsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
 
         // Generate unique device ID based on Android ID
-        val deviceId = android.provider.Settings.Secure.getString(
-            context.contentResolver,
-            android.provider.Settings.Secure.ANDROID_ID
-        ) ?: "unknown"
+        val deviceId =
+            android.provider.Settings.Secure.getString(
+                context.contentResolver,
+                android.provider.Settings.Secure.ANDROID_ID,
+            ) ?: "unknown"
 
-        val serviceInfo = NsdServiceInfo().apply {
-            serviceName = SERVICE_NAME
-            serviceType = SERVICE_TYPE
-            port = PORT
+        val serviceInfo =
+            NsdServiceInfo().apply {
+                serviceName = SERVICE_NAME
+                serviceType = SERVICE_TYPE
+                port = PORT
 
-            // Add service properties for device discovery
-            setAttribute("id", deviceId)
-            setAttribute("name", "${android.os.Build.MODEL}_$deviceId")
-            setAttribute("type", "android")
-            setAttribute("capabilities", "gsr,rgb_video,thermal_video,audio,raw_images")
-            setAttribute("version", "1.0")
-            setAttribute("status", "ready")
-        }
-
-        registrationListener = object : NsdManager.RegistrationListener {
-            override fun onServiceRegistered(serviceInfo: NsdServiceInfo) {
-                Log.d(TAG, "Service registered: ${serviceInfo.serviceName}")
+                // Add service properties for device discovery
+                setAttribute("id", deviceId)
+                setAttribute("name", "${android.os.Build.MODEL}_$deviceId")
+                setAttribute("type", "android")
+                setAttribute("capabilities", "gsr,rgb_video,thermal_video,audio,raw_images")
+                setAttribute("version", "1.0")
+                setAttribute("status", "ready")
             }
 
-            override fun onRegistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-                Log.e(TAG, "Service registration failed: $errorCode")
-            }
+        registrationListener =
+            object : NsdManager.RegistrationListener {
+                override fun onServiceRegistered(serviceInfo: NsdServiceInfo) {
+                    Log.d(TAG, "Service registered: ${serviceInfo.serviceName}")
+                }
 
-            override fun onServiceUnregistered(serviceInfo: NsdServiceInfo) {
-                Log.d(TAG, "Service unregistered: ${serviceInfo.serviceName}")
-            }
+                override fun onRegistrationFailed(
+                    serviceInfo: NsdServiceInfo,
+                    errorCode: Int,
+                ) {
+                    Log.e(TAG, "Service registration failed: $errorCode")
+                }
 
-            override fun onUnregistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-                Log.e(TAG, "Service unregistration failed: $errorCode")
+                override fun onServiceUnregistered(serviceInfo: NsdServiceInfo) {
+                    Log.d(TAG, "Service unregistered: ${serviceInfo.serviceName}")
+                }
+
+                override fun onUnregistrationFailed(
+                    serviceInfo: NsdServiceInfo,
+                    errorCode: Int,
+                ) {
+                    Log.e(TAG, "Service unregistration failed: $errorCode")
+                }
             }
-        }
 
         try {
             nsdManager?.registerService(
                 serviceInfo,
                 NsdManager.PROTOCOL_DNS_SD,
-                registrationListener
+                registrationListener,
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error registering service", e)
@@ -514,7 +524,10 @@ class NetworkClient(private val context: Context) {
      * @param gsrValue GSR value in microSiemens
      * @param timestamp Timestamp of the measurement
      */
-    fun streamGsrData(gsrValue: Float, timestamp: Long) {
+    fun streamGsrData(
+        gsrValue: Float,
+        timestamp: Long,
+    ) {
         if (!isConnected.get()) {
             return
         }
@@ -537,7 +550,10 @@ class NetworkClient(private val context: Context) {
      * @param heartRate Heart rate in BPM
      * @param timestamp Timestamp of the measurement
      */
-    fun streamHeartRateData(heartRate: Int, timestamp: Long) {
+    fun streamHeartRateData(
+        heartRate: Int,
+        timestamp: Long,
+    ) {
         if (!isConnected.get()) {
             return
         }
@@ -561,7 +577,11 @@ class NetworkClient(private val context: Context) {
      * @param storageUsed Storage used percentage
      * @param isRecording Whether device is currently recording
      */
-    fun streamDeviceStatus(batteryLevel: Int, storageUsed: Int, isRecording: Boolean) {
+    fun streamDeviceStatus(
+        batteryLevel: Int,
+        storageUsed: Int,
+        isRecording: Boolean,
+    ) {
         if (!isConnected.get()) {
             return
         }
@@ -586,7 +606,11 @@ class NetworkClient(private val context: Context) {
      * @param frameNumber Frame sequence number
      * @param timestamp Frame timestamp
      */
-    fun streamVideoFrameMetadata(frameType: String, frameNumber: Long, timestamp: Long) {
+    fun streamVideoFrameMetadata(
+        frameType: String,
+        frameNumber: Long,
+        timestamp: Long,
+    ) {
         if (!isConnected.get()) {
             return
         }
@@ -610,7 +634,11 @@ class NetworkClient(private val context: Context) {
      * @param frameType Type of frame (rgb, thermal)
      * @param timestamp Frame timestamp
      */
-    fun sendVideoFrame(frameData: ByteArray, frameType: String = "thermal", timestamp: Long = System.currentTimeMillis()) {
+    fun sendVideoFrame(
+        frameData: ByteArray,
+        frameType: String = "thermal",
+        timestamp: Long = System.currentTimeMillis(),
+    ) {
         if (!isConnected.get() || clientSocket == null) {
             return
         }
@@ -694,7 +722,6 @@ class NetworkClient(private val context: Context) {
             val success = successCount == filesToTransfer.size
             val message = "Transferred $successCount of ${filesToTransfer.size} files"
             sendFileCollectionResponse(success, message)
-
         } catch (e: Exception) {
             Log.e(TAG, "Error handling file collection", e)
             sendFileCollectionResponse(false, "Error: ${e.message}")
@@ -758,7 +785,6 @@ class NetworkClient(private val context: Context) {
 
             Log.d(TAG, "File transfer completed: ${file.name}")
             return true
-
         } catch (e: Exception) {
             Log.e(TAG, "Error transferring file: ${file.name}", e)
             return false
@@ -770,7 +796,10 @@ class NetworkClient(private val context: Context) {
      * @param success Whether the collection was successful
      * @param message Status message
      */
-    private fun sendFileCollectionResponse(success: Boolean, message: String) {
+    private fun sendFileCollectionResponse(
+        success: Boolean,
+        message: String,
+    ) {
         try {
             val json = JSONObject()
             json.put("type", "FILE_COLLECTION_RESPONSE")

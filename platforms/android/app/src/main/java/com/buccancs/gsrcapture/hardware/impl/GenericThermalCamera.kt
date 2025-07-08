@@ -24,9 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 class GenericThermalCamera(
     private val context: Context,
     private val executor: ExecutorService,
-    private val deviceInfo: Map<String, Any>
+    private val deviceInfo: Map<String, Any>,
 ) : ThermalCamera {
-
     companion object {
         private const val TAG = "GenericThermalCamera"
 
@@ -69,16 +68,15 @@ class GenericThermalCamera(
     private val productId = deviceInfo["productId"] as? Int
     private val baudRate = deviceInfo["baudRate"] as? Int ?: DEFAULT_BAUD_RATE
 
-    override fun initialize(): Boolean {
-        return try {
+    override fun initialize(): Boolean =
+        try {
             usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
-            Log.d(TAG, "Generic thermal camera initialized with specs: ${thermalWidth}x${thermalHeight}")
+            Log.d(TAG, "Generic thermal camera initialized with specs: ${thermalWidth}x$thermalHeight")
             true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize generic thermal camera", e)
             false
         }
-    }
 
     override fun connect(deviceIdentifier: String?): Boolean {
         if (isConnected.get()) {
@@ -184,7 +182,10 @@ class GenericThermalCamera(
         textureView = view
     }
 
-    override fun startRecording(outputDir: File, sessionId: String): Boolean {
+    override fun startRecording(
+        outputDir: File,
+        sessionId: String,
+    ): Boolean {
         if (!isConnected.get()) {
             Log.w(TAG, "Cannot start recording - device not connected")
             return false
@@ -217,35 +218,34 @@ class GenericThermalCamera(
         }
     }
 
-    override fun getCameraSpecs(): ThermalCamera.CameraSpecs {
-        return ThermalCamera.CameraSpecs(
+    override fun getCameraSpecs(): ThermalCamera.CameraSpecs =
+        ThermalCamera.CameraSpecs(
             width = thermalWidth,
             height = thermalHeight,
             temperatureRange = Pair(minTemperature, maxTemperature),
             frameRate = frameRate.toFloat(),
-            additionalSpecs = mapOf(
-                "type" to "Generic",
-                "configurable" to "true",
-                "dataFormat" to "Raw bytes",
-                "connectionType" to "USB Serial"
-            )
+            additionalSpecs =
+                mapOf(
+                    "type" to "Generic",
+                    "configurable" to "true",
+                    "dataFormat" to "Raw bytes",
+                    "connectionType" to "USB Serial",
+                ),
         )
-    }
 
-    override fun getHardwareInfo(): Map<String, String> {
-        return mapOf(
+    override fun getHardwareInfo(): Map<String, String> =
+        mapOf(
             "manufacturer" to (deviceInfo["manufacturer"] as? String ?: "Unknown"),
             "model" to (deviceInfo["model"] as? String ?: "Generic Thermal Camera"),
             "type" to "Thermal Camera",
-            "resolution" to "${thermalWidth}x${thermalHeight}",
+            "resolution" to "${thermalWidth}x$thermalHeight",
             "connectionType" to "USB",
             "firmwareVersion" to "Unknown",
             "serialNumber" to (usbDevice?.serialNumber ?: "Unknown"),
             "deviceId" to (usbDevice?.deviceName ?: "Unknown"),
             "vendorId" to (vendorId?.toString() ?: "Unknown"),
-            "productId" to (productId?.toString() ?: "Unknown")
+            "productId" to (productId?.toString() ?: "Unknown"),
         )
-    }
 
     override fun configure(settings: Map<String, Any>): Boolean {
         if (!isConnected.get()) {
@@ -267,16 +267,15 @@ class GenericThermalCamera(
         }
     }
 
-    override fun getAvailableSettings(): Map<String, List<Any>> {
-        return mapOf(
+    override fun getAvailableSettings(): Map<String, List<Any>> =
+        mapOf(
             "emissivity" to listOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 0.95f, 1.0f),
             "temperatureUnit" to listOf("Celsius", "Fahrenheit", "Kelvin"),
             "colorPalette" to listOf("Grayscale", "Iron", "Rainbow", "Hot", "Cool"),
             "imageFormat" to listOf("RAW", "JPEG", "PNG"),
             "autoGain" to listOf(true, false),
-            "shutterMode" to listOf("Auto", "Manual")
+            "shutterMode" to listOf("Auto", "Manual"),
         )
-    }
 
     override fun captureFrame(): ThermalCamera.ThermalFrame? {
         if (!isConnected.get()) {
@@ -313,7 +312,7 @@ class GenericThermalCamera(
 
     private fun findCompatibleDriver(
         availableDrivers: List<UsbSerialDriver>,
-        deviceIdentifier: String?
+        deviceIdentifier: String?,
     ): UsbSerialDriver? {
         for (driver in availableDrivers) {
             val device = driver.device
@@ -372,8 +371,11 @@ class GenericThermalCamera(
         }
     }
 
-    private fun processThermalData(buffer: ByteArray, len: Int): ThermalCamera.ThermalFrame? {
-        return try {
+    private fun processThermalData(
+        buffer: ByteArray,
+        len: Int,
+    ): ThermalCamera.ThermalFrame? =
+        try {
             val timestamp = TimeManager.getCurrentTimestampNanos()
 
             // Parse thermal data using generic format
@@ -384,22 +386,25 @@ class GenericThermalCamera(
                 timestamp = timestamp,
                 bitmap = bitmap,
                 temperatureData = temperatureData,
-                metadata = mapOf(
-                    "deviceId" to (usbDevice?.deviceName ?: "unknown"),
-                    "frameSize" to len,
-                    "expectedSize" to (thermalWidth * thermalHeight * 2),
-                    "minTemp" to (temperatureData?.flatMap { it.toList() }?.minOrNull() ?: 0.0f),
-                    "maxTemp" to (temperatureData?.flatMap { it.toList() }?.maxOrNull() ?: 0.0f)
-                )
+                metadata =
+                    mapOf(
+                        "deviceId" to (usbDevice?.deviceName ?: "unknown"),
+                        "frameSize" to len,
+                        "expectedSize" to (thermalWidth * thermalHeight * 2),
+                        "minTemp" to (temperatureData?.flatMap { it.toList() }?.minOrNull() ?: 0.0f),
+                        "maxTemp" to (temperatureData?.flatMap { it.toList() }?.maxOrNull() ?: 0.0f),
+                    ),
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error processing thermal data", e)
             null
         }
-    }
 
-    private fun parseGenericThermalData(buffer: ByteArray, len: Int): Array<FloatArray>? {
-        return try {
+    private fun parseGenericThermalData(
+        buffer: ByteArray,
+        len: Int,
+    ): Array<FloatArray>? =
+        try {
             val temperatureData = Array(thermalHeight) { FloatArray(thermalWidth) }
             val bytesPerPixel = 2 // Assume 16-bit data
 
@@ -408,14 +413,15 @@ class GenericThermalCamera(
                 for (x in 0 until thermalWidth) {
                     if (bufferIndex + bytesPerPixel - 1 < len) {
                         // Convert raw bytes to temperature (generic approach)
-                        val rawValue = if (bytesPerPixel == 2) {
-                            // 16-bit little-endian
-                            ((buffer[bufferIndex + 1].toInt() and 0xFF) shl 8) or 
-                            (buffer[bufferIndex].toInt() and 0xFF)
-                        } else {
-                            // 8-bit
-                            buffer[bufferIndex].toInt() and 0xFF
-                        }
+                        val rawValue =
+                            if (bytesPerPixel == 2) {
+                                // 16-bit little-endian
+                                ((buffer[bufferIndex + 1].toInt() and 0xFF) shl 8) or
+                                    (buffer[bufferIndex].toInt() and 0xFF)
+                            } else {
+                                // 8-bit
+                                buffer[bufferIndex].toInt() and 0xFF
+                            }
 
                         // Convert raw value to temperature using linear mapping
                         val normalizedValue = rawValue.toFloat() / 65535.0f // Normalize to 0-1
@@ -434,7 +440,6 @@ class GenericThermalCamera(
             Log.e(TAG, "Error parsing generic thermal data", e)
             null
         }
-    }
 
     private fun createThermalBitmap(temperatureData: Array<FloatArray>?): Bitmap {
         val bitmap = Bitmap.createBitmap(thermalWidth, thermalHeight, Bitmap.Config.ARGB_8888)
@@ -449,11 +454,12 @@ class GenericThermalCamera(
             for (y in 0 until thermalHeight) {
                 for (x in 0 until thermalWidth) {
                     val temp = temperatureData[y][x]
-                    val normalizedTemp = if (tempRange > 0) {
-                        ((temp - minTemp) / tempRange).coerceIn(0.0f, 1.0f)
-                    } else {
-                        0.5f
-                    }
+                    val normalizedTemp =
+                        if (tempRange > 0) {
+                            ((temp - minTemp) / tempRange).coerceIn(0.0f, 1.0f)
+                        } else {
+                            0.5f
+                        }
 
                     // Apply grayscale palette (simple and universal)
                     val color = applyGrayscalePalette(normalizedTemp)
@@ -484,12 +490,13 @@ class GenericThermalCamera(
             val canvas = textureView?.lockCanvas()
             canvas?.let {
                 // Scale bitmap to fit texture view
-                val scaledBitmap = Bitmap.createScaledBitmap(
-                    bitmap, 
-                    textureView?.width ?: bitmap.width, 
-                    textureView?.height ?: bitmap.height, 
-                    false
-                )
+                val scaledBitmap =
+                    Bitmap.createScaledBitmap(
+                        bitmap,
+                        textureView?.width ?: bitmap.width,
+                        textureView?.height ?: bitmap.height,
+                        false,
+                    )
                 it.drawBitmap(scaledBitmap, 0f, 0f, null)
                 textureView?.unlockCanvasAndPost(it)
             }
@@ -515,8 +522,11 @@ class GenericThermalCamera(
         }
     }
 
-    private fun sendConfigurationCommand(command: String, value: String): Boolean {
-        return try {
+    private fun sendConfigurationCommand(
+        command: String,
+        value: String,
+    ): Boolean =
+        try {
             val commandString = "$command=$value\n"
             val bytes = commandString.toByteArray()
             val written = usbSerialPort?.write(bytes, 1000) ?: 0
@@ -525,5 +535,4 @@ class GenericThermalCamera(
             Log.e(TAG, "Error sending configuration command", e)
             false
         }
-    }
 }

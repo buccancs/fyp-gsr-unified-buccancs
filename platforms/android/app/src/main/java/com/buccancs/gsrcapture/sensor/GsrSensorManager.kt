@@ -1,7 +1,6 @@
 package com.buccancs.gsrcapture.sensor
 
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Handler
@@ -10,7 +9,6 @@ import android.util.Log
 import com.buccancs.gsrcapture.utils.TimeManager
 import java.io.File
 import java.io.FileWriter
-import java.util.UUID
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -19,7 +17,6 @@ import com.shimmerresearch.android.Shimmer
 import com.shimmerresearch.android.manager.ShimmerBluetoothManagerAndroid
 import com.shimmerresearch.driver.Configuration
 import com.shimmerresearch.driver.ObjectCluster
-import com.shimmerresearch.driver.ShimmerDevice
 
 /**
  * Manages GSR sensor operations including connection, data streaming, and recording.
@@ -27,7 +24,7 @@ import com.shimmerresearch.driver.ShimmerDevice
  */
 class GsrSensorManager(
     private val context: Context,
-    private val sensorExecutor: ExecutorService
+    private val sensorExecutor: ExecutorService,
 ) {
     private val TAG = "GsrSensorManager"
 
@@ -131,13 +128,14 @@ class GsrSensorManager(
 
             // Connect to the device
             // Note: connect() method signature may be different
-            val connected: Boolean = try {
-                val result = shimmerDevice?.connect(deviceAddress ?: "", "default")
-                result != null
-            } catch (e: Exception) {
-                Log.e(TAG, "Error during connection", e)
-                false
-            }
+            val connected: Boolean =
+                try {
+                    val result = shimmerDevice?.connect(deviceAddress ?: "", "default")
+                    result != null
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error during connection", e)
+                    false
+                }
 
             if (connected) {
                 isConnected.set(true)
@@ -156,14 +154,12 @@ class GsrSensorManager(
                 disconnect()
                 return false
             }
-
         } catch (e: Exception) {
             Log.e(TAG, "Error connecting to GSR sensor", e)
             disconnect()
             return false
         }
     }
-
 
     /**
      * Processes data from the Shimmer SDK ObjectCluster.
@@ -198,14 +194,15 @@ class GsrSensorManager(
 
                 // Enable GSR and PPG sensors using available constants
                 // Note: Using generic sensor enabling approach since specific constants may not be available
-                val sensorBitmap = try {
-                    // Try to enable GSR and PPG sensors
-                    Configuration.Shimmer3.SensorBitmap.SENSOR_GSR or Configuration.Shimmer3.SensorBitmap.SENSOR_INT_A12
-                } catch (e: Exception) {
-                    // Fallback to a basic sensor configuration
-                    Log.w(TAG, "Could not access specific sensor constants, using fallback", e)
-                    0x01 or 0x02 // Basic fallback values
-                }
+                val sensorBitmap =
+                    try {
+                        // Try to enable GSR and PPG sensors
+                        Configuration.Shimmer3.SensorBitmap.SENSOR_GSR or Configuration.Shimmer3.SensorBitmap.SENSOR_INT_A12
+                    } catch (e: Exception) {
+                        // Fallback to a basic sensor configuration
+                        Log.w(TAG, "Could not access specific sensor constants, using fallback", e)
+                        0x01 or 0x02 // Basic fallback values
+                    }
 
                 @Suppress("DEPRECATION")
                 device.setEnabledSensors(sensorBitmap.toLong())
@@ -304,7 +301,10 @@ class GsrSensorManager(
      * @param sessionId Unique identifier for the recording session
      * @return True if recording started successfully, false otherwise
      */
-    fun startRecording(outputDir: File, sessionId: String): Boolean {
+    fun startRecording(
+        outputDir: File,
+        sessionId: String,
+    ): Boolean {
         if (!isConnected.get()) {
             Log.e(TAG, "Cannot start recording: not connected to GSR sensor")
             return false
@@ -322,7 +322,7 @@ class GsrSensorManager(
         try {
             // Create CSV file for GSR data
             val timestamp = TimeManager.getCurrentTimestamp()
-            val csvFile = File(outputDir, "GSR_${sessionId}_${timestamp}.csv")
+            val csvFile = File(outputDir, "GSR_${sessionId}_$timestamp.csv")
 
             csvWriter = FileWriter(csvFile)
 
@@ -332,7 +332,6 @@ class GsrSensorManager(
             isRecording.set(true)
             Log.d(TAG, "Started recording GSR data to ${csvFile.absolutePath}")
             return true
-
         } catch (e: Exception) {
             Log.e(TAG, "Error starting GSR recording", e)
             csvWriter?.close()
@@ -402,5 +401,4 @@ class GsrSensorManager(
         heartRateCallback = null
         connectionStateCallback = null
     }
-
 }

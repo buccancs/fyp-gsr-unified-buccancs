@@ -1,5 +1,4 @@
-"""
-Lab Streaming Layer (LSL) integration for real-time data streaming.
+"""Lab Streaming Layer (LSL) integration for real-time data streaming.
 This module provides functionality to stream GSR, PPG, and other sensor data
 in real-time using the Lab Streaming Layer protocol.
 """
@@ -17,11 +16,10 @@ except ImportError:
 
 
 class LSLStreamer:
-    """
-    Manages LSL streams for real-time sensor data broadcasting.
+    """Manages LSL streams for real-time sensor data broadcasting.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
         self.streams: Dict[str, pylsl.StreamOutlet] = {}
         self.is_streaming = False
@@ -29,8 +27,7 @@ class LSLStreamer:
 
     def create_gsr_stream(self, stream_name: str = "GSR_Stream",
                           sampling_rate: float = 128.0) -> bool:
-        """
-        Creates an LSL stream for GSR data.
+        """Creates an LSL stream for GSR data.
 
         Args:
             stream_name: Name of the LSL stream
@@ -74,8 +71,7 @@ class LSLStreamer:
 
     def create_ppg_stream(self, stream_name: str = "PPG_Stream",
                           sampling_rate: float = 128.0) -> bool:
-        """
-        Creates an LSL stream for PPG/heart rate data.
+        """Creates an LSL stream for PPG/heart rate data.
 
         Args:
             stream_name: Name of the LSL stream
@@ -124,8 +120,7 @@ class LSLStreamer:
             return False
 
     def create_marker_stream(self, stream_name: str = "Markers") -> bool:
-        """
-        Creates an LSL stream for event markers.
+        """Creates an LSL stream for event markers.
 
         Args:
             stream_name: Name of the LSL stream
@@ -162,9 +157,8 @@ class LSLStreamer:
     def push_gsr_sample(
             self,
             gsr_value: float,
-            timestamp: Optional[float] = None):
-        """
-        Pushes a GSR sample to the LSL stream.
+            timestamp: Optional[float] = None) -> None:
+        """Pushes a GSR sample to the LSL stream.
 
         Args:
             gsr_value: GSR value in microsiemens
@@ -179,9 +173,8 @@ class LSLStreamer:
                 self.logger.error(f"Error pushing GSR sample: {e}")
 
     def push_ppg_sample(self, ppg_value: float, heart_rate: float,
-                        timestamp: Optional[float] = None):
-        """
-        Pushes a PPG sample to the LSL stream.
+                        timestamp: Optional[float] = None) -> None:
+        """Pushes a PPG sample to the LSL stream.
 
         Args:
             ppg_value: PPG value
@@ -197,9 +190,8 @@ class LSLStreamer:
             except Exception as e:
                 self.logger.error(f"Error pushing PPG sample: {e}")
 
-    def push_marker(self, marker: str, timestamp: Optional[float] = None):
-        """
-        Pushes an event marker to the LSL stream.
+    def push_marker(self, marker: str, timestamp: Optional[float] = None) -> None:
+        """Pushes an event marker to the LSL stream.
 
         Args:
             marker: Marker string (e.g., "recording_start", "stimulus_onset")
@@ -214,9 +206,8 @@ class LSLStreamer:
             except Exception as e:
                 self.logger.error(f"Error pushing marker: {e}")
 
-    def start_streaming(self):
-        """
-        Starts the LSL streaming service.
+    def start_streaming(self) -> None:
+        """Starts the LSL streaming service.
         """
         if self.is_streaming:
             self.logger.warning("LSL streaming already active")
@@ -225,9 +216,8 @@ class LSLStreamer:
         self.is_streaming = True
         self.logger.info("LSL streaming started")
 
-    def stop_streaming(self):
-        """
-        Stops the LSL streaming service.
+    def stop_streaming(self) -> None:
+        """Stops the LSL streaming service.
         """
         if not self.is_streaming:
             return
@@ -235,9 +225,8 @@ class LSLStreamer:
         self.is_streaming = False
         self.logger.info("LSL streaming stopped")
 
-    def close_all_streams(self):
-        """
-        Closes all LSL streams and releases resources.
+    def close_all_streams(self) -> None:
+        """Closes all LSL streams and releases resources.
         """
         self.stop_streaming()
 
@@ -253,11 +242,10 @@ class LSLStreamer:
 
 
 class LSLReceiver:
-    """
-    Receives data from LSL streams for analysis or recording.
+    """Receives data from LSL streams for analysis or recording.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
         self.inlets: Dict[str, pylsl.StreamInlet] = {}
         self.is_receiving = False
@@ -268,8 +256,7 @@ class LSLReceiver:
             self,
             stream_name: str,
             stream_type: str = None) -> bool:
-        """
-        Connects to an LSL stream by name.
+        """Connects to an LSL stream by name.
 
         Args:
             stream_name: Name of the stream to connect to
@@ -300,9 +287,8 @@ class LSLReceiver:
             self.logger.error(f"Error connecting to stream {stream_name}: {e}")
             return False
 
-    def set_data_callback(self, stream_name: str, callback: Callable):
-        """
-        Sets a callback function for received data.
+    def set_data_callback(self, stream_name: str, callback: Callable) -> None:
+        """Sets a callback function for received data.
 
         Args:
             stream_name: Name of the stream
@@ -310,9 +296,8 @@ class LSLReceiver:
         """
         self.data_callbacks[stream_name] = callback
 
-    def start_receiving(self):
-        """
-        Starts receiving data from connected streams.
+    def start_receiving(self) -> None:
+        """Starts receiving data from connected streams.
         """
         if self.is_receiving:
             self.logger.warning("LSL receiving already active")
@@ -325,9 +310,8 @@ class LSLReceiver:
 
         self.logger.info("LSL receiving started")
 
-    def _receive_loop(self):
-        """
-        Main receiving loop (runs in separate thread).
+    def _receive_loop(self) -> None:
+        """Main receiving loop (runs in separate thread).
         """
         while self.is_receiving:
             for stream_name, inlet in self.inlets.items():
@@ -343,9 +327,8 @@ class LSLReceiver:
 
             time.sleep(0.001)  # Small delay to prevent excessive CPU usage
 
-    def stop_receiving(self):
-        """
-        Stops receiving data from streams.
+    def stop_receiving(self) -> None:
+        """Stops receiving data from streams.
         """
         if not self.is_receiving:
             return
@@ -356,9 +339,8 @@ class LSLReceiver:
 
         self.logger.info("LSL receiving stopped")
 
-    def close_all_inlets(self):
-        """
-        Closes all LSL inlets and releases resources.
+    def close_all_inlets(self) -> None:
+        """Closes all LSL inlets and releases resources.
         """
         self.stop_receiving()
 

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Test script for the modernized PySide6 GUI.
+"""Test script for the modernized PySide6 GUI.
 This script tests the main window with the new modern interface.
 """
 
@@ -13,12 +12,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'src'))
 
 
-def main():
+def main() -> None:
     """Main function to test the modernized GUI."""
     try:
         from PySide6.QtWidgets import QApplication
 
         from ui.main_window import MainWindow
+from typing import Any, Dict, List, Optional, Union
 
         print("Testing PySide6 Modern GUI...")
 

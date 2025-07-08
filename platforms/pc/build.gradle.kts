@@ -19,7 +19,7 @@ tasks.register<Exec>("setupPythonEnv") {
     workingDir = projectDir
 
     doLast {
-        println("Python virtual environment created at: ${projectDir}/venv")
+        println("Python virtual environment created at: $projectDir/venv")
     }
 }
 
@@ -29,11 +29,12 @@ tasks.register<Exec>("installPythonDeps") {
     description = "Install Python dependencies from requirements.txt"
     dependsOn("setupPythonEnv")
 
-    val pipExecutable = if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "${projectDir}/venv/Scripts/pip"
-    } else {
-        "${projectDir}/venv/bin/pip"
-    }
+    val pipExecutable =
+        if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "$projectDir/venv/Scripts/pip"
+        } else {
+            "$projectDir/venv/bin/pip"
+        }
 
     commandLine(pipExecutable, "install", "-r", "requirements.txt")
     workingDir = projectDir
@@ -52,11 +53,12 @@ tasks.register<Exec>("installPythonTestDeps") {
     description = "Install Python test dependencies from requirements-test.txt"
     dependsOn("installPythonDeps")
 
-    val pipExecutable = if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "${projectDir}/venv/Scripts/pip"
-    } else {
-        "${projectDir}/venv/bin/pip"
-    }
+    val pipExecutable =
+        if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "$projectDir/venv/Scripts/pip"
+        } else {
+            "$projectDir/venv/bin/pip"
+        }
 
     commandLine(pipExecutable, "install", "-r", "requirements-test.txt")
     workingDir = projectDir
@@ -77,7 +79,7 @@ tasks.register<Exec>("configureCMake") {
     val cmakeBuildDir = File(buildDir, "cmake")
     cmakeBuildDir.mkdirs()
 
-    commandLine("cmake", "-S", ".", "-B", cmakeBuildDir.absolutePath, "-DCMAKE_BUILD_TYPE=${cmakeBuildType}")
+    commandLine("cmake", "-S", ".", "-B", cmakeBuildDir.absolutePath, "-DCMAKE_BUILD_TYPE=$cmakeBuildType")
     workingDir = projectDir
 
     inputs.file("CMakeLists.txt")
@@ -85,7 +87,7 @@ tasks.register<Exec>("configureCMake") {
     outputs.dir(cmakeBuildDir)
 
     doLast {
-        println("CMake configured in: ${cmakeBuildDir}")
+        println("CMake configured in: $cmakeBuildDir")
     }
 }
 
@@ -132,11 +134,12 @@ tasks.register<Exec>("testPython") {
     description = "Run Python tests"
     dependsOn("installPythonTestDeps", "installCppExtension")
 
-    val pythonExecutableInVenv = if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "${projectDir}/venv/Scripts/python"
-    } else {
-        "${projectDir}/venv/bin/python"
-    }
+    val pythonExecutableInVenv =
+        if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "$projectDir/environments/venv/Scripts/python"
+        } else {
+            "$projectDir/environments/venv/bin/python"
+        }
 
     commandLine(pythonExecutableInVenv, "-m", "pytest", "tests/", "-v")
     workingDir = projectDir

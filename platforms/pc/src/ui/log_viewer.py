@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Log Viewer for the PC Controller App.
+"""Log Viewer for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
@@ -15,16 +14,15 @@ from PySide6.QtWidgets import (QComboBox, QFileDialog, QHBoxLayout, QLabel,
                                QPushButton, QTextEdit, QVBoxLayout, QWidget)
 
 from utils.logger import get_logger
+from typing import Any, Dict, List, Optional, Union
 
 
 class LogViewer(QWidget):
-    """
-    Log Viewer class for displaying application logs.
+    """Log Viewer class for displaying application logs.
     """
 
-    def __init__(self, parent=None):
-        """
-        Initialize the log viewer.
+    def __init__(self, parent=None) -> None:
+        """Initialize the log viewer.
 
         Args:
             parent: The parent widget (default: None)
@@ -54,9 +52,8 @@ class LogViewer(QWidget):
 
         self.logger.info("Log viewer initialized")
 
-    def setup_ui(self):
-        """
-        Set up the UI for the log viewer.
+    def setup_ui(self) -> None:
+        """Set up the UI for the log viewer.
         """
         # Create main layout
         self.main_layout = QVBoxLayout(self)
@@ -104,9 +101,8 @@ class LogViewer(QWidget):
         self.log_text.setFont(QFont("Courier New", 10))
         self.main_layout.addWidget(self.log_text)
 
-    def add_log(self, record):
-        """
-        Add a log record to the buffer.
+    def add_log(self, record) -> None:
+        """Add a log record to the buffer.
 
         Args:
             record: The log record to add
@@ -118,9 +114,8 @@ class LogViewer(QWidget):
         if len(self.log_buffer) > self.max_buffer_size:
             self.log_buffer = self.log_buffer[-self.max_buffer_size:]
 
-    def update_log_view(self):
-        """
-        Update the log view with the current buffer.
+    def update_log_view(self) -> None:
+        """Update the log view with the current buffer.
         """
         # Check if there are any new logs
         if not self.log_buffer:
@@ -167,17 +162,15 @@ class LogViewer(QWidget):
         self.log_text.ensureCursorVisible()
 
     @Slot(int)
-    def on_level_changed(self, index):
-        """
-        Handle the log level being changed.
+    def on_level_changed(self, index) -> None:
+        """Handle the log level being changed.
 
         Args:
             index: The index of the selected level
         """
         self.log_level = self.level_combo.itemData(index)
         self.logger.info(
-            f"Log level changed to {
-                logging.getLevelName(
+            f"Log level changed to {logging.getLevelName(
                     self.log_level)}")
 
         # Clear the log view and re-add all logs
@@ -208,18 +201,16 @@ class LogViewer(QWidget):
                 self.logger.error(f"Failed to read log file: {str(e)}")
 
     @Slot()
-    def on_clear_clicked(self):
-        """
-        Handle the clear button being clicked.
+    def on_clear_clicked(self) -> None:
+        """Handle the clear button being clicked.
         """
         self.logger.info("Clearing log view")
         self.log_text.clear()
         self.log_buffer.clear()
 
     @Slot()
-    def on_save_clicked(self):
-        """
-        Handle the save button being clicked.
+    def on_save_clicked(self) -> None:
+        """Handle the save button being clicked.
         """
         self.logger.info("Saving log")
 
@@ -236,9 +227,8 @@ class LogViewer(QWidget):
             except Exception as e:
                 self.logger.error(f"Failed to save log: {str(e)}")
 
-    def set_log_file(self, log_file):
-        """
-        Set the log file to display.
+    def set_log_file(self, log_file) -> None:
+        """Set the log file to display.
 
         Args:
             log_file: The path to the log file
@@ -259,13 +249,11 @@ class LogViewer(QWidget):
 
 
 class LogHandler(logging.Handler):
-    """
-    Log handler for sending log records to the log viewer.
+    """Log handler for sending log records to the log viewer.
     """
 
-    def __init__(self, log_viewer):
-        """
-        Initialize the log handler.
+    def __init__(self, log_viewer) -> None:
+        """Initialize the log handler.
 
         Args:
             log_viewer: The log viewer to send records to
@@ -273,9 +261,8 @@ class LogHandler(logging.Handler):
         super().__init__()
         self.log_viewer = log_viewer
 
-    def emit(self, record):
-        """
-        Emit a log record.
+    def emit(self, record) -> None:
+        """Emit a log record.
 
         Args:
             record: The log record to emit

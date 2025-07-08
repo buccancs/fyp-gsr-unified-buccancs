@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Device Manager for the PC Controller App.
+"""Device Manager for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
@@ -25,11 +24,11 @@ except ImportError:
 from network.device import Device
 from local_device import LocalDevice
 from utils.logger import get_logger
+from typing import Any, Dict, List, Optional, Union
 
 
 class DeviceManager(QObject):
-    """
-    Device Manager class for handling device discovery, connection, and communication.
+    """Device Manager class for handling device discovery, connection, and communication.
     """
 
     # Define signals
@@ -38,9 +37,8 @@ class DeviceManager(QObject):
     device_connected = Signal(object)
     device_disconnected = Signal(object)
 
-    def __init__(self):
-        """
-        Initialize the device manager.
+    def __init__(self) -> None:
+        """Initialize the device manager.
         """
         super().__init__()
 
@@ -65,9 +63,8 @@ class DeviceManager(QObject):
 
         self.logger.info("Device manager initialized")
 
-    def _initialize_local_device(self):
-        """
-        Initialize the local device and add it to the devices list.
+    def _initialize_local_device(self) -> None:
+        """Initialize the local device and add it to the devices list.
         """
         try:
             # Connect to local hardware
@@ -88,9 +85,8 @@ class DeviceManager(QObject):
         except Exception as e:
             self.logger.error(f"Failed to initialize local device: {e}")
 
-    def discover_devices(self):
-        """
-        Discover devices on the network.
+    def discover_devices(self) -> None:
+        """Discover devices on the network.
         """
         self.logger.info("Starting device discovery")
 
@@ -112,9 +108,8 @@ class DeviceManager(QObject):
         self.logger.info("Device discovery started")
         return True
 
-    def discover_usb_devices(self):
-        """
-        Discover Android devices connected via USB using ADB.
+    def discover_usb_devices(self) -> None:
+        """Discover Android devices connected via USB using ADB.
 
         Returns:
             True if USB discovery was successful, False otherwise
@@ -182,9 +177,8 @@ class DeviceManager(QObject):
             self.logger.error(f"USB device discovery failed: {e}")
             return False
 
-    def connect_device(self, device_id):
-        """
-        Connect to a device.
+    def connect_device(self, device_id) -> None:
+        """Connect to a device.
 
         Args:
             device_id: The ID of the device to connect to
@@ -225,9 +219,8 @@ class DeviceManager(QObject):
             self.logger.error(f"Failed to connect to device: {device_id}")
             return False
 
-    def disconnect_device(self, device_id):
-        """
-        Disconnect from a device.
+    def disconnect_device(self, device_id) -> None:
+        """Disconnect from a device.
 
         Args:
             device_id: The ID of the device to disconnect from
@@ -262,9 +255,8 @@ class DeviceManager(QObject):
             self.logger.error(f"Failed to disconnect from device: {device_id}")
             return False
 
-    def connect_all_devices(self):
-        """
-        Connect to all discovered devices.
+    def connect_all_devices(self) -> None:
+        """Connect to all discovered devices.
 
         Returns:
             True if all connections were successful, False otherwise
@@ -283,9 +275,8 @@ class DeviceManager(QObject):
 
         return success
 
-    def disconnect_all_devices(self):
-        """
-        Disconnect from all connected devices.
+    def disconnect_all_devices(self) -> None:
+        """Disconnect from all connected devices.
 
         Returns:
             True if all disconnections were successful, False otherwise
@@ -304,9 +295,8 @@ class DeviceManager(QObject):
 
         return success
 
-    def start_recording(self, session_id, sensor_map=None):
-        """
-        Start recording on all connected devices with specified sensors.
+    def start_recording(self, session_id, sensor_map=None) -> None:
+        """Start recording on all connected devices with specified sensors.
 
         Args:
             session_id: The ID of the session to start
@@ -350,9 +340,8 @@ class DeviceManager(QObject):
 
         return success
 
-    def stop_recording(self):
-        """
-        Stop recording on all connected devices.
+    def stop_recording(self) -> None:
+        """Stop recording on all connected devices.
 
         Returns:
             True if all devices stopped recording successfully, False otherwise
@@ -374,9 +363,8 @@ class DeviceManager(QObject):
 
         return success
 
-    def collect_files(self, destination_dir):
-        """
-        Collect files from all connected devices.
+    def collect_files(self, destination_dir) -> None:
+        """Collect files from all connected devices.
 
         Args:
             destination_dir: The directory to save the files to
@@ -412,9 +400,8 @@ class DeviceManager(QObject):
 
         return success
 
-    def get_device_status(self, device_id):
-        """
-        Get the status of a device.
+    def get_device_status(self, device_id) -> None:
+        """Get the status of a device.
 
         Args:
             device_id: The ID of the device to get the status of
@@ -434,9 +421,8 @@ class DeviceManager(QObject):
         # Get the status of the device
         return device.get_status()
 
-    def get_all_device_statuses(self):
-        """
-        Get the status of all connected devices.
+    def get_all_device_statuses(self) -> None:
+        """Get the status of all connected devices.
 
         Returns:
             A dictionary of device statuses by device ID
@@ -454,9 +440,8 @@ class DeviceManager(QObject):
 
         return statuses
 
-    def cleanup(self):
-        """
-        Clean up resources.
+    def cleanup(self) -> None:
+        """Clean up resources.
         """
         self.logger.info("Cleaning up device manager")
 
@@ -472,13 +457,11 @@ class DeviceManager(QObject):
 
 
 class DeviceListener:
-    """
-    Listener for zeroconf service discovery.
+    """Listener for zeroconf service discovery.
     """
 
-    def __init__(self, device_manager):
-        """
-        Initialize the listener.
+    def __init__(self, device_manager) -> None:
+        """Initialize the listener.
 
         Args:
             device_manager: The device manager to notify of discovered devices
@@ -486,9 +469,8 @@ class DeviceListener:
         self.device_manager = device_manager
         self.logger = get_logger(__name__)
 
-    def add_service(self, zeroconf, service_type, name):
-        """
-        Called when a service is discovered.
+    def add_service(self, zeroconf, service_type, name) -> None:
+        """Called when a service is discovered.
 
         Args:
             zeroconf: The zeroconf instance
@@ -508,8 +490,7 @@ class DeviceListener:
 
                 if info.port is None or info.port <= 0:
                     self.logger.warning(
-                        f"Service {name} has invalid port {
-                            info.port}, skipping")
+                        f"Service {name} has invalid port {info.port}, skipping")
                     return
 
                 # Parse the service info
@@ -567,9 +548,8 @@ class DeviceListener:
             self.logger.error(
                 f"Error processing discovered service {name}: {e}")
 
-    def remove_service(self, zeroconf, service_type, name):
-        """
-        Called when a service is removed.
+    def remove_service(self, zeroconf, service_type, name) -> None:
+        """Called when a service is removed.
 
         Args:
             zeroconf: The zeroconf instance
@@ -594,8 +574,7 @@ class DeviceListener:
         if device_to_remove:
             self.device_manager.device_removed.emit(device_to_remove)
             self.logger.info(
-                f"Device removed from discovered devices: {
-                    device_to_remove.name}")
+                f"Device removed from discovered devices: {device_to_remove.name}")
         else:
             self.logger.warning(
                 f"Could not find device to remove for service: {name}")

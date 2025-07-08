@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Performance benchmarking and jitter analysis tool for the high-precision C++ hardware backend.
+"""Performance benchmarking and jitter analysis tool for the high-precision C++ hardware backend.
 
 This script validates the timing improvements achieved by the C++ implementation
 compared to the Python-only approach, measuring jitter and synchronization accuracy.
@@ -19,14 +18,13 @@ import json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'src'))
 
 class TimingBenchmark:
-    """
-    Comprehensive timing benchmark for hardware backends.
+    """Comprehensive timing benchmark for hardware backends.
     
     Measures timing precision, jitter, and synchronization accuracy
     between C++ and Python implementations.
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.results = {
             'cpp_backend': {
                 'shimmer_timings': [],
@@ -211,7 +209,7 @@ class TimingBenchmark:
         
         return comparison
     
-    def save_results(self, analysis: Dict, filename: str = "timing_benchmark_results.json"):
+    def save_results(self, analysis: Dict, filename: str = "timing_benchmark_results.json") -> None:
         """Save benchmark results to JSON file."""
         try:
             with open(filename, 'w') as f:
@@ -220,7 +218,7 @@ class TimingBenchmark:
         except Exception as e:
             print(f"✗ Failed to save results: {e}")
     
-    def print_summary(self, analysis: Dict):
+    def print_summary(self, analysis: Dict) -> None:
         """Print a summary of benchmark results."""
         print("\n" + "="*60)
         print("TIMING BENCHMARK SUMMARY")
@@ -238,7 +236,7 @@ class TimingBenchmark:
             print("\nPerformance Comparison:")
             self._print_comparison_summary(analysis['comparison'])
     
-    def _print_backend_summary(self, backend_analysis: Dict):
+    def _print_backend_summary(self, backend_analysis: Dict) -> None:
         """Print summary for a single backend."""
         for device_type, stats in backend_analysis.items():
             if isinstance(stats, dict):
@@ -247,7 +245,7 @@ class TimingBenchmark:
                 print(f"    Jitter: {stats['jitter']*1000:.3f}ms")
                 print(f"    Std Dev: {stats['std_dev']*1000:.3f}ms")
     
-    def _print_comparison_summary(self, comparison: Dict):
+    def _print_comparison_summary(self, comparison: Dict) -> None:
         """Print comparison summary."""
         for device_type, comp in comparison.items():
             if isinstance(comp, dict):
@@ -257,7 +255,7 @@ class TimingBenchmark:
                 print(f"    Improvement: {comp['improvement_percent']:.1f}%")
                 print(f"    Faster: {comp['faster_backend']}")
 
-def main():
+def main() -> None:
     """Run the timing benchmark."""
     print("High-Precision Timing Benchmark")
     print("="*40)

@@ -3,14 +3,12 @@ package com.buccancs.gsrcapture.network
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
-import com.buccancs.gsrcapture.utils.TimeManager
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.*
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
-import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintWriter
@@ -19,7 +17,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class NetworkClientTest {
-
     @Mock
     private lateinit var mockContext: Context
 
@@ -105,13 +102,14 @@ class NetworkClientTest {
 
     @Test
     fun testCommandHandling() {
-        val testCommands = listOf(
-            "START_RECORDING",
-            "STOP_RECORDING",
-            "SYNC_TIME",
-            "GET_STATUS",
-            "DISCONNECT"
-        )
+        val testCommands =
+            listOf(
+                "START_RECORDING",
+                "STOP_RECORDING",
+                "SYNC_TIME",
+                "GET_STATUS",
+                "DISCONNECT",
+            )
 
         val receivedCommands = mutableListOf<String>()
         networkClient.setCommandCallback { command -> receivedCommands.add(command) }
@@ -311,13 +309,14 @@ class NetworkClientTest {
 
         // Test various message formats
         val validMessage = """{"command": "TEST", "timestamp": ${System.currentTimeMillis()}}"""
-        val invalidMessages = listOf(
-            "not json",
-            "{}",
-            """{"command": ""}""",
-            """{"timestamp": 123}""",
-            """{"command": null}"""
-        )
+        val invalidMessages =
+            listOf(
+                "not json",
+                "{}",
+                """{"command": ""}""",
+                """{"timestamp": 123}""",
+                """{"command": null}""",
+            )
 
         // Valid message should trigger callback
         networkClient.handleCommand(validMessage)

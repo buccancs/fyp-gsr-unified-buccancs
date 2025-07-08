@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Unit tests for the SessionManager class.
+"""Unit tests for the SessionManager class.
 """
 
 from src.utils.session_manager import SessionManager
@@ -14,18 +13,17 @@ import sys
 import tempfile
 import unittest
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class TestSessionManager(unittest.TestCase):
-    """
-    Test case for the SessionManager class.
+    """Test case for the SessionManager class.
     """
 
-    def setUp(self):
-        """
-        Set up the test case.
+    def setUp(self) -> None:
+        """Set up the test case.
         """
         # Create a temporary directory for testing
         self.test_dir = tempfile.mkdtemp()
@@ -34,16 +32,14 @@ class TestSessionManager(unittest.TestCase):
         # directory
         self.session_manager = SessionManager(base_dir=self.test_dir)
 
-    def tearDown(self):
-        """
-        Clean up after the test case.
+    def tearDown(self) -> None:
+        """Clean up after the test case.
         """
         # Remove the temporary directory
         shutil.rmtree(self.test_dir)
 
-    def test_create_new_session(self):
-        """
-        Test creating a new session.
+    def test_create_new_session(self) -> None:
+        """Test creating a new session.
         """
         # Create a new session
         result = self.session_manager.create_new_session(
@@ -73,9 +69,8 @@ class TestSessionManager(unittest.TestCase):
         self.assertEqual(metadata["devices"], {})
         self.assertEqual(metadata["files"], [])
 
-    def test_close_session(self):
-        """
-        Test closing a session.
+    def test_close_session(self) -> None:
+        """Test closing a session.
         """
         # Create a new session
         self.session_manager.create_new_session(session_id="test_session")
@@ -97,9 +92,8 @@ class TestSessionManager(unittest.TestCase):
 
         self.assertIsNotNone(metadata["end_time"])
 
-    def test_generate_manifest(self):
-        """
-        Test generating a session manifest.
+    def test_generate_manifest(self) -> None:
+        """Test generating a session manifest.
         """
         # Create a new session
         self.session_manager.create_new_session(session_id="test_session")

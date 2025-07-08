@@ -23,7 +23,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Coordinates all recording components and provides a unified interface for
  * starting and stopping recordings.
  */
-class RecordingController(private val context: Context) {
+class RecordingController(
+    private val context: Context,
+) {
     private val TAG = "RecordingController"
 
     // Recording components
@@ -72,8 +74,9 @@ class RecordingController(private val context: Context) {
      * Creates the output directory for storing recorded data.
      */
     private fun createOutputDirectory() {
-        val baseDir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
-            ?: context.filesDir
+        val baseDir =
+            context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
+                ?: context.filesDir
 
         val appDir = File(baseDir, "GSRCapture")
         if (!appDir.exists()) {
@@ -89,14 +92,15 @@ class RecordingController(private val context: Context) {
      */
     private fun initializeComponents() {
         // Initialize RGB camera manager
-        val lifecycleOwner = if (context is androidx.lifecycle.LifecycleOwner) {
-            context as androidx.lifecycle.LifecycleOwner
-        } else {
-            // For testing, create a mock lifecycle owner
-            object : androidx.lifecycle.LifecycleOwner {
-                override val lifecycle: androidx.lifecycle.Lifecycle = androidx.lifecycle.LifecycleRegistry(this)
+        val lifecycleOwner =
+            if (context is androidx.lifecycle.LifecycleOwner) {
+                context as androidx.lifecycle.LifecycleOwner
+            } else {
+                // For testing, create a mock lifecycle owner
+                object : androidx.lifecycle.LifecycleOwner {
+                    override val lifecycle: androidx.lifecycle.Lifecycle = androidx.lifecycle.LifecycleRegistry(this)
+                }
             }
-        }
         rgbCameraManager = RgbCameraManager(context, lifecycleOwner, cameraExecutor)
 
         // Initialize thermal camera manager
@@ -125,18 +129,14 @@ class RecordingController(private val context: Context) {
      * Connects to the thermal camera.
      * @return True if connection was successful, false otherwise
      */
-    fun connectThermalCamera(): Boolean {
-        return thermalCameraManager.connectToCamera()
-    }
+    fun connectThermalCamera(): Boolean = thermalCameraManager.connectToCamera()
 
     /**
      * Connects to the GSR sensor.
      * @param deviceAddress MAC address of the GSR sensor (optional)
      * @return True if connection was successful, false otherwise
      */
-    fun connectGsrSensor(deviceAddress: String? = null): Boolean {
-        return gsrSensorManager.connectToSensor(deviceAddress)
-    }
+    fun connectGsrSensor(deviceAddress: String? = null): Boolean = gsrSensorManager.connectToSensor(deviceAddress)
 
     /**
      * Sets the preview view for the RGB camera.
@@ -276,7 +276,8 @@ class RecordingController(private val context: Context) {
             val writer = FileWriter(metadataFile)
 
             // Create JSON metadata
-            val metadata = """
+            val metadata =
+                """
                 {
                     "sessionId": "$currentSessionId",
                     "timestamp": "${TimeManager.getCurrentTimestamp()}",
@@ -299,13 +300,12 @@ class RecordingController(private val context: Context) {
                         "gsrSampleRate": 128
                     }
                 }
-            """.trimIndent()
+                """.trimIndent()
 
             writer.write(metadata)
             writer.close()
 
             Log.d(TAG, "Created session metadata file: ${metadataFile.absolutePath}")
-
         } catch (e: Exception) {
             Log.e(TAG, "Error creating session metadata", e)
         }
@@ -374,9 +374,7 @@ class RecordingController(private val context: Context) {
      * Public method for testing - generates session ID.
      * @return Generated session ID
      */
-    fun generateSessionIdForTesting(): String {
-        return generateSessionId()
-    }
+    fun generateSessionIdForTesting(): String = generateSessionId()
 
     /**
      * Public method for testing - creates session metadata.
@@ -390,9 +388,7 @@ class RecordingController(private val context: Context) {
      * Public method for testing - checks if devices are connected.
      * @return True if any device is connected
      */
-    fun isConnectedForTesting(): Boolean {
-        return thermalCameraManager.isConnected() || gsrSensorManager.isConnected()
-    }
+    fun isConnectedForTesting(): Boolean = thermalCameraManager.isConnected() || gsrSensorManager.isConnected()
 
     /**
      * Extension function to check if the thermal camera is connected.

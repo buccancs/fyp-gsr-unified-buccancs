@@ -1,8 +1,8 @@
 package com.buccancs.gsrcapture.controller
 
 import android.content.Context
-import org.junit.Test
 import org.junit.Assert.*
+import org.junit.Test
 import org.mockito.Mockito.mock
 
 /**
@@ -10,7 +10,6 @@ import org.mockito.Mockito.mock
  * These tests focus on testing the public methods that can work without Android dependencies.
  */
 class RecordingControllerSimpleTest {
-
     @Test
     fun testSessionIdGeneration() {
         // Create a mock context - this will fail but let's see what happens

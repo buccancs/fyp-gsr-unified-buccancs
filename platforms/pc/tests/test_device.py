@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Comprehensive unit tests for the Device class.
+"""Comprehensive unit tests for the Device class.
 """
 
 from src.network.device import Device
@@ -16,19 +15,18 @@ import threading
 import time
 import unittest
 from unittest.mock import MagicMock, Mock, call, patch
+from typing import Any, Dict, List, Optional, Union
 
 # Add the parent directory to the path so we can import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class TestDevice(unittest.TestCase):
-    """
-    Test case for the Device class.
+    """Test case for the Device class.
     """
 
-    def setUp(self):
-        """
-        Set up the test case.
+    def setUp(self) -> None:
+        """Set up the test case.
         """
         self.device_id = "test_device_001"
         self.device_name = "Test Android Device"
@@ -42,16 +40,14 @@ class TestDevice(unittest.TestCase):
             port=self.port
         )
 
-    def tearDown(self):
-        """
-        Clean up after the test case.
+    def tearDown(self) -> None:
+        """Clean up after the test case.
         """
         if self.device.is_connected:
             self.device.disconnect()
 
-    def test_initialization(self):
-        """
-        Test Device initialization.
+    def test_initialization(self) -> None:
+        """Test Device initialization.
         """
         self.assertEqual(self.device.device_id, self.device_id)
         self.assertEqual(self.device.device_name, self.device_name)
@@ -62,9 +58,8 @@ class TestDevice(unittest.TestCase):
         self.assertIsNone(self.device.socket)
 
     @patch('socket.socket')
-    def test_connect_success(self, mock_socket_class):
-        """
-        Test successful device connection.
+    def test_connect_success(self, mock_socket_class) -> None:
+        """Test successful device connection.
         """
         # Mock socket
         mock_socket = Mock()
@@ -81,9 +76,8 @@ class TestDevice(unittest.TestCase):
             (self.ip_address, self.port))
 
     @patch('socket.socket')
-    def test_connect_failure(self, mock_socket_class):
-        """
-        Test device connection failure.
+    def test_connect_failure(self, mock_socket_class) -> None:
+        """Test device connection failure.
         """
         # Mock socket connection failure
         mock_socket = Mock()
@@ -99,9 +93,8 @@ class TestDevice(unittest.TestCase):
         self.assertIsNone(self.device.socket)
 
     @patch('socket.socket')
-    def test_connect_timeout(self, mock_socket_class):
-        """
-        Test device connection timeout.
+    def test_connect_timeout(self, mock_socket_class) -> None:
+        """Test device connection timeout.
         """
         # Mock socket timeout
         mock_socket = Mock()
@@ -117,9 +110,8 @@ class TestDevice(unittest.TestCase):
         self.assertIsNone(self.device.socket)
 
     @patch('socket.socket')
-    def test_disconnect(self, mock_socket_class):
-        """
-        Test device disconnection.
+    def test_disconnect(self, mock_socket_class) -> None:
+        """Test device disconnection.
         """
         # Mock socket and establish connection
         mock_socket = Mock()
@@ -138,9 +130,8 @@ class TestDevice(unittest.TestCase):
         self.assertIsNone(self.device.socket)
         mock_socket.close.assert_called_once()
 
-    def test_disconnect_not_connected(self):
-        """
-        Test disconnecting when not connected.
+    def test_disconnect_not_connected(self) -> None:
+        """Test disconnecting when not connected.
         """
         # Attempt to disconnect when not connected
         result = self.device.disconnect()
@@ -149,9 +140,8 @@ class TestDevice(unittest.TestCase):
         self.assertFalse(self.device.is_connected)
 
     @patch('socket.socket')
-    def test_send_command(self, mock_socket_class):
-        """
-        Test sending commands to device.
+    def test_send_command(self, mock_socket_class) -> None:
+        """Test sending commands to device.
         """
         # Mock socket and connection
         mock_socket = Mock()
@@ -171,9 +161,8 @@ class TestDevice(unittest.TestCase):
         mock_socket.recv.assert_called()
 
     @patch('socket.socket')
-    def test_send_command_not_connected(self, mock_socket_class):
-        """
-        Test sending command when not connected.
+    def test_send_command_not_connected(self, mock_socket_class) -> None:
+        """Test sending command when not connected.
         """
         # Attempt to send command without connection
         result = self.device.send_command("START_RECORDING")
@@ -181,9 +170,8 @@ class TestDevice(unittest.TestCase):
         self.assertFalse(result)
 
     @patch('socket.socket')
-    def test_send_command_failure(self, mock_socket_class):
-        """
-        Test command sending failure.
+    def test_send_command_failure(self, mock_socket_class) -> None:
+        """Test command sending failure.
         """
         # Mock socket and connection
         mock_socket = Mock()
@@ -198,9 +186,8 @@ class TestDevice(unittest.TestCase):
         self.assertFalse(result)
 
     @patch('socket.socket')
-    def test_start_recording(self, mock_socket_class):
-        """
-        Test starting recording on device.
+    def test_start_recording(self, mock_socket_class) -> None:
+        """Test starting recording on device.
         """
         session_id = "test_session_123"
 
@@ -220,9 +207,8 @@ class TestDevice(unittest.TestCase):
         mock_socket.send.assert_called()
 
     @patch('socket.socket')
-    def test_start_recording_not_connected(self, mock_socket_class):
-        """
-        Test starting recording when not connected.
+    def test_start_recording_not_connected(self, mock_socket_class) -> None:
+        """Test starting recording when not connected.
         """
         session_id = "test_session_456"
 
@@ -233,9 +219,8 @@ class TestDevice(unittest.TestCase):
         self.assertFalse(self.device.is_recording)
 
     @patch('socket.socket')
-    def test_stop_recording(self, mock_socket_class):
-        """
-        Test stopping recording on device.
+    def test_stop_recording(self, mock_socket_class) -> None:
+        """Test stopping recording on device.
         """
         # Mock socket and connection
         mock_socket = Mock()
@@ -254,9 +239,8 @@ class TestDevice(unittest.TestCase):
         mock_socket.send.assert_called()
 
     @patch('socket.socket')
-    def test_stop_recording_not_recording(self, mock_socket_class):
-        """
-        Test stopping recording when not recording.
+    def test_stop_recording_not_recording(self, mock_socket_class) -> None:
+        """Test stopping recording when not recording.
         """
         # Mock socket and connection
         mock_socket = Mock()
@@ -271,9 +255,8 @@ class TestDevice(unittest.TestCase):
         self.assertFalse(self.device.is_recording)
 
     @patch('socket.socket')
-    def test_get_status(self, mock_socket_class):
-        """
-        Test getting device status.
+    def test_get_status(self, mock_socket_class) -> None:
+        """Test getting device status.
         """
         # Mock socket and connection
         mock_socket = Mock()
@@ -302,9 +285,8 @@ class TestDevice(unittest.TestCase):
         mock_socket.send.assert_called()
 
     @patch('socket.socket')
-    def test_get_status_not_connected(self, mock_socket_class):
-        """
-        Test getting status when not connected.
+    def test_get_status_not_connected(self, mock_socket_class) -> None:
+        """Test getting status when not connected.
         """
         # Attempt to get status without connection
         status = self.device.get_status()
@@ -315,9 +297,8 @@ class TestDevice(unittest.TestCase):
         self.assertEqual(status["is_connected"], False)
 
     @patch('socket.socket')
-    def test_collect_files(self, mock_socket_class):
-        """
-        Test collecting files from device.
+    def test_collect_files(self, mock_socket_class) -> None:
+        """Test collecting files from device.
         """
         destination_dir = tempfile.mkdtemp()
 
@@ -347,9 +328,8 @@ class TestDevice(unittest.TestCase):
             shutil.rmtree(destination_dir)
 
     @patch('socket.socket')
-    def test_collect_files_not_connected(self, mock_socket_class):
-        """
-        Test collecting files when not connected.
+    def test_collect_files_not_connected(self, mock_socket_class) -> None:
+        """Test collecting files when not connected.
         """
         destination_dir = tempfile.mkdtemp()
 
@@ -363,9 +343,8 @@ class TestDevice(unittest.TestCase):
             shutil.rmtree(destination_dir)
 
     @patch('socket.socket')
-    def test_ping(self, mock_socket_class):
-        """
-        Test pinging device.
+    def test_ping(self, mock_socket_class) -> None:
+        """Test pinging device.
         """
         # Mock socket and connection
         mock_socket = Mock()
@@ -382,18 +361,16 @@ class TestDevice(unittest.TestCase):
         mock_socket.send.assert_called()
 
     @patch('socket.socket')
-    def test_ping_not_connected(self, mock_socket_class):
-        """
-        Test pinging when not connected.
+    def test_ping_not_connected(self, mock_socket_class) -> None:
+        """Test pinging when not connected.
         """
         # Attempt to ping without connection
         result = self.device.ping()
 
         self.assertFalse(result)
 
-    def test_device_equality(self):
-        """
-        Test device equality comparison.
+    def test_device_equality(self) -> None:
+        """Test device equality comparison.
         """
         # Create another device with same ID
         device2 = Device(
@@ -414,9 +391,8 @@ class TestDevice(unittest.TestCase):
         self.assertEqual(self.device, device2)  # Same device_id
         self.assertNotEqual(self.device, device3)  # Different device_id
 
-    def test_device_string_representation(self):
-        """
-        Test device string representation.
+    def test_device_string_representation(self) -> None:
+        """Test device string representation.
         """
         device_str = str(self.device)
 
@@ -426,9 +402,8 @@ class TestDevice(unittest.TestCase):
         self.assertIn(str(self.port), device_str)
 
     @patch('socket.socket')
-    def test_concurrent_operations(self, mock_socket_class):
-        """
-        Test concurrent device operations.
+    def test_concurrent_operations(self, mock_socket_class) -> None:
+        """Test concurrent device operations.
         """
         # Mock socket and connection
         mock_socket = Mock()
@@ -441,12 +416,12 @@ class TestDevice(unittest.TestCase):
         self.device.connect()
 
         # Define concurrent operations
-        def ping_operation():
+        def ping_operation() -> None:
             for _ in range(5):
                 self.device.ping()
                 time.sleep(0.01)
 
-        def status_operation():
+        def status_operation() -> None:
             for _ in range(5):
                 self.device.get_status()
                 time.sleep(0.01)
@@ -465,9 +440,8 @@ class TestDevice(unittest.TestCase):
         self.assertTrue(True)
 
     @patch('socket.socket')
-    def test_connection_recovery(self, mock_socket_class):
-        """
-        Test connection recovery after failure.
+    def test_connection_recovery(self, mock_socket_class) -> None:
+        """Test connection recovery after failure.
         """
         # Mock socket
         mock_socket = Mock()
@@ -494,9 +468,8 @@ class TestDevice(unittest.TestCase):
         self.assertTrue(self.device.send_command("PING"))
 
     @patch('socket.socket')
-    def test_invalid_responses(self, mock_socket_class):
-        """
-        Test handling of invalid responses from device.
+    def test_invalid_responses(self, mock_socket_class) -> None:
+        """Test handling of invalid responses from device.
         """
         # Mock socket and connection
         mock_socket = Mock()
@@ -514,9 +487,8 @@ class TestDevice(unittest.TestCase):
         self.assertFalse(result)
 
     @patch('socket.socket')
-    def test_large_data_transfer(self, mock_socket_class):
-        """
-        Test handling of large data transfers.
+    def test_large_data_transfer(self, mock_socket_class) -> None:
+        """Test handling of large data transfers.
         """
         # Mock socket and connection
         mock_socket = Mock()

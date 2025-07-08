@@ -1,39 +1,43 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Main entry point for the PC Controller App.
+"""Main entry point for the PC Controller App.
+
 This script initializes the application and launches the main window.
 Cross-platform support: Windows, macOS, Linux.
 """
 
-from utils.logger import setup_logger
-from utils.camera_calibration import main as calibration_main
-from ui.main_window import MainWindow
 import argparse
 import logging
 import os
 import sys
+from typing import NoReturn
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
+from ui.main_window import MainWindow
+from utils.camera_calibration import main as calibration_main
+from utils.logger import setup_logger
+
 # Add the parent directory to the path so we can import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import our modules
 
+def main() -> NoReturn:
+    """Initialize and run the application.
 
-def main():
-    """
-    Main function to initialize and run the application.
+    Parse command line arguments and either run the GUI application
+    or execute camera calibration in CLI mode.
+
+    Raises:
+        SystemExit: Always exits with appropriate exit code.
     """
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         description="GSR & Dual-Video Recording System",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
+        epilog="""Examples:
   # Run GUI application
   python main.py
 

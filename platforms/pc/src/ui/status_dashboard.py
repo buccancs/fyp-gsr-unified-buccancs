@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Status Dashboard for the PC Controller App.
+"""Status Dashboard for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
@@ -14,16 +13,15 @@ from PySide6.QtWidgets import (QHBoxLayout, QHeaderView, QLabel, QTableWidget,
                                QTableWidgetItem, QVBoxLayout, QWidget)
 
 from utils.logger import get_logger
+from typing import Any, Dict, List, Optional, Union
 
 
 class StatusDashboard(QWidget):
-    """
-    Status Dashboard class for displaying the status of all connected devices.
+    """Status Dashboard class for displaying the status of all connected devices.
     """
 
-    def __init__(self, parent=None):
-        """
-        Initialize the status dashboard.
+    def __init__(self, parent=None) -> None:
+        """Initialize the status dashboard.
 
         Args:
             parent: The parent widget (default: None)
@@ -41,9 +39,8 @@ class StatusDashboard(QWidget):
 
         self.logger.info("Status dashboard initialized")
 
-    def setup_ui(self):
-        """
-        Set up the UI for the status dashboard.
+    def setup_ui(self) -> None:
+        """Set up the UI for the status dashboard.
         """
         # Create main layout
         self.main_layout = QVBoxLayout(self)
@@ -75,9 +72,8 @@ class StatusDashboard(QWidget):
         self.table.verticalHeader().setVisible(False)
         self.main_layout.addWidget(self.table)
 
-    def update_ui(self):
-        """
-        Update the UI with current device information.
+    def update_ui(self) -> None:
+        """Update the UI with current device information.
         """
         # Update status label
         if not self.devices:
@@ -158,9 +154,8 @@ class StatusDashboard(QWidget):
                         "green" if status["gsr_sensor_active"] else "black")))
             self.table.setItem(i, 8, gsr_item)
 
-    def add_device(self, device):
-        """
-        Add a device to the dashboard.
+    def add_device(self, device) -> None:
+        """Add a device to the dashboard.
 
         Args:
             device: The device to add
@@ -169,9 +164,8 @@ class StatusDashboard(QWidget):
         self.devices[device.id] = device
         self.update_ui()
 
-    def remove_device(self, device_id):
-        """
-        Remove a device from the dashboard.
+    def remove_device(self, device_id) -> None:
+        """Remove a device from the dashboard.
 
         Args:
             device_id: The ID of the device to remove
@@ -181,9 +175,8 @@ class StatusDashboard(QWidget):
             del self.devices[device_id]
             self.update_ui()
 
-    def clear_devices(self):
-        """
-        Clear all devices from the dashboard.
+    def clear_devices(self) -> None:
+        """Clear all devices from the dashboard.
         """
         self.logger.info("Clearing all devices from dashboard")
         self.devices.clear()

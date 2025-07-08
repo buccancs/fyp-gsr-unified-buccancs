@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Session Manager for the PC Controller App.
+"""Session Manager for the PC Controller App.
 This module handles session management and manifest generation.
 Cross-platform support: Windows, macOS, Linux.
 """
@@ -15,16 +14,15 @@ import uuid
 from pathlib import Path
 
 from utils.logger import get_logger
+from typing import Any, Dict, List, Optional, Union
 
 
 class SessionManager:
-    """
-    Session Manager class for handling session management and manifest generation.
+    """Session Manager class for handling session management and manifest generation.
     """
 
-    def __init__(self, base_dir=None):
-        """
-        Initialize the session manager.
+    def __init__(self, base_dir=None) -> None:
+        """Initialize the session manager.
 
         Args:
             base_dir: The base directory for sessions (default: None, which uses the default location)
@@ -56,12 +54,10 @@ class SessionManager:
         self.session_metadata = {}
 
         self.logger.info(
-            f"Session manager initialized with base directory: {
-                self.base_dir}")
+            f"Session manager initialized with base directory: {self.base_dir}")
 
-    def create_new_session(self, session_id=None):
-        """
-        Create a new session.
+    def create_new_session(self, session_id=None) -> None:
+        """Create a new session.
 
         Args:
             session_id: The ID of the session to create (default: None, which generates a new ID)
@@ -107,9 +103,8 @@ class SessionManager:
             self.logger.error(f"Failed to create session: {str(e)}")
             return False
 
-    def open_session(self, session_dir):
-        """
-        Open an existing session.
+    def open_session(self, session_dir) -> None:
+        """Open an existing session.
 
         Args:
             session_dir: The directory of the session to open
@@ -162,9 +157,8 @@ class SessionManager:
             self.logger.error(f"Failed to open session: {str(e)}")
             return False
 
-    def close_session(self):
-        """
-        Close the current session.
+    def close_session(self) -> None:
+        """Close the current session.
 
         Returns:
             True if the session was closed successfully, False otherwise
@@ -199,36 +193,32 @@ class SessionManager:
             self.logger.error(f"Failed to close session: {str(e)}")
             return False
 
-    def has_current_session(self):
-        """
-        Check if a session is currently open.
+    def has_current_session(self) -> None:
+        """Check if a session is currently open.
 
         Returns:
             True if a session is open, False otherwise
         """
         return self.current_session_id is not None
 
-    def get_current_session_id(self):
-        """
-        Get the ID of the current session.
+    def get_current_session_id(self) -> None:
+        """Get the ID of the current session.
 
         Returns:
             The ID of the current session, or None if no session is open
         """
         return self.current_session_id
 
-    def get_session_directory(self):
-        """
-        Get the directory of the current session.
+    def get_session_directory(self) -> None:
+        """Get the directory of the current session.
 
         Returns:
             The directory of the current session, or None if no session is open
         """
         return self.current_session_dir
 
-    def get_session_duration(self):
-        """
-        Get the duration of the current session.
+    def get_session_duration(self) -> None:
+        """Get the duration of the current session.
 
         Returns:
             The duration of the current session as a timedelta, or None if no session is open
@@ -241,9 +231,8 @@ class SessionManager:
         else:
             return datetime.datetime.now() - self.session_start_time
 
-    def add_device_to_session(self, device):
-        """
-        Add a device to the current session.
+    def add_device_to_session(self, device) -> None:
+        """Add a device to the current session.
 
         Args:
             device: The device to add
@@ -279,9 +268,8 @@ class SessionManager:
             self.logger.error(f"Failed to add device to session: {str(e)}")
             return False
 
-    def add_file_to_session(self, device_id, file_path, file_type):
-        """
-        Add a file to the current session.
+    def add_file_to_session(self, device_id, file_path, file_type) -> None:
+        """Add a file to the current session.
 
         Args:
             device_id: The ID of the device that produced the file
@@ -317,9 +305,8 @@ class SessionManager:
             self.logger.error(f"Failed to add file to session: {str(e)}")
             return False
 
-    def generate_manifest(self):
-        """
-        Generate a manifest for the current session.
+    def generate_manifest(self) -> None:
+        """Generate a manifest for the current session.
 
         Returns:
             True if the manifest was generated successfully, False otherwise
@@ -361,9 +348,8 @@ class SessionManager:
             self.logger.error(f"Failed to generate manifest: {str(e)}")
             return False
 
-    def _save_metadata(self):
-        """
-        Save the session metadata to a file.
+    def _save_metadata(self) -> None:
+        """Save the session metadata to a file.
         """
         if not self.has_current_session():
             return

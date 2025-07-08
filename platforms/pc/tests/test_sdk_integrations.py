@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Unit tests for SDK integrations (LSL, PsychoPy, Shimmer).
+"""Unit tests for SDK integrations (LSL, PsychoPy, Shimmer).
 """
 
 import os
@@ -14,13 +13,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class TestSDKIntegrations(unittest.TestCase):
-    """
-    Test case for SDK integrations.
+    """Test case for SDK integrations.
     """
 
-    def test_lsl_integration_import(self):
-        """
-        Test that LSL integration can be imported.
+    def test_lsl_integration_import(self) -> None:
+        """Test that LSL integration can be imported.
         """
         try:
             from src.integrations.lsl_integration import (LSLReceiver,  # noqa: F401
@@ -29,9 +26,8 @@ class TestSDKIntegrations(unittest.TestCase):
         except ImportError as e:
             self.fail(f"Failed to import LSL integration: {e}")
 
-    def test_psychopy_integration_import(self):
-        """
-        Test that PsychoPy integration can be imported.
+    def test_psychopy_integration_import(self) -> None:
+        """Test that PsychoPy integration can be imported.
         """
         try:
             from src.integrations.psychopy_integration import (
@@ -40,9 +36,8 @@ class TestSDKIntegrations(unittest.TestCase):
         except ImportError as e:
             self.fail(f"Failed to import PsychoPy integration: {e}")
 
-    def test_shimmer_integration_import(self):
-        """
-        Test that Shimmer integration can be imported.
+    def test_shimmer_integration_import(self) -> None:
+        """Test that Shimmer integration can be imported.
         """
         try:
             from src.integrations.shimmer_integration import (ShimmerManager,  # noqa: F401
@@ -51,9 +46,8 @@ class TestSDKIntegrations(unittest.TestCase):
         except ImportError as e:
             self.fail(f"Failed to import Shimmer integration: {e}")
 
-    def test_lsl_streamer_initialization(self):
-        """
-        Test that LSL streamer can be initialized.
+    def test_lsl_streamer_initialization(self) -> None:
+        """Test that LSL streamer can be initialized.
         """
         try:
             from src.integrations.lsl_integration import LSLStreamer
@@ -64,9 +58,8 @@ class TestSDKIntegrations(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed to initialize LSL streamer: {e}")
 
-    def test_psychopy_controller_initialization(self):
-        """
-        Test that PsychoPy controller can be initialized.
+    def test_psychopy_controller_initialization(self) -> None:
+        """Test that PsychoPy controller can be initialized.
         """
         try:
             from src.integrations.psychopy_integration import \
@@ -78,9 +71,8 @@ class TestSDKIntegrations(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed to initialize PsychoPy controller: {e}")
 
-    def test_shimmer_sensor_initialization(self):
-        """
-        Test that Shimmer sensor can be initialized.
+    def test_shimmer_sensor_initialization(self) -> None:
+        """Test that Shimmer sensor can be initialized.
         """
         try:
             from src.integrations.shimmer_integration import ShimmerSensor
@@ -93,9 +85,8 @@ class TestSDKIntegrations(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed to initialize Shimmer sensor: {e}")
 
-    def test_shimmer_manager_initialization(self):
-        """
-        Test that Shimmer manager can be initialized.
+    def test_shimmer_manager_initialization(self) -> None:
+        """Test that Shimmer manager can be initialized.
         """
         try:
             from src.integrations.shimmer_integration import ShimmerManager
@@ -105,9 +96,8 @@ class TestSDKIntegrations(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed to initialize Shimmer manager: {e}")
 
-    def test_lsl_stream_creation(self):
-        """
-        Test that LSL streams can be created (if pylsl is available).
+    def test_lsl_stream_creation(self) -> None:
+        """Test that LSL streams can be created (if pylsl is available).
         """
         try:
             from src.integrations.lsl_integration import LSLStreamer
@@ -123,9 +113,8 @@ class TestSDKIntegrations(unittest.TestCase):
         except Exception as e:
             self.fail(f"LSL stream creation test failed: {e}")
 
-    def test_shimmer_sensor_configuration(self):
-        """
-        Test that Shimmer sensor configuration works.
+    def test_shimmer_sensor_configuration(self) -> None:
+        """Test that Shimmer sensor configuration works.
         """
         try:
             from src.integrations.shimmer_integration import ShimmerSensor
@@ -145,12 +134,12 @@ class TestSDKIntegrations(unittest.TestCase):
         except Exception as e:
             self.fail(f"Shimmer sensor configuration test failed: {e}")
 
-    def test_experiment_controller_stimulus_creation(self):
-        """
-        Test that PsychoPy stimulus creation works (if PsychoPy is available).
+    def test_experiment_controller_stimulus_creation(self) -> None:
+        """Test that PsychoPy stimulus creation works (if PsychoPy is available).
         """
         try:
             from src.integrations.psychopy_integration import \
+from typing import Any, Dict, List, Optional, Union
                 ExperimentController
             controller = ExperimentController()
 

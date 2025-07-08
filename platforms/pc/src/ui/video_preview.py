@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Video Preview for the PC Controller App.
+"""Video Preview for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
@@ -14,16 +13,15 @@ from PySide6.QtWidgets import (QGroupBox, QHBoxLayout, QLabel, QPushButton,
                                QSizePolicy, QVBoxLayout, QWidget)
 
 from utils.logger import get_logger
+from typing import Any, Dict, List, Optional, Union
 
 
 class VideoPreview(QWidget):
-    """
-    Video Preview class for displaying live video feeds from devices.
+    """Video Preview class for displaying live video feeds from devices.
     """
 
-    def __init__(self, title="Video", parent=None):
-        """
-        Initialize the video preview.
+    def __init__(self, title="Video", parent=None) -> None:
+        """Initialize the video preview.
 
         Args:
             title: The title of the preview (default: "Video")
@@ -46,9 +44,8 @@ class VideoPreview(QWidget):
 
         self.logger.info(f"Video preview initialized: {title}")
 
-    def setup_ui(self):
-        """
-        Set up the UI for the video preview.
+    def setup_ui(self) -> None:
+        """Set up the UI for the video preview.
         """
         # Create main layout
         self.main_layout = QVBoxLayout(self)
@@ -76,9 +73,8 @@ class VideoPreview(QWidget):
         self.frame_widget.setMinimumSize(320, 240)
         self.main_layout.addWidget(self.frame_widget)
 
-    def update_frame(self, frame):
-        """
-        Update the video frame.
+    def update_frame(self, frame) -> None:
+        """Update the video frame.
 
         Args:
             frame: The new frame to display (QImage)
@@ -87,9 +83,8 @@ class VideoPreview(QWidget):
         self.frame_widget.set_image(frame)
         self.update_status("Receiving")
 
-    def update_status(self, status):
-        """
-        Update the status of the video preview.
+    def update_status(self, status) -> None:
+        """Update the status of the video preview.
 
         Args:
             status: The new status
@@ -109,9 +104,8 @@ class VideoPreview(QWidget):
         self.frame_widget.set_status(status)
         self.frame_widget.update()
 
-    def clear(self):
-        """
-        Clear the video preview.
+    def clear(self) -> None:
+        """Clear the video preview.
         """
         self.frame = None
         self.frame_widget.set_image(None)
@@ -119,13 +113,11 @@ class VideoPreview(QWidget):
 
 
 class VideoFrameWidget(QWidget):
-    """
-    Widget for displaying a video frame.
+    """Widget for displaying a video frame.
     """
 
-    def __init__(self, parent=None):
-        """
-        Initialize the video frame widget.
+    def __init__(self, parent=None) -> None:
+        """Initialize the video frame widget.
 
         Args:
             parent: The parent widget (default: None)
@@ -142,9 +134,8 @@ class VideoFrameWidget(QWidget):
         palette.setColor(self.backgroundRole(), QColor(0, 0, 0))
         self.setPalette(palette)
 
-    def set_image(self, image):
-        """
-        Set the image to display.
+    def set_image(self, image) -> None:
+        """Set the image to display.
 
         Args:
             image: The image to display (QImage)
@@ -152,9 +143,8 @@ class VideoFrameWidget(QWidget):
         self.image = image
         self.update()
 
-    def set_status(self, status):
-        """
-        Set the status of the video frame.
+    def set_status(self, status) -> None:
+        """Set the status of the video frame.
 
         Args:
             status: The new status
@@ -162,9 +152,8 @@ class VideoFrameWidget(QWidget):
         self.status = status
         self.update()
 
-    def paintEvent(self, event):
-        """
-        Paint the widget.
+    def paintEvent(self, event) -> None:
+        """Paint the widget.
 
         Args:
             event: The paint event
@@ -189,9 +178,8 @@ class VideoFrameWidget(QWidget):
             painter.setFont(font)
             painter.drawText(self.rect(), Qt.AlignCenter, self.status)
 
-    def sizeHint(self):
-        """
-        Get the suggested size of the widget.
+    def sizeHint(self) -> None:
+        """Get the suggested size of the widget.
 
         Returns:
             The suggested size

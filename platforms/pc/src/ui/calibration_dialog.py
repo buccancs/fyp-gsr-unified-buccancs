@@ -1,5 +1,4 @@
-"""
-Camera Calibration Dialog for FYP-GSR System
+"""Camera Calibration Dialog for FYP-GSR System
 
 This module provides a user-friendly GUI dialog for camera calibration
 functionality. It integrates with the camera_calibration module to provide
@@ -39,13 +38,13 @@ class CalibrationWorker(QThread):
     calibration_completed = Signal(dict)  # Calibration results
     calibration_failed = Signal(str)      # Error message
 
-    def __init__(self, calibrator: CameraCalibrator, calibration_config: Dict):
+    def __init__(self, calibrator: CameraCalibrator, calibration_config: Dict) -> None:
         super().__init__()
         self.calibrator = calibrator
         self.config = calibration_config
         self.logger = get_logger(__name__)
 
-    def run(self):
+    def run(self) -> None:
         """Run calibration in background thread."""
         try:
             self.status_updated.emit("Starting calibration process...")
@@ -156,7 +155,7 @@ class CalibrationWorker(QThread):
 class CalibrationDialog(QDialog):
     """Main calibration dialog window."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.logger = get_logger(__name__)
         self.calibrator = None
@@ -169,7 +168,7 @@ class CalibrationDialog(QDialog):
         self.setup_ui()
         self.connect_signals()
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Set up the user interface."""
         layout = QVBoxLayout(self)
 
@@ -192,7 +191,7 @@ class CalibrationDialog(QDialog):
         # Progress and control section
         self.create_control_section(layout)
 
-    def create_input_tab(self):
+    def create_input_tab(self) -> None:
         """Create the input sources configuration tab."""
         input_widget = QWidget()
         layout = QVBoxLayout(input_widget)
@@ -269,7 +268,7 @@ class CalibrationDialog(QDialog):
         layout.addStretch()
         self.tabs.addTab(input_widget, "Input Sources")
 
-    def create_pattern_tab(self):
+    def create_pattern_tab(self) -> None:
         """Create the calibration pattern configuration tab."""
         pattern_widget = QWidget()
         layout = QVBoxLayout(pattern_widget)
@@ -336,7 +335,7 @@ class CalibrationDialog(QDialog):
 
         self.tabs.addTab(pattern_widget, "Pattern Config")
 
-    def create_advanced_tab(self):
+    def create_advanced_tab(self) -> None:
         """Create the advanced options tab."""
         advanced_widget = QWidget()
         layout = QVBoxLayout(advanced_widget)
@@ -375,7 +374,7 @@ class CalibrationDialog(QDialog):
 
         self.tabs.addTab(advanced_widget, "Advanced")
 
-    def create_results_tab(self):
+    def create_results_tab(self) -> None:
         """Create the results display tab."""
         results_widget = QWidget()
         layout = QVBoxLayout(results_widget)
@@ -403,7 +402,7 @@ class CalibrationDialog(QDialog):
 
         self.tabs.addTab(results_widget, "Results")
 
-    def create_control_section(self, parent_layout):
+    def create_control_section(self, parent_layout) -> None:
         """Create the control section with progress and buttons."""
         control_group = QGroupBox("Calibration Control")
         control_layout = QVBoxLayout(control_group)
@@ -439,17 +438,34 @@ class CalibrationDialog(QDialog):
         control_layout.addLayout(button_layout)
         parent_layout.addWidget(control_group)
 
-    def connect_signals(self):
+    def connect_signals(self) -> None:
         """Connect internal signals."""
-        pass
+        # Connect input field change signals to validation
+        self.rgb_video_edit.textChanged.connect(self.validate_inputs)
+        self.rgb_frames_edit.textChanged.connect(self.validate_inputs)
+        self.thermal_frames_edit.textChanged.connect(self.validate_inputs)
+        self.output_edit.textChanged.connect(self.validate_inputs)
 
-    def on_pattern_type_changed(self, pattern_type):
+        # Connect pattern configuration changes to update instructions
+        self.grid_width_spin.valueChanged.connect(self.update_instructions)
+        self.grid_height_spin.valueChanged.connect(self.update_instructions)
+        self.square_size_spin.valueChanged.connect(self.update_instructions)
+        self.marker_size_spin.valueChanged.connect(self.update_instructions)
+
+        # Connect advanced options changes
+        self.max_frames_spin.valueChanged.connect(self.validate_inputs)
+        self.enable_stereo_check.toggled.connect(self.validate_inputs)
+
+        # Initial validation
+        self.validate_inputs()
+
+    def on_pattern_type_changed(self, pattern_type) -> None:
         """Handle pattern type change."""
         is_charuco = pattern_type == "charuco"
         self.marker_size_spin.setEnabled(is_charuco)
         self.update_instructions()
 
-    def update_instructions(self):
+    def update_instructions(self) -> None:
         """Update the calibration instructions based on pattern type."""
         pattern_type = self.pattern_combo.currentText()
 
@@ -484,7 +500,7 @@ class CalibrationDialog(QDialog):
 
         self.instructions_text.setHtml(instructions)
 
-    def browse_rgb_video(self):
+    def browse_rgb_video(self) -> None:
         """Browse for RGB video file."""
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select RGB Video File", "",
@@ -494,7 +510,7 @@ class CalibrationDialog(QDialog):
             self.rgb_video_edit.setText(file_path)
             self.rgb_frames_edit.clear()  # Clear alternative input
 
-    def browse_rgb_frames(self):
+    def browse_rgb_frames(self) -> None:
         """Browse for RGB frames directory."""
         dir_path = QFileDialog.getExistingDirectory(
             self, "Select RGB Frames Directory"
@@ -503,7 +519,7 @@ class CalibrationDialog(QDialog):
             self.rgb_frames_edit.setText(dir_path)
             self.rgb_video_edit.clear()  # Clear alternative input
 
-    def browse_thermal_frames(self):
+    def browse_thermal_frames(self) -> None:
         """Browse for thermal frames directory."""
         dir_path = QFileDialog.getExistingDirectory(
             self, "Select Thermal Frames Directory"
@@ -511,7 +527,7 @@ class CalibrationDialog(QDialog):
         if dir_path:
             self.thermal_frames_edit.setText(dir_path)
 
-    def browse_webcam_video(self):
+    def browse_webcam_video(self) -> None:
         """Browse for webcam video file."""
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select Webcam Video File", "",
@@ -520,7 +536,7 @@ class CalibrationDialog(QDialog):
         if file_path:
             self.webcam_video_edit.setText(file_path)
 
-    def browse_output_file(self):
+    def browse_output_file(self) -> None:
         """Browse for output calibration file."""
         file_path, _ = QFileDialog.getSaveFileName(
             self, "Save Calibration Results", "calibration_results.json",
@@ -529,7 +545,7 @@ class CalibrationDialog(QDialog):
         if file_path:
             self.output_edit.setText(file_path)
 
-    def auto_detect_session(self):
+    def auto_detect_session(self) -> None:
         """Auto-detect calibration files from a session folder."""
         session_dir = QFileDialog.getExistingDirectory(
             self, "Select Session Directory"
@@ -651,7 +667,7 @@ class CalibrationDialog(QDialog):
 
         return True
 
-    def start_calibration(self):
+    def start_calibration(self) -> None:
         """Start the calibration process."""
         if not self.validate_inputs():
             return
@@ -698,7 +714,7 @@ class CalibrationDialog(QDialog):
         # Start calibration
         self.worker.start()
 
-    def cancel_calibration(self):
+    def cancel_calibration(self) -> None:
         """Cancel the ongoing calibration."""
         if self.worker and self.worker.isRunning():
             self.worker.terminate()
@@ -707,7 +723,7 @@ class CalibrationDialog(QDialog):
         self.reset_ui_state()
         self.status_label.setText("Calibration cancelled")
 
-    def on_calibration_completed(self, results: Dict):
+    def on_calibration_completed(self, results: Dict) -> None:
         """Handle successful calibration completion."""
         self.reset_ui_state()
 
@@ -724,7 +740,7 @@ class CalibrationDialog(QDialog):
             "Camera calibration completed successfully!\nResults are displayed in the Results tab."
         )
 
-    def on_calibration_failed(self, error_message: str):
+    def on_calibration_failed(self, error_message: str) -> None:
         """Handle calibration failure."""
         self.reset_ui_state()
         self.status_label.setText(f"Calibration failed: {error_message}")
@@ -734,7 +750,7 @@ class CalibrationDialog(QDialog):
             f"Calibration failed with error:\n\n{error_message}"
         )
 
-    def reset_ui_state(self):
+    def reset_ui_state(self) -> None:
         """Reset UI to initial state."""
         self.start_button.setEnabled(True)
         self.cancel_button.setEnabled(False)
@@ -752,8 +768,7 @@ class CalibrationDialog(QDialog):
 
             summary += f"{camera_name.upper()} CAMERA:\n"
             summary += f"  Image Size: {data['image_size']}\n"
-            summary += f"  Reprojection Error: {
-                data['reprojection_error']:.3f} pixels\n"
+            summary += f"  Reprojection Error: {data['reprojection_error']:.3f} pixels\n"
             summary += f"  Images Used: {data['num_images_used']}\n"
             summary += f"  Calibration Date: {data['calibration_date']}\n"
 
@@ -766,33 +781,23 @@ class CalibrationDialog(QDialog):
 
             # Distortion coefficients
             D = data['distortion_coefficients'][0]
-            summary += f"  Distortion: [{
-                D[0]:.6f}, {
-                D[1]:.6f}, {
-                D[2]:.6f}, {
-                D[3]:.6f}, {
-                    D[4]:.6f}]\n\n"
+            summary += f"  Distortion: [{D[0]:.6f}, {D[1]:.6f}, {D[2]:.6f}, {D[3]:.6f}, {D[4]:.6f}]\n\n"
 
         # Extrinsic calibration results
         if 'extrinsics' in results:
             summary += "STEREO CALIBRATION:\n"
             for pair_name, data in results['extrinsics'].items():
                 summary += f"  {pair_name}:\n"
-                summary += f"    Reprojection Error: {
-                    data['reprojection_error']:.3f} pixels\n"
-                summary += f"    Image Pairs Used: {
-                    data['num_image_pairs_used']}\n"
+                summary += f"    Reprojection Error: {data['reprojection_error']:.3f} pixels\n"
+                summary += f"    Image Pairs Used: {data['num_image_pairs_used']}\n"
 
                 # Translation vector
                 T = data['translation_vector']
-                summary += f"    Translation: [{
-                    T[0][0]:.3f}, {
-                    T[1][0]:.3f}, {
-                    T[2][0]:.3f}] meters\n\n"
+                summary += f"    Translation: [{T[0][0]:.3f}, {T[1][0]:.3f}, {T[2][0]:.3f}] meters\n\n"
 
         return summary
 
-    def export_json(self):
+    def export_json(self) -> None:
         """Export calibration results to JSON file."""
         if not self.calibrator:
             return
@@ -815,7 +820,7 @@ class CalibrationDialog(QDialog):
                     f"Failed to export calibration results:\n{str(e)}"
                 )
 
-    def view_detailed_results(self):
+    def view_detailed_results(self) -> None:
         """Open detailed results in a new window."""
         if not self.calibrator:
             return

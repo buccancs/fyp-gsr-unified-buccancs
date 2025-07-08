@@ -7,14 +7,12 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
 import android.util.Log
-import android.view.Surface
 import android.view.TextureView
 import com.buccancs.gsrcapture.network.CommandProtocolClient
 import com.buccancs.gsrcapture.utils.TimeManager
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.ExecutorService
@@ -31,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class ThermalCameraManager(
     private val context: Context,
-    private val cameraExecutor: ExecutorService
+    private val cameraExecutor: ExecutorService,
 ) {
     private val TAG = "ThermalCameraManager"
 
@@ -64,15 +62,14 @@ class ThermalCameraManager(
      * Initializes the thermal camera manager.
      * @return True if initialization was successful, false otherwise
      */
-    fun initialize(): Boolean {
-        return try {
+    fun initialize(): Boolean =
+        try {
             usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
             usbManager != null
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing thermal camera manager", e)
             false
         }
-    }
 
     /**
      * Connects to the Topdon TC001 thermal camera.
@@ -122,7 +119,6 @@ class ThermalCameraManager(
             isConnected.set(true)
             Log.d(TAG, "Connected to Topdon TC001 thermal camera")
             return true
-
         } catch (e: Exception) {
             Log.e(TAG, "Error connecting to thermal camera", e)
             disconnect()
@@ -180,7 +176,10 @@ class ThermalCameraManager(
      * @param len Length of data
      * @return Bitmap representation of thermal data
      */
-    internal fun processThermalData(buffer: ByteArray, len: Int): Bitmap {
+    internal fun processThermalData(
+        buffer: ByteArray,
+        len: Int,
+    ): Bitmap {
         // In a real implementation, you would parse the thermal data format
         // specific to the Topdon TC001 camera and convert it to a bitmap
         // For now, we'll just create a dummy bitmap for demonstration purposes
@@ -231,7 +230,7 @@ class ThermalCameraManager(
                 Log.e(TAG, "Error sending video frame over network", e)
             }
         }
-        */
+         */
         // --- END OF REMOVAL ---
     }
 
@@ -243,23 +242,30 @@ class ThermalCameraManager(
         textureView = view
 
         // Set up the texture view
-        view.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-            override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-                // Surface is ready for drawing
-            }
+        view.surfaceTextureListener =
+            object : TextureView.SurfaceTextureListener {
+                override fun onSurfaceTextureAvailable(
+                    surface: SurfaceTexture,
+                    width: Int,
+                    height: Int,
+                ) {
+                    // Surface is ready for drawing
+                }
 
-            override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-                // Surface size changed
-            }
+                override fun onSurfaceTextureSizeChanged(
+                    surface: SurfaceTexture,
+                    width: Int,
+                    height: Int,
+                ) {
+                    // Surface size changed
+                }
 
-            override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-                return true
-            }
+                override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean = true
 
-            override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
-                // Texture updated
+                override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+                    // Texture updated
+                }
             }
-        }
     }
 
     /**
@@ -293,7 +299,10 @@ class ThermalCameraManager(
      * @param sessionId Unique identifier for the recording session
      * @return True if recording started successfully, false otherwise
      */
-    fun startRecording(outputDir: File, sessionId: String): Boolean {
+    fun startRecording(
+        outputDir: File,
+        sessionId: String,
+    ): Boolean {
         if (!isConnected.get()) {
             Log.e(TAG, "Cannot start recording: not connected to thermal camera")
             return false
@@ -309,7 +318,7 @@ class ThermalCameraManager(
         frameCount = 0
 
         // Create a subdirectory for thermal frames
-        val thermalDir = File(outputDir, "thermal_${sessionId}")
+        val thermalDir = File(outputDir, "thermal_$sessionId")
         if (!thermalDir.exists()) {
             thermalDir.mkdirs()
         }
@@ -338,7 +347,7 @@ class ThermalCameraManager(
 
         try {
             val timestamp = TimeManager.getCurrentTimestampNanos()
-            val frameFile = File(dir, "thermal_${sid}/frame_${timestamp}.jpg")
+            val frameFile = File(dir, "thermal_$sid/frame_$timestamp.jpg")
 
             FileOutputStream(frameFile).use { out ->
                 frame.compress(Bitmap.CompressFormat.JPEG, 90, out)

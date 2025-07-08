@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Test script for USB device discovery functionality.
+"""Test script for USB device discovery functionality.
 This script tests the USB discovery feature implemented in the DeviceManager.
 """
 
@@ -15,9 +14,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'sr
 from network.device_manager import DeviceManager
 from utils.logger import get_logger
 
-def test_usb_discovery():
-    """
-    Test the USB device discovery functionality.
+def test_usb_discovery() -> None:
+    """Test the USB device discovery functionality.
     """
     logger = get_logger(__name__)
     logger.info("Starting USB device discovery test")
@@ -75,4 +73,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Test failed with exception: {e}")
         import traceback
+from typing import Any, Dict, List, Optional, Union
         traceback.print_exc()

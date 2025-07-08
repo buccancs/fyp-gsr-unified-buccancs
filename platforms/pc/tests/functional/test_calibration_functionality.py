@@ -1,5 +1,4 @@
-"""
-Comprehensive Calibration Functionality Tests
+"""Comprehensive Calibration Functionality Tests
 
 This module consolidates and replaces the scattered calibration tests:
 - test_calibration.py
@@ -19,7 +18,7 @@ from pathlib import Path
 class TestCameraCalibration:
     """Test camera calibration functionality."""
     
-    def test_calibration_import(self):
+    def test_calibration_import(self) -> None:
         """Test that calibration modules can be imported."""
         try:
             # Test importing calibration-related modules
@@ -31,7 +30,7 @@ class TestCameraCalibration:
             pytest.skip(f"Calibration modules not available: {e}")
     
     @patch('cv2.VideoCapture')
-    def test_calibration_dialog_initialization(self, mock_video_capture):
+    def test_calibration_dialog_initialization(self, mock_video_capture) -> None:
         """Test CalibrationDialog initialization."""
         try:
             from ui.calibration_dialog import CalibrationDialog
@@ -58,7 +57,7 @@ class TestCameraCalibration:
         except ImportError:
             pytest.skip("UI modules not available")
     
-    def test_calibration_data_structure(self):
+    def test_calibration_data_structure(self) -> None:
         """Test calibration data structure and validation."""
         # Test valid calibration data structure
         calibration_data = {
@@ -78,7 +77,7 @@ class TestCameraCalibration:
         assert len(calibration_data['distortion_coefficients']) == 5
         assert len(calibration_data['image_size']) == 2
     
-    def test_calibration_file_operations(self, temp_dir):
+    def test_calibration_file_operations(self, temp_dir) -> None:
         """Test calibration file save/load operations."""
         calibration_data = {
             'camera_matrix': [[640.0, 0.0, 320.0], [0.0, 640.0, 240.0], [0.0, 0.0, 1.0]],
@@ -103,7 +102,7 @@ class TestCameraCalibration:
     
     @patch('cv2.findChessboardCorners')
     @patch('cv2.calibrateCamera')
-    def test_calibration_algorithm(self, mock_calibrate, mock_find_corners):
+    def test_calibration_algorithm(self, mock_calibrate, mock_find_corners) -> None:
         """Test the calibration algorithm workflow."""
         # Mock chessboard detection
         mock_find_corners.return_value = (True, np.array([[100, 100], [200, 100], [100, 200]]))
@@ -153,7 +152,7 @@ class TestCalibrationUI:
     """Test calibration user interface components."""
     
     @patch('PyQt5.QtWidgets.QApplication')
-    def test_calibration_dialog_ui_elements(self, mock_app):
+    def test_calibration_dialog_ui_elements(self, mock_app) -> None:
         """Test that calibration dialog has required UI elements."""
         try:
             from ui.calibration_dialog import CalibrationDialog
@@ -172,10 +171,11 @@ class TestCalibrationUI:
         except ImportError:
             pytest.skip("UI modules not available")
     
-    def test_live_calibration_functionality(self):
+    def test_live_calibration_functionality(self) -> None:
         """Test live calibration dialog functionality."""
         try:
             from ui.live_calibration_dialog import LiveCalibrationDialog
+from typing import Any, Dict, List, Optional, Union
             
             # Test that live calibration dialog exists and has required methods
             assert hasattr(LiveCalibrationDialog, '__init__')
@@ -188,7 +188,7 @@ class TestCalibrationIntegration:
     """Test calibration integration with other components."""
     
     @patch('hardware.webcam_pc.WebcamPC')
-    def test_calibration_with_webcam(self, mock_webcam):
+    def test_calibration_with_webcam(self, mock_webcam) -> None:
         """Test calibration integration with webcam."""
         # Mock webcam
         mock_webcam_instance = Mock()
@@ -204,7 +204,7 @@ class TestCalibrationIntegration:
         assert frame is not None
         assert frame.shape == (480, 640, 3)
     
-    def test_calibration_data_persistence(self, temp_dir):
+    def test_calibration_data_persistence(self, temp_dir) -> None:
         """Test that calibration data persists correctly."""
         calibration_data = {
             'camera_matrix': [[640.0, 0.0, 320.0], [0.0, 640.0, 240.0], [0.0, 0.0, 1.0]],
@@ -231,7 +231,7 @@ class TestCalibrationIntegration:
 class TestCalibrationValidation:
     """Test calibration validation and error handling."""
     
-    def test_invalid_calibration_data(self):
+    def test_invalid_calibration_data(self) -> None:
         """Test handling of invalid calibration data."""
         # Test with invalid camera matrix
         invalid_data = {
@@ -253,7 +253,7 @@ class TestCalibrationValidation:
         # Should detect invalid distortion coefficients
         assert len(invalid_data2['distortion_coefficients']) != 5
     
-    def test_calibration_quality_metrics(self):
+    def test_calibration_quality_metrics(self) -> None:
         """Test calibration quality assessment."""
         # Test good calibration (low RMS error)
         good_calibration = {'rms_error': 0.3}
@@ -267,7 +267,7 @@ class TestCalibrationValidation:
         acceptable_calibration = {'rms_error': 0.8}
         assert 0.5 <= acceptable_calibration['rms_error'] <= 1.0
     
-    def test_calibration_edge_cases(self):
+    def test_calibration_edge_cases(self) -> None:
         """Test calibration edge cases and error conditions."""
         # Test with minimal calibration images
         minimal_images = 3

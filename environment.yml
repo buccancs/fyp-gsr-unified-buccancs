@@ -1,0 +1,56 @@
+name: fyp-gsr-unified-buccancs
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy>=1.24.3
+  - pandas>=2.0.3
+  - matplotlib>=3.7.2
+  - pillow>=10.0.0
+  - pyyaml>=6.0.1
+  - pyserial>=3.5
+  - pytest>=7.4.0
+  - pytest-asyncio>=0.21.0
+  - pytest-cov>=4.1.0
+  - coverage>=7.2.0
+  - pip:
+    # GUI Framework
+    - PySide6>=6.6.1
+    # Networking
+    - python-socketio[asyncio]>=5.10.0
+    - websockets>=11.0.3
+    - zeroconf>=0.69.0
+    - pure-python-adb>=0.3.0.dev0
+    # Video Processing & Data Handling
+    - opencv-python>=4.8.0.74
+    - pyqtgraph>=0.13.7
+    # Sensor Integration & Experiment Control
+    - bleak==0.12.1
+    - pylsl>=1.16.2
+    - pyshimmer==0.7.0
+    # macOS specific dependency
+    - pyobjc==7.3
+    # PsychoPy
+    - psychopy>=2023.2.3
+    # Utilities
+    - python-dateutil>=2.8.2
+    # Testing dependencies
+    - pytest-mock>=3.11.0
+    - pytest-qt>=4.2.0
+    - pytest-xvfb>=3.0.0
+    - responses>=0.23.0
+    - freezegun>=1.2.0
+    - coverage-badge>=1.1.0
+    - factory-boy>=3.3.0
+    - faker>=19.0.0
+    - pytest-benchmark>=4.0.0
+    - pytest-timeout>=2.1.0
+    - pytest-xdist>=3.3.0
+    - pytest-html>=3.2.0
+    - pytest-json-report>=1.5.0
+    - allure-pytest>=2.13.0
+    - pyvirtualdisplay>=3.0.0
+    - selenium>=4.11.0
+    - httpretty>=1.1.4

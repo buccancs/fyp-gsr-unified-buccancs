@@ -1,5 +1,4 @@
-"""
-Live Calibration Dialog with Real-time Feedback for FYP-GSR System
+"""Live Calibration Dialog with Real-time Feedback for FYP-GSR System
 
 This module provides an enhanced calibration dialog that integrates real-time
 feedback during calibration data recording. It shows live video preview with
@@ -32,7 +31,7 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
-from PySide6.QtCore import Qt, QThread, QTimer, Signal, pyqtSignal
+from PySide6.QtCore import Qt, QThread, QTimer, Signal
 from PySide6.QtGui import QBrush, QFont, QIcon, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (QCheckBox, QComboBox, QDialog, QDoubleSpinBox,
                                QFileDialog, QFormLayout, QFrame, QGridLayout,
@@ -49,7 +48,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 class VideoPreviewWidget(QLabel):
     """Widget for displaying live video preview with calibration feedback."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setMinimumSize(640, 480)
         self.setStyleSheet("border: 2px solid gray; background-color: black;")
@@ -64,7 +63,7 @@ class VideoPreviewWidget(QLabel):
     def update_frame(
             self,
             frame: np.ndarray,
-            feedback: PatternFeedback = None):
+            feedback: PatternFeedback = None) -> None:
         """Update the displayed frame with optional feedback overlay."""
         if frame is None:
             return
@@ -79,7 +78,7 @@ class VideoPreviewWidget(QLabel):
         # Convert to Qt format and display
         self._display_frame(frame)
 
-    def _display_frame(self, frame: np.ndarray):
+    def _display_frame(self, frame: np.ndarray) -> None:
         """Convert frame to Qt format and display."""
         height, width, channel = frame.shape
         bytes_per_line = 3 * width
@@ -103,7 +102,7 @@ class VideoPreviewWidget(QLabel):
 
         self.setPixmap(scaled_pixmap)
 
-    def toggle_feedback_overlay(self, enabled: bool):
+    def toggle_feedback_overlay(self, enabled: bool) -> None:
         """Toggle feedback overlay on/off."""
         self.feedback_overlay = enabled
 
@@ -122,7 +121,7 @@ class LiveCalibrationWorker(QThread):
     statistics_updated = Signal(dict)
     error_occurred = Signal(str)
 
-    def __init__(self, video_source: str, pattern: CalibrationPattern):
+    def __init__(self, video_source: str, pattern: CalibrationPattern) -> None:
         super().__init__()
         self.video_source = video_source
         self.pattern = pattern
@@ -136,7 +135,7 @@ class LiveCalibrationWorker(QThread):
         self.frame_skip = 2  # Process every nth frame for performance
         self.frame_count = 0
 
-    def run(self):
+    def run(self) -> None:
         """Main processing loop."""
         try:
             # Initialize video capture
@@ -147,8 +146,7 @@ class LiveCalibrationWorker(QThread):
 
             if not self.cap.isOpened():
                 self.error_occurred.emit(
-                    f"Failed to open video source: {
-                        self.video_source}")
+                    f"Failed to open video source: {self.video_source}")
                 return
 
             # Start feedback processing
@@ -180,11 +178,11 @@ class LiveCalibrationWorker(QThread):
         finally:
             self.cleanup()
 
-    def stop_processing(self):
+    def stop_processing(self) -> None:
         """Stop the processing loop."""
         self.is_running = False
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up resources."""
         if self.cap:
             self.cap.release()
@@ -194,12 +192,12 @@ class LiveCalibrationWorker(QThread):
 class CalibrationQualityWidget(QWidget):
     """Widget for displaying calibration quality metrics and recommendations."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setup_ui()
         self.current_feedback = None
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Set up the user interface."""
         layout = QVBoxLayout(self)
 
@@ -247,7 +245,7 @@ class CalibrationQualityWidget(QWidget):
 
         layout.addWidget(recommendations_group)
 
-    def update_feedback(self, feedback: PatternFeedback):
+    def update_feedback(self, feedback: PatternFeedback) -> None:
         """Update the display with new feedback data."""
         if feedback is None:
             return
@@ -274,7 +272,7 @@ class CalibrationQualityWidget(QWidget):
             item = QListWidgetItem(recommendation)
             self.recommendations_list.addItem(item)
 
-    def update_statistics(self, stats: Dict):
+    def update_statistics(self, stats: Dict) -> None:
         """Update display with session statistics."""
         if 'detection_rate' in stats:
             detection_rate = stats['detection_rate'] * 100
@@ -295,7 +293,7 @@ class CalibrationQualityWidget(QWidget):
 class LiveCalibrationDialog(QDialog):
     """Enhanced calibration dialog with live feedback capabilities."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.logger = get_logger(__name__)
         self.worker = None
@@ -310,7 +308,7 @@ class LiveCalibrationDialog(QDialog):
         self.setup_ui()
         self.connect_signals()
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Set up the user interface."""
         layout = QHBoxLayout(self)
 
@@ -458,11 +456,38 @@ class LiveCalibrationDialog(QDialog):
 
         return panel
 
-    def connect_signals(self):
+    def connect_signals(self) -> None:
         """Connect internal signals."""
-        pass
+        # Connect pattern configuration changes to update preview
+        self.pattern_type_combo.currentTextChanged.connect(self._on_pattern_config_changed)
+        self.grid_width_spin.valueChanged.connect(self._on_pattern_config_changed)
+        self.grid_height_spin.valueChanged.connect(self._on_pattern_config_changed)
+        self.square_size_spin.valueChanged.connect(self._on_pattern_config_changed)
 
-    def browse_video_source(self):
+        # Connect source selection changes
+        self.source_combo.currentTextChanged.connect(self._on_source_changed)
+
+        # Connect video preview feedback toggle
+        if hasattr(self.video_preview, 'toggle_feedback_overlay'):
+            # This would be connected to a checkbox if we had one for toggling feedback overlay
+            pass
+
+    def _on_pattern_config_changed(self) -> None:
+        """Handle pattern configuration changes."""
+        # If we're currently running, we might want to restart with new pattern
+        # For now, just log the change
+        self.logger.info(f"Pattern configuration changed: {self.pattern_type_combo.currentText()} "
+                        f"{self.grid_width_spin.value()}x{self.grid_height_spin.value()} "
+                        f"size={self.square_size_spin.value()}")
+
+    def _on_source_changed(self) -> None:
+        """Handle video source changes."""
+        # If we're currently running, we might want to restart with new source
+        # For now, just log the change
+        source = self.source_combo.currentText()
+        self.logger.info(f"Video source changed to: {source}")
+
+    def browse_video_source(self) -> None:
         """Browse for video file source."""
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select Video File", "",
@@ -471,7 +496,7 @@ class LiveCalibrationDialog(QDialog):
         if file_path:
             self.source_combo.setCurrentText(file_path)
 
-    def start_live_preview(self):
+    def start_live_preview(self) -> None:
         """Start live video preview with feedback."""
         try:
             # Create calibration pattern
@@ -501,10 +526,9 @@ class LiveCalibrationDialog(QDialog):
             QMessageBox.critical(
                 self,
                 "Error",
-                f"Failed to start live preview:\n{
-                    str(e)}")
+                f"Failed to start live preview:\n{str(e)}")
 
-    def stop_live_preview(self):
+    def stop_live_preview(self) -> None:
         """Stop live video preview."""
         if self.worker:
             self.worker.stop_processing()
@@ -523,7 +547,7 @@ class LiveCalibrationDialog(QDialog):
 
         self.logger.info("Live calibration preview stopped")
 
-    def toggle_recording_session(self):
+    def toggle_recording_session(self) -> None:
         """Toggle recording session on/off."""
         if not self.recording_session:
             # Start recording session
@@ -552,7 +576,7 @@ class LiveCalibrationDialog(QDialog):
             self.logger.info(
                 f"Calibration recording session completed. Captured {len(self.captured_frames)} frames")
 
-    def capture_current_frame(self):
+    def capture_current_frame(self) -> None:
         """Manually capture the current frame."""
         if self.video_preview.current_frame is not None:
             frame_data = {
@@ -572,7 +596,7 @@ class LiveCalibrationDialog(QDialog):
             self.logger.info(
                 f"Frame captured manually. Total frames: {len(self.captured_frames)}")
 
-    def on_frame_processed(self, frame: np.ndarray, feedback: PatternFeedback):
+    def on_frame_processed(self, frame: np.ndarray, feedback: PatternFeedback) -> None:
         """Handle processed frame from worker."""
         # Update video preview
         self.video_preview.update_frame(frame, feedback)
@@ -598,16 +622,16 @@ class LiveCalibrationDialog(QDialog):
                     self.frames_captured_label.setText(
                         f"Frames captured: {len(self.captured_frames)}")
 
-    def on_statistics_updated(self, stats: Dict):
+    def on_statistics_updated(self, stats: Dict) -> None:
         """Handle statistics update from worker."""
         self.quality_widget.update_statistics(stats)
 
-    def on_error_occurred(self, error_message: str):
+    def on_error_occurred(self, error_message: str) -> None:
         """Handle error from worker."""
         QMessageBox.critical(self, "Processing Error", error_message)
         self.stop_live_preview()
 
-    def export_captured_frames(self):
+    def export_captured_frames(self) -> None:
         """Export captured frames to directory."""
         if not self.captured_frames:
             QMessageBox.warning(
@@ -628,9 +652,7 @@ class LiveCalibrationDialog(QDialog):
 
             # Export frames
             for i, frame_data in enumerate(self.captured_frames):
-                frame_filename = f"calibration_frame_{
-                    i:04d}_{
-                    frame_data['timestamp']:.3f}.jpg"
+                frame_filename = f"calibration_frame_{i:04d}_{frame_data['timestamp']:.3f}.jpg"
                 frame_path = frames_dir / frame_filename
                 cv2.imwrite(str(frame_path), frame_data['frame'])
 
@@ -659,10 +681,9 @@ class LiveCalibrationDialog(QDialog):
             QMessageBox.critical(
                 self,
                 "Export Error",
-                f"Failed to export frames:\n{
-                    str(e)}")
+                f"Failed to export frames:\n{str(e)}")
 
-    def run_calibration_on_frames(self):
+    def run_calibration_on_frames(self) -> None:
         """Run calibration on captured frames."""
         if not self.captured_frames:
             QMessageBox.warning(
@@ -695,10 +716,9 @@ class LiveCalibrationDialog(QDialog):
             QMessageBox.critical(
                 self,
                 "Calibration Error",
-                f"Failed to run calibration:\n{
-                    str(e)}")
+                f"Failed to run calibration:\n{str(e)}")
 
-    def _show_calibration_results(self, results: Dict):
+    def _show_calibration_results(self, results: Dict) -> None:
         """Show calibration results in a dialog."""
         dialog = QDialog(self)
         dialog.setWindowTitle("Calibration Results")
@@ -711,8 +731,7 @@ class LiveCalibrationDialog(QDialog):
         text_edit.setReadOnly(True)
         text_edit.setFont(QFont("Courier", 10))
 
-        results_text = f"""
-CALIBRATION RESULTS
+        results_text = f"""CALIBRATION RESULTS
 ==================
 
 Image Size: {results['image_size']}
@@ -746,7 +765,7 @@ Distortion Coefficients:
 
         dialog.exec_()
 
-    def _save_calibration_results(self, results: Dict):
+    def _save_calibration_results(self, results: Dict) -> None:
         """Save calibration results to JSON file."""
         file_path, _ = QFileDialog.getSaveFileName(
             self, "Save Calibration Results", "live_calibration_results.json",
@@ -778,7 +797,7 @@ Distortion Coefficients:
                     f"Failed to save calibration results:\n{str(e)}"
                 )
 
-    def closeEvent(self, event):
+    def closeEvent(self, event) -> None:
         """Handle dialog close event."""
         if self.worker:
             self.stop_live_preview()

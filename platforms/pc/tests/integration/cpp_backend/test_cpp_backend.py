@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test script to verify the compiled C++ hardware backend.
+"""Test script to verify the compiled C++ hardware backend.
 
 This script tests that the C++ extension module can be imported
 and that the basic functionality is accessible.
@@ -12,10 +11,11 @@ import os
 # Add the src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'src'))
 
-def test_module_import():
+def test_module_import() -> None:
     """Test that the C++ module can be imported."""
     try:
         import _hardware_backend
+from typing import Any, Dict, List, Optional, Union
         print("✓ C++ hardware backend module imported successfully")
         print(f"  Module version: {_hardware_backend.__version__}")
         print(f"  Module author: {_hardware_backend.__author__}")
@@ -24,7 +24,7 @@ def test_module_import():
         print(f"✗ Failed to import C++ hardware backend: {e}")
         return None
 
-def test_module_functions(backend):
+def test_module_functions(backend) -> None:
     """Test basic module functions."""
     try:
         version = backend.get_version()
@@ -37,7 +37,7 @@ def test_module_functions(backend):
         print(f"✗ Module functions failed: {e}")
         return False
 
-def test_shimmer_class(backend):
+def test_shimmer_class(backend) -> None:
     """Test NativeShimmer class instantiation."""
     try:
         shimmer = backend.NativeShimmer("COM3")  # Dummy port
@@ -50,7 +50,7 @@ def test_shimmer_class(backend):
         print(f"✗ NativeShimmer instantiation failed: {e}")
         return False
 
-def test_webcam_class(backend):
+def test_webcam_class(backend) -> None:
     """Test NativeWebcam class instantiation."""
     try:
         webcam = backend.NativeWebcam(0)  # Default camera
@@ -64,7 +64,7 @@ def test_webcam_class(backend):
         print(f"✗ NativeWebcam instantiation failed: {e}")
         return False
 
-def main():
+def main() -> None:
     """Run all tests."""
     print("=== C++ Hardware Backend Test ===\n")
     

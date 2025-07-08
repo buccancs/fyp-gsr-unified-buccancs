@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test script to verify the C++ backend functionality directly.
+"""Test script to verify the C++ backend functionality directly.
 
 This script tests the C++ backend without requiring PySide6 or other GUI dependencies.
 """
@@ -11,7 +10,7 @@ import os
 # Add the src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-def test_cpp_backend_direct():
+def test_cpp_backend_direct() -> None:
     """Test the C++ backend directly."""
     try:
         import _hardware_backend
@@ -57,10 +56,11 @@ def test_cpp_backend_direct():
         traceback.print_exc()
         return False
 
-def test_shimmer_data_structures():
+def test_shimmer_data_structures() -> None:
     """Test Shimmer data structures."""
     try:
         import _hardware_backend
+from typing import Any, Dict, List, Optional, Union
         
         print("\n=== Testing Data Structures ===")
         
@@ -82,7 +82,7 @@ def test_shimmer_data_structures():
         print(f"✗ Data structure test failed: {e}")
         return False
 
-def main():
+def main() -> None:
     """Run all C++ backend tests."""
     print("=== C++ Backend Direct Test ===\n")
     

@@ -1,5 +1,4 @@
-"""
-Test suite for PC hardware drivers.
+"""Test suite for PC hardware drivers.
 
 This module contains unit tests for the ShimmerPC and WebcamPC drivers
 that use mocked dependencies to avoid requiring actual hardware.
@@ -17,7 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 class TestShimmerPC(unittest.TestCase):
     """Test cases for ShimmerPC driver."""
     
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test fixtures."""
         # Mock pyshimmer to avoid hardware dependency
         self.pyshimmer_mock = Mock()
@@ -30,7 +29,7 @@ class TestShimmerPC(unittest.TestCase):
     
     @patch('hardware.shimmer_pc.configparser.ConfigParser')
     @patch('hardware.shimmer_pc.os.path.exists')
-    def test_initialization_with_config(self, mock_exists, mock_config_parser):
+    def test_initialization_with_config(self, mock_exists, mock_config_parser) -> None:
         """Test ShimmerPC initialization with config file."""
         # Mock config file exists and has COM port setting
         mock_exists.return_value = True
@@ -47,7 +46,7 @@ class TestShimmerPC(unittest.TestCase):
     
     @patch('hardware.shimmer_pc.configparser.ConfigParser')
     @patch('hardware.shimmer_pc.os.path.exists')
-    def test_initialization_without_config(self, mock_exists, mock_config_parser):
+    def test_initialization_without_config(self, mock_exists, mock_config_parser) -> None:
         """Test ShimmerPC initialization without config file."""
         # Mock config file doesn't exist
         mock_exists.return_value = False
@@ -57,7 +56,7 @@ class TestShimmerPC(unittest.TestCase):
         
         self.assertEqual(shimmer.com_port, 'COM5')  # Default value
     
-    def test_connect_success(self):
+    def test_connect_success(self) -> None:
         """Test successful connection to Shimmer."""
         with patch.dict('sys.modules', {'pyshimmer': self.pyshimmer_mock}):
             shimmer = self.ShimmerPC(com_port='COM3')
@@ -70,7 +69,7 @@ class TestShimmerPC(unittest.TestCase):
         self.assertTrue(shimmer.is_connected)
         self.shimmer_device_mock.connect.assert_called_once()
     
-    def test_connect_failure(self):
+    def test_connect_failure(self) -> None:
         """Test failed connection to Shimmer."""
         with patch.dict('sys.modules', {'pyshimmer': self.pyshimmer_mock}):
             shimmer = self.ShimmerPC(com_port='COM3')
@@ -82,7 +81,7 @@ class TestShimmerPC(unittest.TestCase):
         
         self.assertFalse(shimmer.is_connected)
     
-    def test_connect_without_pyshimmer(self):
+    def test_connect_without_pyshimmer(self) -> None:
         """Test connection when pyshimmer is not available."""
         with patch.dict('sys.modules', {'pyshimmer': None}):
             from hardware.shimmer_pc import ShimmerPC
@@ -92,7 +91,7 @@ class TestShimmerPC(unittest.TestCase):
         
         self.assertFalse(shimmer.is_connected)
     
-    def test_start_streaming_success(self):
+    def test_start_streaming_success(self) -> None:
         """Test successful start of streaming."""
         with patch.dict('sys.modules', {'pyshimmer': self.pyshimmer_mock}):
             shimmer = self.ShimmerPC(com_port='COM3')
@@ -112,7 +111,7 @@ class TestShimmerPC(unittest.TestCase):
         self.shimmer_device_mock.start_streaming.assert_called_once()
         mock_thread.start.assert_called_once()
     
-    def test_start_streaming_not_connected(self):
+    def test_start_streaming_not_connected(self) -> None:
         """Test start streaming when not connected."""
         with patch.dict('sys.modules', {'pyshimmer': self.pyshimmer_mock}):
             shimmer = self.ShimmerPC(com_port='COM3')
@@ -124,7 +123,7 @@ class TestShimmerPC(unittest.TestCase):
         
         self.assertFalse(shimmer.is_streaming)
     
-    def test_stop_streaming(self):
+    def test_stop_streaming(self) -> None:
         """Test stopping streaming."""
         with patch.dict('sys.modules', {'pyshimmer': self.pyshimmer_mock}):
             shimmer = self.ShimmerPC(com_port='COM3')
@@ -143,7 +142,7 @@ class TestShimmerPC(unittest.TestCase):
         mock_thread.wait.assert_called_once_with(3000)
         self.shimmer_device_mock.stop_streaming.assert_called_once()
     
-    def test_disconnect(self):
+    def test_disconnect(self) -> None:
         """Test disconnection from Shimmer."""
         with patch.dict('sys.modules', {'pyshimmer': self.pyshimmer_mock}):
             shimmer = self.ShimmerPC(com_port='COM3')
@@ -159,7 +158,7 @@ class TestShimmerPC(unittest.TestCase):
     
     @patch('builtins.open', new_callable=mock_open)
     @patch('hardware.shimmer_pc.csv.writer')
-    def test_start_recording(self, mock_csv_writer, mock_file_open):
+    def test_start_recording(self, mock_csv_writer, mock_file_open) -> None:
         """Test starting CSV recording."""
         with patch.dict('sys.modules', {'pyshimmer': self.pyshimmer_mock}):
             shimmer = self.ShimmerPC(com_port='COM3')
@@ -172,7 +171,7 @@ class TestShimmerPC(unittest.TestCase):
         mock_file_open.assert_called_once_with('/fake/path/test.csv', 'w', newline='')
         mock_writer.writerow.assert_called_once_with(['timestamp', 'gsr', 'ppg'])
     
-    def test_stop_recording(self):
+    def test_stop_recording(self) -> None:
         """Test stopping CSV recording."""
         with patch.dict('sys.modules', {'pyshimmer': self.pyshimmer_mock}):
             shimmer = self.ShimmerPC(com_port='COM3')
@@ -192,7 +191,7 @@ class TestShimmerPC(unittest.TestCase):
 class TestWebcamPC(unittest.TestCase):
     """Test cases for WebcamPC driver."""
     
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test fixtures."""
         # Mock cv2 to avoid hardware dependency
         self.cv2_mock = Mock()
@@ -200,7 +199,7 @@ class TestWebcamPC(unittest.TestCase):
         
     @patch('hardware.webcam_pc.configparser.ConfigParser')
     @patch('hardware.webcam_pc.os.path.exists')
-    def test_initialization_with_config(self, mock_exists, mock_config_parser):
+    def test_initialization_with_config(self, mock_exists, mock_config_parser) -> None:
         """Test WebcamPC initialization with config file."""
         # Mock config file exists and has camera index setting
         mock_exists.return_value = True
@@ -218,7 +217,7 @@ class TestWebcamPC(unittest.TestCase):
     
     @patch('hardware.webcam_pc.configparser.ConfigParser')
     @patch('hardware.webcam_pc.os.path.exists')
-    def test_initialization_without_config(self, mock_exists, mock_config_parser):
+    def test_initialization_without_config(self, mock_exists, mock_config_parser) -> None:
         """Test WebcamPC initialization without config file."""
         # Mock config file doesn't exist
         mock_exists.return_value = False
@@ -229,7 +228,7 @@ class TestWebcamPC(unittest.TestCase):
         
         self.assertEqual(webcam.camera_index, 0)  # Default value
     
-    def test_connect_success(self):
+    def test_connect_success(self) -> None:
         """Test successful connection to webcam."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -246,7 +245,7 @@ class TestWebcamPC(unittest.TestCase):
         self.assertTrue(webcam.is_connected)
         mock_cap.release.assert_called_once()
     
-    def test_connect_failure(self):
+    def test_connect_failure(self) -> None:
         """Test failed connection to webcam."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -261,7 +260,7 @@ class TestWebcamPC(unittest.TestCase):
         
         self.assertFalse(webcam.is_connected)
     
-    def test_start_streaming_success(self):
+    def test_start_streaming_success(self) -> None:
         """Test successful start of streaming."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -279,7 +278,7 @@ class TestWebcamPC(unittest.TestCase):
         self.assertTrue(webcam.is_streaming)
         mock_thread.start.assert_called_once()
     
-    def test_start_streaming_not_connected(self):
+    def test_start_streaming_not_connected(self) -> None:
         """Test start streaming when not connected."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -292,7 +291,7 @@ class TestWebcamPC(unittest.TestCase):
         
         self.assertFalse(webcam.is_streaming)
     
-    def test_stop_streaming(self):
+    def test_stop_streaming(self) -> None:
         """Test stopping streaming."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -310,7 +309,7 @@ class TestWebcamPC(unittest.TestCase):
         mock_thread.stop.assert_called_once()
         mock_thread.wait.assert_called_once_with(3000)
     
-    def test_disconnect(self):
+    def test_disconnect(self) -> None:
         """Test disconnection from webcam."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -323,7 +322,7 @@ class TestWebcamPC(unittest.TestCase):
         
         self.assertFalse(webcam.is_connected)
     
-    def test_set_resolution(self):
+    def test_set_resolution(self) -> None:
         """Test setting camera resolution."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -336,7 +335,7 @@ class TestWebcamPC(unittest.TestCase):
         
         mock_thread.set_resolution.assert_called_once_with(1920, 1080)
     
-    def test_start_recording(self):
+    def test_start_recording(self) -> None:
         """Test starting video recording."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -355,7 +354,7 @@ class TestWebcamPC(unittest.TestCase):
         )
         self.assertEqual(webcam.recording_file, '/fake/path/test.mp4')
     
-    def test_stop_recording(self):
+    def test_stop_recording(self) -> None:
         """Test stopping video recording."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
@@ -372,10 +371,11 @@ class TestWebcamPC(unittest.TestCase):
         self.assertIsNone(webcam.video_writer)
         self.assertIsNone(webcam.recording_file)
     
-    def test_get_camera_info(self):
+    def test_get_camera_info(self) -> None:
         """Test getting camera information."""
         with patch.dict('sys.modules', {'cv2': self.cv2_mock}):
             from hardware.webcam_pc import WebcamPC
+from typing import Any, Dict, List, Optional, Union
             webcam = WebcamPC(camera_index=0)
         
         # Set up connected state

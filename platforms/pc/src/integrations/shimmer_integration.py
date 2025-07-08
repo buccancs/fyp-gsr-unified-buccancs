@@ -1,5 +1,4 @@
-"""
-Shimmer sensor integration for Windows PC controller.
+"""Shimmer sensor integration for Windows PC controller.
 This module provides functionality to connect to and receive data from
 Shimmer sensors via Bluetooth or USB.
 """
@@ -27,11 +26,10 @@ except ImportError:
 
 
 class ShimmerSensor:
-    """
-    Represents a single Shimmer sensor device.
+    """Represents a single Shimmer sensor device.
     """
 
-    def __init__(self, device_id: str, connection_type: str = 'bluetooth'):
+    def __init__(self, device_id: str, connection_type: str = 'bluetooth') -> None:
         self.device_id = device_id
         self.connection_type = connection_type
         self.logger = logging.getLogger(__name__)
@@ -64,8 +62,7 @@ class ShimmerSensor:
         }
 
     def connect_serial(self, port: str = None, baudrate: int = 115200) -> bool:
-        """
-        Connects to Shimmer sensor via serial/USB.
+        """Connects to Shimmer sensor via serial/USB.
 
         Args:
             port: Serial port (auto-detected if None)
@@ -110,8 +107,7 @@ class ShimmerSensor:
             return False
 
     def connect_bluetooth(self, address: str = None) -> bool:
-        """
-        Connects to Shimmer sensor via Bluetooth.
+        """Connects to Shimmer sensor via Bluetooth.
 
         Args:
             address: Bluetooth MAC address (auto-detected if None)
@@ -199,8 +195,7 @@ class ShimmerSensor:
             ppg: bool = True,
             accel: bool = False,
             sampling_rate: int = 128) -> bool:
-        """
-        Configures which sensors are enabled and sampling rate.
+        """Configures which sensors are enabled and sampling rate.
 
         Args:
             gsr: Enable GSR sensor
@@ -276,8 +271,7 @@ class ShimmerSensor:
         return True
 
     def start_streaming(self) -> bool:
-        """
-        Starts data streaming from the Shimmer sensor.
+        """Starts data streaming from the Shimmer sensor.
 
         Returns:
             True if streaming started successfully, False otherwise
@@ -310,7 +304,7 @@ class ShimmerSensor:
             self.logger.error(f"Error starting streaming: {e}")
             return False
 
-    def stop_streaming(self):
+    def stop_streaming(self) -> None:
         """Stops data streaming from the Shimmer sensor."""
         if not self.is_streaming:
             return
@@ -334,7 +328,7 @@ class ShimmerSensor:
         except Exception as e:
             self.logger.error(f"Error stopping streaming: {e}")
 
-    def _stream_data(self):
+    def _stream_data(self) -> None:
         """Main data streaming loop (runs in separate thread)."""
         while not self.stop_streaming_event.is_set():
             try:
@@ -349,7 +343,7 @@ class ShimmerSensor:
                 self.logger.error(f"Error in streaming loop: {e}")
                 break
 
-    def _read_serial_data(self):
+    def _read_serial_data(self) -> None:
         """Reads and processes data from serial connection."""
         if self.serial_connection is None:
             return
@@ -380,11 +374,54 @@ class ShimmerSensor:
         except Exception as e:
             self.logger.error(f"Error reading serial data: {e}")
 
-    def _read_bluetooth_data(self):
+    def _read_bluetooth_data(self) -> None:
         """Reads and processes data from Bluetooth connection."""
-        # Implementation would depend on specific Shimmer Bluetooth protocol
-        # This is a placeholder
-        pass
+        if not self.bluetooth_client or not self.is_connected:
+            return
+
+        try:
+            # Read data from Bluetooth connection
+            # Note: This is a basic implementation that would need to be adapted
+            # based on the specific Shimmer Bluetooth protocol and bleak library usage
+
+            while self.is_streaming and self.is_connected:
+                try:
+                    # In a real implementation, this would read from the Bluetooth characteristic
+                    # For now, we'll simulate reading data packets
+
+                    # Shimmer typically sends data in packets with specific format
+                    # This is a placeholder that simulates the data reading process
+
+                    # Sleep to avoid busy waiting
+                    time.sleep(0.01)  # 10ms delay between reads
+
+                    # In a real implementation, you would:
+                    # 1. Read from the appropriate Bluetooth characteristic
+                    # 2. Parse the incoming data packets according to Shimmer protocol
+                    # 3. Extract sensor values (GSR, PPG, accelerometer, etc.)
+                    # 4. Convert raw values to meaningful units
+                    # 5. Call the appropriate callbacks with the processed data
+
+                    # Example of what the real implementation might look like:
+                    # data = await self.bluetooth_client.read_gatt_char(SHIMMER_DATA_CHARACTERISTIC)
+                    # if data and len(data) >= expected_packet_size:
+                    #     timestamp = int(time.time() * 1000)
+                    #     gsr_raw, ppg_raw = self._parse_bluetooth_packet(data)
+                    #     gsr_value = self._convert_gsr_raw_to_microsiemens(gsr_raw)
+                    #     ppg_value = self._convert_ppg_raw_to_mv(ppg_raw)
+                    #     
+                    #     if self.gsr_callback and self.enabled_sensors['gsr']:
+                    #         self.gsr_callback(gsr_value, timestamp)
+                    #     if self.ppg_callback and self.enabled_sensors['ppg']:
+                    #         self.ppg_callback(ppg_value, timestamp)
+
+                except Exception as e:
+                    self.logger.error(f"Error reading Bluetooth data: {e}")
+                    break
+
+        except Exception as e:
+            self.logger.error(f"Error in Bluetooth data reading loop: {e}")
+            self.is_connected = False
 
     def _convert_gsr_raw_to_microsiemens(self, raw_value: int) -> float:
         """Converts raw GSR value to microsiemens."""
@@ -401,20 +438,20 @@ class ShimmerSensor:
         voltage_mv = (raw_value / 4095.0) * 3000.0  # Convert to millivolts
         return voltage_mv
 
-    def set_gsr_callback(self, callback: Callable[[float, int], None]):
+    def set_gsr_callback(self, callback: Callable[[float, int], None]) -> None:
         """Sets callback for GSR data."""
         self.gsr_callback = callback
 
-    def set_ppg_callback(self, callback: Callable[[float, int], None]):
+    def set_ppg_callback(self, callback: Callable[[float, int], None]) -> None:
         """Sets callback for PPG data."""
         self.ppg_callback = callback
 
     def set_accel_callback(
-            self, callback: Callable[[float, float, float, int], None]):
+            self, callback: Callable[[float, float, float, int], None]) -> None:
         """Sets callback for accelerometer data."""
         self.accel_callback = callback
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnects from the Shimmer sensor."""
         self.stop_streaming()
 
@@ -435,11 +472,10 @@ class ShimmerSensor:
 
 
 class ShimmerManager:
-    """
-    Manages multiple Shimmer sensors.
+    """Manages multiple Shimmer sensors.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
         self.sensors: Dict[str, ShimmerSensor] = {}
 
@@ -447,8 +483,7 @@ class ShimmerManager:
             self,
             device_id: str,
             connection_type: str = 'bluetooth') -> ShimmerSensor:
-        """
-        Adds a new Shimmer sensor to the manager.
+        """Adds a new Shimmer sensor to the manager.
 
         Args:
             device_id: Unique identifier for the sensor
@@ -463,8 +498,7 @@ class ShimmerManager:
         return sensor
 
     def connect_all_sensors(self) -> bool:
-        """
-        Connects to all added sensors.
+        """Connects to all added sensors.
 
         Returns:
             True if all sensors connected successfully, False otherwise
@@ -483,8 +517,7 @@ class ShimmerManager:
         return success
 
     def start_all_streaming(self) -> bool:
-        """
-        Starts streaming from all connected sensors.
+        """Starts streaming from all connected sensors.
 
         Returns:
             True if all sensors started streaming successfully, False otherwise
@@ -500,12 +533,12 @@ class ShimmerManager:
 
         return success
 
-    def stop_all_streaming(self):
+    def stop_all_streaming(self) -> None:
         """Stops streaming from all sensors."""
         for sensor in self.sensors.values():
             sensor.stop_streaming()
 
-    def disconnect_all_sensors(self):
+    def disconnect_all_sensors(self) -> None:
         """Disconnects from all sensors."""
         for sensor in self.sensors.values():
             sensor.disconnect()

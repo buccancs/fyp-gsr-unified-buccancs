@@ -1,5 +1,4 @@
-"""
-Real-time Calibration Feedback System for FYP-GSR System
+"""Real-time Calibration Feedback System for FYP-GSR System
 
 This module provides real-time feedback during calibration data recording,
 helping researchers ensure they capture high-quality calibration patterns.
@@ -51,15 +50,13 @@ class PatternFeedback:
 
 
 class RealtimeCalibrationFeedback:
-    """
-    Real-time calibration feedback system that analyzes video frames
+    """Real-time calibration feedback system that analyzes video frames
     and provides immediate feedback on calibration pattern quality.
     """
 
     def __init__(self, pattern: CalibrationPattern,
-                 logger: logging.Logger = None):
-        """
-        Initialize the real-time feedback system.
+                 logger: logging.Logger = None) -> None:
+        """Initialize the real-time feedback system.
 
         Args:
             pattern: Calibration pattern to detect
@@ -94,11 +91,11 @@ class RealtimeCalibrationFeedback:
             PatternFeedback], None]] = None
 
     def set_feedback_callback(
-            self, callback: Callable[[PatternFeedback], None]):
+            self, callback: Callable[[PatternFeedback], None]) -> None:
         """Set callback function for receiving feedback updates."""
         self.feedback_callback = callback
 
-    def start_processing(self):
+    def start_processing(self) -> None:
         """Start the real-time processing thread."""
         if self.is_running:
             return
@@ -109,7 +106,7 @@ class RealtimeCalibrationFeedback:
         self.processing_thread.start()
         self.logger.info("Real-time calibration feedback started")
 
-    def stop_processing(self):
+    def stop_processing(self) -> None:
         """Stop the real-time processing thread."""
         self.is_running = False
         if self.processing_thread:
@@ -120,8 +117,7 @@ class RealtimeCalibrationFeedback:
             self,
             frame: np.ndarray,
             timestamp: float = None) -> Optional[PatternFeedback]:
-        """
-        Process a single frame and return feedback.
+        """Process a single frame and return feedback.
 
         Args:
             frame: Input video frame
@@ -146,7 +142,7 @@ class RealtimeCalibrationFeedback:
         except Empty:
             return None
 
-    def _processing_loop(self):
+    def _processing_loop(self) -> None:
         """Main processing loop running in background thread."""
         while self.is_running:
             try:
@@ -180,8 +176,7 @@ class RealtimeCalibrationFeedback:
             self,
             frame: np.ndarray,
             timestamp: float) -> PatternFeedback:
-        """
-        Analyze a single frame and generate feedback.
+        """Analyze a single frame and generate feedback.
 
         Args:
             frame: Input frame
@@ -449,7 +444,7 @@ class RealtimeCalibrationFeedback:
             'average_confidence': np.mean([1.0 if d else 0.0 for d in self.detection_history])
         }
 
-    def reset_session(self):
+    def reset_session(self) -> None:
         """Reset session statistics and history."""
         self.frame_count = 0
         self.detection_history.clear()
@@ -458,15 +453,13 @@ class RealtimeCalibrationFeedback:
 
 
 class CalibrationFeedbackVisualizer:
-    """
-    Utility class for visualizing calibration feedback on video frames.
+    """Utility class for visualizing calibration feedback on video frames.
     """
 
     @staticmethod
     def draw_feedback_overlay(frame: np.ndarray, feedback: PatternFeedback,
                               corners: np.ndarray = None) -> np.ndarray:
-        """
-        Draw feedback overlay on video frame.
+        """Draw feedback overlay on video frame.
 
         Args:
             frame: Input video frame
@@ -507,7 +500,7 @@ class CalibrationFeedbackVisualizer:
 
     @staticmethod
     def _draw_status_box(
-            frame: np.ndarray, feedback: PatternFeedback, color: Tuple[int, int, int]):
+            frame: np.ndarray, feedback: PatternFeedback, color: Tuple[int, int, int]) -> None:
         """Draw status information box."""
         height, width = frame.shape[:2]
 
@@ -537,9 +530,7 @@ class CalibrationFeedbackVisualizer:
 
         if feedback.detected:
             # Metrics
-            metrics_text = f"Area: {
-                feedback.pattern_area_ratio:.2f} | Sharpness: {
-                feedback.sharpness_score:.0f}"
+            metrics_text = f"Area: {feedback.pattern_area_ratio:.2f} | Sharpness: {feedback.sharpness_score:.0f}"
             cv2.putText(frame, metrics_text, (20, y_offset),
                         font, 0.5, (255, 255, 255), thickness)
             y_offset += line_height
@@ -549,7 +540,7 @@ class CalibrationFeedbackVisualizer:
                         font, font_scale, (255, 255, 255), thickness)
 
     @staticmethod
-    def _draw_recommendations(frame: np.ndarray, recommendations: List[str]):
+    def _draw_recommendations(frame: np.ndarray, recommendations: List[str]) -> None:
         """Draw recommendations text."""
         if not recommendations:
             return

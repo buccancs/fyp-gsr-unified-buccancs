@@ -1,5 +1,4 @@
-"""
-PsychoPy integration for psychological experiments and stimulus presentation.
+"""PsychoPy integration for psychological experiments and stimulus presentation.
 This module provides functionality to create and run psychological experiments
 synchronized with GSR and video recording.
 """
@@ -20,8 +19,7 @@ except ImportError:
 
 
 class ExperimentController:
-    """
-    Controls PsychoPy experiments with synchronized data recording.
+    """Controls PsychoPy experiments with synchronized data recording.
     """
 
     def __init__(
@@ -49,8 +47,7 @@ class ExperimentController:
         self.response_callback: Optional[Callable] = None
 
     def initialize(self) -> bool:
-        """
-        Initializes the PsychoPy experiment environment.
+        """Initializes the PsychoPy experiment environment.
 
         Returns:
             True if initialization was successful, False otherwise
@@ -89,8 +86,7 @@ class ExperimentController:
                 0),
             color: str = 'white',
             height: int = 48) -> visual.TextStim:
-        """
-        Creates a text stimulus.
+        """Creates a text stimulus.
 
         Args:
             text: Text to display
@@ -111,8 +107,7 @@ class ExperimentController:
 
     def create_image_stimulus(self, image_path: str, pos: tuple = (
             0, 0), size: Optional[tuple] = None) -> visual.ImageStim:
-        """
-        Creates an image stimulus.
+        """Creates an image stimulus.
 
         Args:
             image_path: Path to image file
@@ -133,8 +128,7 @@ class ExperimentController:
             self,
             size: int = 40,
             color: str = 'white') -> visual.ShapeStim:
-        """
-        Creates a fixation cross stimulus.
+        """Creates a fixation cross stimulus.
 
         Args:
             size: Size of the cross in pixels
@@ -153,8 +147,7 @@ class ExperimentController:
 
     def show_stimulus(self, stimulus, duration: float = None,
                       wait_for_response: bool = False) -> Dict[str, Any]:
-        """
-        Shows a stimulus on screen.
+        """Shows a stimulus on screen.
 
         Args:
             stimulus: PsychoPy stimulus object
@@ -211,8 +204,7 @@ class ExperimentController:
             self,
             text: str,
             continue_key: str = 'space') -> float:
-        """
-        Shows instruction text and waits for key press.
+        """Shows instruction text and waits for key press.
 
         Args:
             text: Instruction text to display
@@ -239,8 +231,7 @@ class ExperimentController:
         return self.clock.getTime()
 
     def run_trial(self, trial_config: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Runs a single experimental trial.
+        """Runs a single experimental trial.
 
         Args:
             trial_config: Configuration dictionary for the trial
@@ -285,8 +276,7 @@ class ExperimentController:
                         stimulus_config['path'])
                 else:
                     raise ValueError(
-                        f"Unknown stimulus type: {
-                            stimulus_config['type']}")
+                        f"Unknown stimulus type: {stimulus_config['type']}")
 
                 stimulus_data = self.show_stimulus(
                     stimulus,
@@ -319,8 +309,7 @@ class ExperimentController:
 
     def run_experiment(self, trial_list: List[Dict[str, Any]],
                        instructions: str = None) -> List[Dict[str, Any]]:
-        """
-        Runs a complete experiment.
+        """Runs a complete experiment.
 
         Args:
             trial_list: List of trial configurations
@@ -355,8 +344,7 @@ class ExperimentController:
 
                 trial_data = self.run_trial(trial_config)
                 self.logger.info(
-                    f"Completed trial {
-                        trial_data['trial_number']}")
+                    f"Completed trial {trial_data['trial_number']}")
 
             # Show completion message
             completion_text = "Experiment completed. Thank you!"
@@ -370,29 +358,28 @@ class ExperimentController:
 
         return self.experiment_data
 
-    def set_trial_start_callback(self, callback: Callable):
+    def set_trial_start_callback(self, callback: Callable) -> None:
         """Sets callback for trial start events."""
         self.trial_start_callback = callback
 
-    def set_trial_end_callback(self, callback: Callable):
+    def set_trial_end_callback(self, callback: Callable) -> None:
         """Sets callback for trial end events."""
         self.trial_end_callback = callback
 
-    def set_stimulus_onset_callback(self, callback: Callable):
+    def set_stimulus_onset_callback(self, callback: Callable) -> None:
         """Sets callback for stimulus onset events."""
         self.stimulus_onset_callback = callback
 
-    def set_response_callback(self, callback: Callable):
+    def set_response_callback(self, callback: Callable) -> None:
         """Sets callback for response events."""
         self.response_callback = callback
 
-    def stop_experiment(self):
+    def stop_experiment(self) -> None:
         """Stops the currently running experiment."""
         self.is_running = False
 
-    def save_data(self, filename: str, format: str = 'csv'):
-        """
-        Saves experiment data to file.
+    def save_data(self, filename: str, format: str = 'csv') -> None:
+        """Saves experiment data to file.
 
         Args:
             filename: Output filename
@@ -437,7 +424,7 @@ class ExperimentController:
         except Exception as e:
             self.logger.error(f"Error saving data: {e}")
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Cleans up PsychoPy resources."""
         if self.window:
             self.window.close()
@@ -445,8 +432,7 @@ class ExperimentController:
 
 
 class StimulusLibrary:
-    """
-    Library of common experimental stimuli.
+    """Library of common experimental stimuli.
     """
 
     @staticmethod

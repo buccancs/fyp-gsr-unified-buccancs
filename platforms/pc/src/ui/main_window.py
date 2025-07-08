@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Main window for the PC Controller App.
+"""Main window for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
 import logging
 import os
 import sys
+import time
 
 from PySide6.QtCore import Qt, QTimer, Signal, Slot
-from PySide6.QtGui import QIcon, QPixmap
-from PySide6.QtWidgets import (QAction, QFileDialog, QGridLayout, QGroupBox,
+from PySide6.QtGui import QAction, QIcon, QPixmap
+from PySide6.QtWidgets import (QFileDialog, QGridLayout, QGroupBox,
                                QHBoxLayout, QLabel, QMainWindow, QMenu,
                                QMessageBox, QPushButton, QSplitter, QStatusBar,
                                QTabWidget, QVBoxLayout, QWidget)
@@ -32,14 +32,12 @@ from utils.session_manager import SessionManager
 
 
 class MainWindow(QMainWindow):
-    """
-    Main window class for the PC Controller App.
+    """Main window class for the PC Controller App.
     Cross-platform support: Windows, macOS, Linux.
     """
 
-    def __init__(self):
-        """
-        Initialize the main window.
+    def __init__(self) -> None:
+        """Initialize the main window.
         """
         super().__init__()
 
@@ -57,8 +55,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1400, 900)
 
         # Apply modern styling
-        self.setStyleSheet("""
-            QMainWindow {
+        self.setStyleSheet("""QMainWindow {
                 background-color: #f5f5f5;
             }
             QGroupBox {
@@ -137,9 +134,8 @@ class MainWindow(QMainWindow):
 
         self.logger.info("Main window initialized")
 
-    def create_menu_bar(self):
-        """
-        Create the menu bar for the application.
+    def create_menu_bar(self) -> None:
+        """Create the menu bar for the application.
         """
         # File menu
         file_menu = self.menuBar().addMenu("&File")
@@ -210,9 +206,8 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(self.on_about)
         help_menu.addAction(about_action)
 
-    def create_control_panel(self):
-        """
-        Create the control panel for the application.
+    def create_control_panel(self) -> None:
+        """Create the control panel for the application.
         """
         control_group = QGroupBox("Recording Control")
         control_layout = QHBoxLayout()
@@ -249,9 +244,8 @@ class MainWindow(QMainWindow):
         control_group.setLayout(control_layout)
         self.main_layout.addWidget(control_group)
 
-    def create_device_panels(self):
-        """
-        Create the device panels for the application.
+    def create_device_panels(self) -> None:
+        """Create the device panels for the application.
         """
         # Create a splitter for the main content area
         self.content_splitter = QSplitter(Qt.Vertical)
@@ -294,9 +288,8 @@ class MainWindow(QMainWindow):
             self.content_splitter,
             1)  # 1 = stretch factor
 
-    def create_status_bar(self):
-        """
-        Create the status bar for the application.
+    def create_status_bar(self) -> None:
+        """Create the status bar for the application.
         """
         self.statusBar().showMessage("Ready")
 
@@ -308,9 +301,8 @@ class MainWindow(QMainWindow):
         self.recording_status_label = QLabel("Not Recording")
         self.statusBar().addPermanentWidget(self.recording_status_label)
 
-    def connect_signals(self):
-        """
-        Connect signals and slots.
+    def connect_signals(self) -> None:
+        """Connect signals and slots.
         """
         # Connect device manager signals
         self.device_manager.device_discovered.connect(
@@ -330,9 +322,8 @@ class MainWindow(QMainWindow):
         self.update_timer.timeout.connect(self.update_ui)
         self.update_timer.start(1000)  # Update every second
 
-    def update_ui_state(self):
-        """
-        Update the UI state based on the current application state.
+    def update_ui_state(self) -> None:
+        """Update the UI state based on the current application state.
         """
         # Update button states
         self.start_button.setEnabled(
@@ -351,9 +342,8 @@ class MainWindow(QMainWindow):
         # Update device count
         self.device_count_label.setText(f"Devices: {len(self.device_panels)}")
 
-    def update_ui(self):
-        """
-        Update the UI with current information.
+    def update_ui(self) -> None:
+        """Update the UI with current information.
         """
         # Update duration if recording
         if self.recording:
@@ -369,9 +359,8 @@ class MainWindow(QMainWindow):
         self.status_dashboard.update_ui()
 
     @Slot()
-    def on_new_session(self):
-        """
-        Handle the New Session action.
+    def on_new_session(self) -> None:
+        """Handle the New Session action.
         """
         self.logger.info("Creating new session")
         # In a real implementation, we would show a dialog to configure the session
@@ -379,16 +368,14 @@ class MainWindow(QMainWindow):
         success = self.session_manager.create_new_session()
         if success:
             self.session_label.setText(
-                f"Session: {
-                    self.session_manager.get_current_session_id()}")
+                f"Session: {self.session_manager.get_current_session_id()}")
             self.statusBar().showMessage("New session created", 3000)
         else:
             QMessageBox.warning(self, "Error", "Failed to create new session")
 
     @Slot()
-    def on_open_session(self):
-        """
-        Handle the Open Session action.
+    def on_open_session(self) -> None:
+        """Handle the Open Session action.
         """
         self.logger.info("Opening session")
         # In a real implementation, we would show a dialog to select a session
@@ -399,25 +386,22 @@ class MainWindow(QMainWindow):
             success = self.session_manager.open_session(session_dir)
             if success:
                 self.session_label.setText(
-                    f"Session: {
-                        self.session_manager.get_current_session_id()}")
+                    f"Session: {self.session_manager.get_current_session_id()}")
                 self.statusBar().showMessage("Session opened", 3000)
             else:
                 QMessageBox.warning(self, "Error", "Failed to open session")
 
     @Slot()
-    def on_discover_devices(self):
-        """
-        Handle the Discover Devices action.
+    def on_discover_devices(self) -> None:
+        """Handle the Discover Devices action.
         """
         self.logger.info("Discovering devices")
         self.statusBar().showMessage("Discovering devices...")
         self.device_manager.discover_devices()
 
     @Slot()
-    def on_discover_usb_devices(self):
-        """
-        Handle the Discover USB Devices action.
+    def on_discover_usb_devices(self) -> None:
+        """Handle the Discover USB Devices action.
         """
         self.logger.info("Discovering USB devices")
         self.statusBar().showMessage("Discovering USB devices...")
@@ -430,27 +414,24 @@ class MainWindow(QMainWindow):
                               "Failed to discover USB devices. Make sure ADB is available and devices are connected with USB debugging enabled.")
 
     @Slot()
-    def on_connect_all(self):
-        """
-        Handle the Connect All action.
+    def on_connect_all(self) -> None:
+        """Handle the Connect All action.
         """
         self.logger.info("Connecting to all devices")
         self.statusBar().showMessage("Connecting to all devices...")
         self.device_manager.connect_all_devices()
 
     @Slot()
-    def on_disconnect_all(self):
-        """
-        Handle the Disconnect All action.
+    def on_disconnect_all(self) -> None:
+        """Handle the Disconnect All action.
         """
         self.logger.info("Disconnecting from all devices")
         self.statusBar().showMessage("Disconnecting from all devices...")
         self.device_manager.disconnect_all_devices()
 
     @Slot()
-    def on_settings(self):
-        """
-        Handle the Settings action.
+    def on_settings(self) -> None:
+        """Handle the Settings action.
         """
         self.logger.info("Opening settings")
         # In a real implementation, we would show a settings dialog
@@ -458,9 +439,8 @@ class MainWindow(QMainWindow):
             self, "Settings", "Settings dialog not implemented yet")
 
     @Slot()
-    def on_camera_calibration(self):
-        """
-        Handle the Camera Calibration action.
+    def on_camera_calibration(self) -> None:
+        """Handle the Camera Calibration action.
         """
         self.logger.info("Opening camera calibration dialog")
         try:
@@ -475,9 +455,8 @@ class MainWindow(QMainWindow):
             )
 
     @Slot()
-    def on_live_calibration(self):
-        """
-        Handle the Live Calibration action.
+    def on_live_calibration(self) -> None:
+        """Handle the Live Calibration action.
         """
         self.logger.info("Opening live calibration dialog")
         try:
@@ -486,17 +465,15 @@ class MainWindow(QMainWindow):
             live_calibration_dialog.exec_()
         except Exception as e:
             self.logger.error(
-                f"Failed to open live calibration dialog: {
-                    str(e)}")
+                f"Failed to open live calibration dialog: {str(e)}")
             QMessageBox.critical(
                 self, "Error",
                 f"Failed to open live calibration dialog:\n\n{str(e)}"
             )
 
     @Slot()
-    def on_about(self):
-        """
-        Handle the About action.
+    def on_about(self) -> None:
+        """Handle the About action.
         """
         QMessageBox.about(
             self, "About", "GSR & Dual-Video Recording System\n\n"
@@ -505,9 +482,8 @@ class MainWindow(QMainWindow):
             "© 2023 BuccaNCS")
 
     @Slot()
-    def on_start_recording(self):
-        """
-        Handle the Start Recording button click.
+    def on_start_recording(self) -> None:
+        """Handle the Start Recording button click.
         """
         self.logger.info("Starting recording")
 
@@ -520,8 +496,7 @@ class MainWindow(QMainWindow):
                     self, "Error", "Failed to create new session")
                 return
             self.session_label.setText(
-                f"Session: {
-                    self.session_manager.get_current_session_id()}")
+                f"Session: {self.session_manager.get_current_session_id()}")
 
         # Check if we have connected devices
         if len(self.device_panels) == 0:
@@ -560,7 +535,6 @@ class MainWindow(QMainWindow):
             self.recording = True
 
             # Notify video playback window about recording start
-            import time
             self.video_playback_window.set_recording_status(True, time.time())
 
             self.update_ui_state()
@@ -569,9 +543,8 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Failed to start recording")
 
     @Slot()
-    def on_stop_recording(self):
-        """
-        Handle the Stop Recording button click.
+    def on_stop_recording(self) -> None:
+        """Handle the Stop Recording button click.
         """
         self.logger.info("Stopping recording")
 
@@ -609,9 +582,8 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Failed to stop recording")
 
     @Slot(object)
-    def on_device_discovered(self, device):
-        """
-        Handle a device being discovered.
+    def on_device_discovered(self, device) -> None:
+        """Handle a device being discovered.
 
         Args:
             device: The discovered device
@@ -624,9 +596,8 @@ class MainWindow(QMainWindow):
         self.update_ui_state()
 
     @Slot(object)
-    def on_device_removed(self, device):
-        """
-        Handle a device being removed from the network.
+    def on_device_removed(self, device) -> None:
+        """Handle a device being removed from the network.
 
         Args:
             device: The removed device
@@ -640,9 +611,8 @@ class MainWindow(QMainWindow):
         self.update_ui_state()
 
     @Slot(object)
-    def on_device_connected(self, device):
-        """
-        Handle a device being connected.
+    def on_device_connected(self, device) -> None:
+        """Handle a device being connected.
 
         Args:
             device: The connected device
@@ -667,17 +637,15 @@ class MainWindow(QMainWindow):
         self.update_ui_state()
 
     @Slot(object)
-    def on_device_disconnected(self, device):
-        """
-        Handle a device being disconnected.
+    def on_device_disconnected(self, device) -> None:
+        """Handle a device being disconnected.
 
         Args:
             device: The disconnected device
         """
         self.logger.info(f"Device disconnected: {device.name} ({device.id})")
         self.statusBar().showMessage(
-            f"Device disconnected: {
-                device.name}", 3000)
+            f"Device disconnected: {device.name}", 3000)
 
         # Remove the device panel
         for i, panel in enumerate(self.device_panels):
@@ -697,19 +665,15 @@ class MainWindow(QMainWindow):
         self.update_ui_state()
 
     @Slot(str, dict)
-    def on_video_changed(self, video_path, annotation_data):
-        """
-        Handle video change events from the video playback window.
+    def on_video_changed(self, video_path, annotation_data) -> None:
+        """Handle video change events from the video playback window.
 
         Args:
             video_path: Path to the new video
             annotation_data: Data about the video and annotations
         """
         self.logger.info(
-            f"Video changed to: {
-                annotation_data.get(
-                    'video_name',
-                    'Unknown')}")
+            f"Video changed to: {annotation_data.get('video_name', 'Unknown')}")
 
         # Update status bar with video info
         video_name = annotation_data.get('video_name', 'Unknown')
@@ -718,9 +682,8 @@ class MainWindow(QMainWindow):
             f"Video: {video_name} ({annotations_count} annotations)", 5000)
 
     @Slot(str, str, dict)
-    def on_annotation_added(self, video_path, timestamp, annotation):
-        """
-        Handle annotation added events from the video playback window.
+    def on_annotation_added(self, video_path, timestamp, annotation) -> None:
+        """Handle annotation added events from the video playback window.
 
         Args:
             video_path: Path to the video
@@ -740,9 +703,8 @@ class MainWindow(QMainWindow):
         # Update status bar
         self.statusBar().showMessage(f"Annotation added to {video_name}", 3000)
 
-    def closeEvent(self, event):
-        """
-        Handle the window close event.
+    def closeEvent(self, event) -> None:
+        """Handle the window close event.
 
         Args:
             event: The close event

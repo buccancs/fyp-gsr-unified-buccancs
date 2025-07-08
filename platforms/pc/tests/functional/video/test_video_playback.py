@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Test script for the Video Playback Window.
+"""Test script for the Video Playback Window.
 This script tests the video playback functionality independently.
 """
 
@@ -17,11 +16,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'sr
 
 
 class TestMainWindow(QMainWindow):
-    """
-    Test main window for the video playback functionality.
+    """Test main window for the video playback functionality.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Video Playback Test")
         self.setGeometry(100, 100, 1400, 900)
@@ -54,35 +52,36 @@ class TestMainWindow(QMainWindow):
 
         print("Video Playback Test Window initialized")
 
-    def start_recording(self):
+    def start_recording(self) -> None:
         """Start recording simulation."""
         import time
+from typing import Any, Dict, List, Optional, Union
         self.video_playback.set_recording_status(True, time.time())
         print("Recording started")
 
-    def stop_recording(self):
+    def stop_recording(self) -> None:
         """Stop recording simulation."""
         self.video_playback.set_recording_status(False)
         print("Recording stopped")
 
-    def on_video_changed(self, video_path, annotation_data):
+    def on_video_changed(self, video_path, annotation_data) -> None:
         """Handle video change events."""
         print(f"Video changed: {annotation_data}")
 
-    def on_annotation_added(self, video_path, timestamp, annotation):
+    def on_annotation_added(self, video_path, timestamp, annotation) -> None:
         """Handle annotation added events."""
         print(f"Annotation added: {annotation['text']} at {timestamp}")
 
-    def on_playback_started(self):
+    def on_playback_started(self) -> None:
         """Handle playback started events."""
         print("Playback started")
 
-    def on_playback_stopped(self):
+    def on_playback_stopped(self) -> None:
         """Handle playback stopped events."""
         print("Playback stopped")
 
 
-def main():
+def main() -> None:
     """Main function to run the test."""
     app = QApplication(sys.argv)
 

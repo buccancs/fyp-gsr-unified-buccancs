@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test script to verify the C++ integration setup.
+"""Test script to verify the C++ integration setup.
 
 This script tests that the basic project structure is in place
 and that the existing Python hardware layer is accessible.
@@ -12,11 +11,12 @@ import os
 # Add the src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-def test_python_hardware_layer():
+def test_python_hardware_layer() -> None:
     """Test that the existing Python hardware layer is accessible."""
     try:
         from hardware.shimmer_pc import ShimmerPC
         from hardware.webcam_pc import WebcamPC
+from typing import Any, Dict, List, Optional, Union
         print("✓ Python hardware layer imports successful")
         
         # Test basic instantiation (without actual hardware)
@@ -32,7 +32,7 @@ def test_python_hardware_layer():
         print(f"✗ Python hardware layer test failed: {e}")
         return False
 
-def test_cpp_structure():
+def test_cpp_structure() -> None:
     """Test that the C++ project structure is in place."""
     base_path = os.path.dirname(__file__)
     
@@ -56,7 +56,7 @@ def test_cpp_structure():
     
     return all_exist
 
-def test_gradle_configuration():
+def test_gradle_configuration() -> None:
     """Test that Gradle configuration includes PC platform."""
     try:
         settings_path = os.path.join(os.path.dirname(__file__), "..", "..", "settings.gradle.kts")
@@ -73,7 +73,7 @@ def test_gradle_configuration():
         print(f"✗ Error checking Gradle configuration: {e}")
         return False
 
-def main():
+def main() -> None:
     """Run all tests."""
     print("=== C++ Integration Setup Test ===\n")
     

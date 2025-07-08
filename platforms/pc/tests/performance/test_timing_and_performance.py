@@ -1,5 +1,4 @@
-"""
-Comprehensive Timing and Performance Tests
+"""Comprehensive Timing and Performance Tests
 
 This module consolidates and replaces the scattered performance tests:
 - benchmark_timing_precision.py
@@ -21,7 +20,7 @@ from datetime import datetime, timedelta
 class TestTimingPrecision:
     """Test timing precision and accuracy."""
     
-    def test_basic_timing_precision(self):
+    def test_basic_timing_precision(self) -> None:
         """Test basic timing precision using time.time()."""
         # Test timing precision
         start_time = time.time()
@@ -32,7 +31,7 @@ class TestTimingPrecision:
         # Should be close to 1ms, allowing for some variance
         assert 0.0005 <= elapsed <= 0.005  # 0.5ms to 5ms tolerance
     
-    def test_high_precision_timing(self):
+    def test_high_precision_timing(self) -> None:
         """Test high precision timing using time.perf_counter()."""
         # Test high precision timing
         start_time = time.perf_counter()
@@ -43,7 +42,7 @@ class TestTimingPrecision:
         # Should be more precise than time.time()
         assert 0.0008 <= elapsed <= 0.003  # Tighter tolerance
     
-    def test_timing_consistency(self):
+    def test_timing_consistency(self) -> None:
         """Test timing consistency across multiple measurements."""
         measurements = []
         target_sleep = 0.001  # 1ms
@@ -64,7 +63,7 @@ class TestTimingPrecision:
         # Standard deviation should be low (consistent timing)
         assert std_dev < 0.001  # Less than 1ms standard deviation
     
-    def test_timing_jitter_analysis(self):
+    def test_timing_jitter_analysis(self) -> None:
         """Test timing jitter analysis."""
         measurements = []
         target_interval = 0.01  # 10ms
@@ -90,7 +89,7 @@ class TestTimingPrecision:
 class TestPerformanceBenchmarks:
     """Test performance benchmarks for various components."""
     
-    def test_data_processing_performance(self):
+    def test_data_processing_performance(self) -> None:
         """Test data processing performance."""
         # Simulate data processing
         data_size = 1000
@@ -109,9 +108,10 @@ class TestPerformanceBenchmarks:
         assert processing_time < 0.01  # Less than 10ms
         assert result == sum(range(data_size)) * 2
     
-    def test_memory_usage_simulation(self):
+    def test_memory_usage_simulation(self) -> None:
         """Test memory usage patterns."""
         import sys
+        from typing import Any, Dict, List, Optional, Union
         
         # Get initial memory usage (approximate)
         initial_objects = len(gc.get_objects()) if 'gc' in sys.modules else 0
@@ -131,7 +131,7 @@ class TestPerformanceBenchmarks:
         assert len(large_list) == 10000 if 'large_list' in locals() else True
     
     @patch('hardware.shimmer_pc.ShimmerPC')
-    def test_hardware_connection_performance(self, mock_shimmer):
+    def test_hardware_connection_performance(self, mock_shimmer) -> None:
         """Test hardware connection performance."""
         # Mock hardware device
         mock_device = Mock()
@@ -152,11 +152,11 @@ class TestPerformanceBenchmarks:
         assert connection_time < 0.001  # Less than 1ms for mocked connection
         assert device.is_connected
     
-    def test_concurrent_operations_performance(self):
+    def test_concurrent_operations_performance(self) -> None:
         """Test performance under concurrent operations."""
         results = []
         
-        def worker_function(worker_id):
+        def worker_function(worker_id) -> None:
             start_time = time.perf_counter()
             # Simulate some work
             time.sleep(0.001)  # 1ms of work
@@ -193,7 +193,7 @@ class TestPerformanceBenchmarks:
 class TestSystemPerformance:
     """Test overall system performance metrics."""
     
-    def test_startup_performance(self):
+    def test_startup_performance(self) -> None:
         """Test application startup performance simulation."""
         start_time = time.perf_counter()
         
@@ -218,7 +218,7 @@ class TestSystemPerformance:
         assert modules_loaded == 10
         assert components_initialized == 5
     
-    def test_data_throughput_performance(self):
+    def test_data_throughput_performance(self) -> None:
         """Test data throughput performance."""
         # Simulate data streaming
         data_points = 1000
@@ -243,7 +243,7 @@ class TestSystemPerformance:
         assert throughput > 10000  # At least 10k points per second
         assert processed_points == data_points
     
-    def test_resource_cleanup_performance(self):
+    def test_resource_cleanup_performance(self) -> None:
         """Test resource cleanup performance."""
         # Create resources
         resources = []
@@ -273,10 +273,10 @@ class TestSystemPerformance:
 class TestPerformanceRegression:
     """Test for performance regressions."""
     
-    def test_performance_baseline(self, temp_dir):
+    def test_performance_baseline(self, temp_dir) -> None:
         """Test performance against baseline measurements."""
         # Define performance test
-        def performance_test():
+        def performance_test() -> None:
             start_time = time.perf_counter()
             # Simulate some standard operations
             data = [i ** 2 for i in range(1000)]
@@ -311,17 +311,17 @@ class TestPerformanceRegression:
         # Performance should be reasonable
         assert mean_time < 0.01  # Less than 10ms
     
-    def test_performance_monitoring(self):
+    def test_performance_monitoring(self) -> None:
         """Test performance monitoring capabilities."""
         # Performance monitor simulation
         class PerformanceMonitor:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.measurements = []
             
-            def start_measurement(self, name):
+            def start_measurement(self, name) -> None:
                 return {'name': name, 'start_time': time.perf_counter()}
             
-            def end_measurement(self, measurement):
+            def end_measurement(self, measurement) -> None:
                 measurement['end_time'] = time.perf_counter()
                 measurement['duration'] = measurement['end_time'] - measurement['start_time']
                 self.measurements.append(measurement)
@@ -343,7 +343,7 @@ class TestPerformanceRegression:
 class TestBenchmarkResults:
     """Test benchmark result storage and analysis."""
     
-    def test_benchmark_result_storage(self, temp_dir):
+    def test_benchmark_result_storage(self, temp_dir) -> None:
         """Test storing and loading benchmark results."""
         # Create benchmark results
         results = {
@@ -379,7 +379,7 @@ class TestBenchmarkResults:
         assert loaded_results['test_suite'] == 'timing_and_performance'
         assert 'timing_precision' in loaded_results['results']
     
-    def test_benchmark_comparison(self):
+    def test_benchmark_comparison(self) -> None:
         """Test benchmark result comparison."""
         # Current results
         current_results = {

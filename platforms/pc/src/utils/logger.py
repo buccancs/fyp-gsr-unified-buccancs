@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Logger module for the PC Controller App.
+"""Logger module for the PC Controller App.
+
 Provides logging functionality for the application.
 Cross-platform support: Windows, macOS, Linux.
 """
@@ -11,17 +11,17 @@ import datetime
 import logging
 import os
 from logging.handlers import RotatingFileHandler
+from typing import Optional
 
 
-def setup_logger(log_level=logging.INFO):
-    """
-    Set up the logger for the application.
+def setup_logger(log_level: int = logging.INFO) -> logging.Logger:
+    """Set up the logger for the application.
 
     Args:
-        log_level: The logging level to use (default: logging.INFO)
+        log_level: The logging level to use (default: logging.INFO).
 
     Returns:
-        None
+        The configured logger instance.
     """
     # Create logs directory if it doesn't exist
     logs_dir = os.path.join(
@@ -63,14 +63,13 @@ def setup_logger(log_level=logging.INFO):
     return logger
 
 
-def get_logger(name):
-    """
-    Get a logger with the specified name.
+def get_logger(name: str) -> logging.Logger:
+    """Get a logger with the specified name.
 
     Args:
-        name: The name of the logger
+        name: The name of the logger.
 
     Returns:
-        A logger instance
+        A logger instance.
     """
     return logging.getLogger(name)

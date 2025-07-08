@@ -1,5 +1,4 @@
-"""
-Comprehensive C++ Backend Integration Tests
+"""Comprehensive C++ Backend Integration Tests
 
 This module consolidates and replaces the scattered C++ backend tests:
 - test_cpp_backend.py
@@ -18,7 +17,7 @@ from unittest.mock import Mock, patch, MagicMock
 class TestCppBackendAvailability:
     """Test C++ backend module availability and basic functionality."""
     
-    def test_cpp_module_import(self):
+    def test_cpp_module_import(self) -> None:
         """Test that the C++ hardware backend module can be imported."""
         try:
             import _hardware_backend
@@ -29,7 +28,7 @@ class TestCppBackendAvailability:
         except ImportError:
             pytest.skip("C++ hardware backend not available")
     
-    def test_cpp_module_functions(self):
+    def test_cpp_module_functions(self) -> None:
         """Test basic C++ module functions."""
         try:
             import _hardware_backend
@@ -46,7 +45,7 @@ class TestCppBackendAvailability:
         except ImportError:
             pytest.skip("C++ hardware backend not available")
     
-    def test_native_shimmer_class(self):
+    def test_native_shimmer_class(self) -> None:
         """Test NativeShimmer class instantiation and basic methods."""
         try:
             import _hardware_backend
@@ -73,7 +72,7 @@ class TestCppBackendAvailability:
         except ImportError:
             pytest.skip("C++ hardware backend not available")
     
-    def test_native_webcam_class(self):
+    def test_native_webcam_class(self) -> None:
         """Test NativeWebcam class instantiation and basic methods."""
         try:
             import _hardware_backend
@@ -114,12 +113,12 @@ class TestCppBackendAvailability:
 class TestShimmerIntegration:
     """Test ShimmerPC integration with C++ backend."""
     
-    def test_shimmer_pc_import(self):
+    def test_shimmer_pc_import(self) -> None:
         """Test ShimmerPC class can be imported."""
         from hardware.shimmer_pc import ShimmerPC
         assert ShimmerPC is not None
     
-    def test_shimmer_pc_instantiation(self):
+    def test_shimmer_pc_instantiation(self) -> None:
         """Test ShimmerPC instantiation with various parameters."""
         from hardware.shimmer_pc import ShimmerPC
         
@@ -131,7 +130,7 @@ class TestShimmerIntegration:
         assert hasattr(shimmer, 'is_streaming')
     
     @patch('hardware.shimmer_pc._hardware_backend', create=True)
-    def test_shimmer_pc_cpp_backend_integration(self, mock_backend):
+    def test_shimmer_pc_cpp_backend_integration(self, mock_backend) -> None:
         """Test ShimmerPC integration with mocked C++ backend."""
         from hardware.shimmer_pc import ShimmerPC
         
@@ -149,7 +148,7 @@ class TestShimmerIntegration:
         # Verify backend was called
         mock_backend.NativeShimmer.assert_called_with("COM3")
     
-    def test_shimmer_pc_api_compatibility(self):
+    def test_shimmer_pc_api_compatibility(self) -> None:
         """Test that ShimmerPC maintains API compatibility."""
         from hardware.shimmer_pc import ShimmerPC
         
@@ -171,12 +170,12 @@ class TestShimmerIntegration:
 class TestWebcamIntegration:
     """Test WebcamPC integration with C++ backend."""
     
-    def test_webcam_pc_import(self):
+    def test_webcam_pc_import(self) -> None:
         """Test WebcamPC class can be imported."""
         from hardware.webcam_pc import WebcamPC
         assert WebcamPC is not None
     
-    def test_webcam_pc_instantiation(self):
+    def test_webcam_pc_instantiation(self) -> None:
         """Test WebcamPC instantiation with various parameters."""
         from hardware.webcam_pc import WebcamPC
         
@@ -188,7 +187,7 @@ class TestWebcamIntegration:
         assert hasattr(webcam, 'is_streaming')
     
     @patch('hardware.webcam_pc._hardware_backend', create=True)
-    def test_webcam_pc_cpp_backend_integration(self, mock_backend):
+    def test_webcam_pc_cpp_backend_integration(self, mock_backend) -> None:
         """Test WebcamPC integration with mocked C++ backend."""
         from hardware.webcam_pc import WebcamPC
         
@@ -208,7 +207,7 @@ class TestWebcamIntegration:
         # Verify backend was called
         mock_backend.NativeWebcam.assert_called_with(0)
     
-    def test_webcam_pc_api_compatibility(self):
+    def test_webcam_pc_api_compatibility(self) -> None:
         """Test that WebcamPC maintains API compatibility."""
         from hardware.webcam_pc import WebcamPC
         
@@ -232,7 +231,7 @@ class TestCompleteHardwareIntegration:
     
     @patch('hardware.shimmer_pc._hardware_backend', create=True)
     @patch('hardware.webcam_pc._hardware_backend', create=True)
-    def test_simultaneous_hardware_integration(self, mock_webcam_backend, mock_shimmer_backend):
+    def test_simultaneous_hardware_integration(self, mock_webcam_backend, mock_shimmer_backend) -> None:
         """Test that both Shimmer and Webcam can be used simultaneously."""
         from hardware.shimmer_pc import ShimmerPC
         from hardware.webcam_pc import WebcamPC
@@ -255,7 +254,7 @@ class TestCompleteHardwareIntegration:
         mock_shimmer_backend.NativeShimmer.assert_called_with("COM3")
         mock_webcam_backend.NativeWebcam.assert_called_with(0)
     
-    def test_hardware_classes_independence(self):
+    def test_hardware_classes_independence(self) -> None:
         """Test that hardware classes can be instantiated independently."""
         from hardware.shimmer_pc import ShimmerPC
         from hardware.webcam_pc import WebcamPC
@@ -274,7 +273,7 @@ class TestBackendFallback:
     """Test fallback behavior when C++ backend is not available."""
     
     @patch('hardware.shimmer_pc._hardware_backend', None)
-    def test_shimmer_fallback_behavior(self):
+    def test_shimmer_fallback_behavior(self) -> None:
         """Test ShimmerPC behavior when C++ backend is not available."""
         from hardware.shimmer_pc import ShimmerPC
         
@@ -284,9 +283,10 @@ class TestBackendFallback:
         # Backend availability should be handled gracefully
     
     @patch('hardware.webcam_pc._hardware_backend', None)
-    def test_webcam_fallback_behavior(self):
+    def test_webcam_fallback_behavior(self) -> None:
         """Test WebcamPC behavior when C++ backend is not available."""
         from hardware.webcam_pc import WebcamPC
+from typing import Any, Dict, List, Optional, Union
         
         # Should still instantiate but use fallback
         webcam = WebcamPC(camera_index=0)

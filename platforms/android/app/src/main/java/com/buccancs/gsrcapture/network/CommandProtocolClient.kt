@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
-import android.os.StatFs
 import android.os.Environment
+import android.os.StatFs
 import android.util.Log
 import com.buccancs.gsr.android.network.TcpClientTransport
 import com.buccancs.gsr.common.network.CommandProtocol
@@ -21,8 +21,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * CommandProtocolClient integrates the Android app with the Java CommandProtocol networking layer.
  * This replaces the JSON-based NetworkClient to provide compatibility with the PC controller.
  */
-class CommandProtocolClient(private val context: Context) : NetworkTransport.Listener {
-
+class CommandProtocolClient(
+    private val context: Context,
+) : NetworkTransport.Listener {
     private val TAG = "CommandProtocolClient"
 
     // Network transport
@@ -48,7 +49,10 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
     /**
      * Starts the client and attempts to connect to the PC controller.
      */
-    fun start(serverAddress: String = "192.168.1.100", serverPort: Int = 8080) {
+    fun start(
+        serverAddress: String = "192.168.1.100",
+        serverPort: Int = 8080,
+    ) {
         if (isRunning.get()) {
             Log.w(TAG, "Client already running")
             return
@@ -105,8 +109,12 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
     /**
      * Sends a command response back to the PC controller.
      */
-    fun sendResponse(commandType: CommandProtocol.CommandType, status: CommandProtocol.StatusCode, 
-                    message: String, vararg data: String): Boolean {
+    fun sendResponse(
+        commandType: CommandProtocol.CommandType,
+        status: CommandProtocol.StatusCode,
+        message: String,
+        vararg data: String,
+    ): Boolean {
         val transport = this.transport
         if (transport == null || !isConnected.get()) {
             Log.w(TAG, "Cannot send response - not connected")
@@ -114,9 +122,14 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
         }
 
         try {
-            val response = CommandProtocol.ResponseMessage(
-                commandType, deviceId, status, message, *data
-            )
+            val response =
+                CommandProtocol.ResponseMessage(
+                    commandType,
+                    deviceId,
+                    status,
+                    message,
+                    *data,
+                )
 
             return transport.sendMessage(response, null)
         } catch (e: Exception) {
@@ -139,8 +152,8 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
             CommandProtocol.StatusCode.OK,
             "Device status",
             "battery:$batteryLevel",
-            "storage:$storageRemaining", 
-            "streams:$activeStreams"
+            "storage:$storageRemaining",
+            "streams:$activeStreams",
         )
     }
 
@@ -150,11 +163,12 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
     fun startStatusReporting(intervalSeconds: Long = 30) {
         stopStatusReporting()
 
-        statusReportingTask = scheduledExecutor.scheduleAtFixedRate({
-            if (isConnected.get()) {
-                sendDeviceStatus()
-            }
-        }, intervalSeconds, intervalSeconds, TimeUnit.SECONDS)
+        statusReportingTask =
+            scheduledExecutor.scheduleAtFixedRate({
+                if (isConnected.get()) {
+                    sendDeviceStatus()
+                }
+            }, intervalSeconds, intervalSeconds, TimeUnit.SECONDS)
 
         Log.d(TAG, "Started status reporting every $intervalSeconds seconds")
     }
@@ -211,7 +225,10 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
         startStatusReporting()
     }
 
-    override fun onDisconnected(deviceId: String, reason: String) {
+    override fun onDisconnected(
+        deviceId: String,
+        reason: String,
+    ) {
         Log.d(TAG, "Disconnected from server: $deviceId, reason: $reason")
         if (isConnected.getAndSet(false)) {
             connectionStateCallback?.invoke(false)
@@ -231,7 +248,11 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
         }
     }
 
-    override fun onError(deviceId: String, error: String, exception: Exception?) {
+    override fun onError(
+        deviceId: String,
+        error: String,
+        exception: Exception?,
+    ) {
         Log.e(TAG, "Network error for device $deviceId: $error", exception)
         errorCallback?.invoke("Network error: $error", exception)
     }
@@ -246,7 +267,7 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
         sendResponse(
             CommandProtocol.CommandType.ACK,
             CommandProtocol.StatusCode.OK,
-            "Command received: $commandType"
+            "Command received: $commandType",
         )
 
         // Forward to callback
@@ -265,12 +286,13 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
             CommandProtocol.CommandType.SYNC_PING -> {
                 // Respond with SYNC_PONG
                 try {
-                    val pongMessage = CommandProtocol.SyncMessage(
-                        CommandProtocol.CommandType.SYNC_PONG,
-                        deviceId,
-                        message.originTimestamp,
-                        System.currentTimeMillis()
-                    )
+                    val pongMessage =
+                        CommandProtocol.SyncMessage(
+                            CommandProtocol.CommandType.SYNC_PONG,
+                            deviceId,
+                            message.originTimestamp,
+                            System.currentTimeMillis(),
+                        )
                     transport?.sendMessage(pongMessage, null)
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to send SYNC_PONG", e)
@@ -282,12 +304,10 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
         }
     }
 
-    private fun generateDeviceId(): String {
-        return "android_${android.os.Build.MODEL.replace(" ", "_")}_${System.currentTimeMillis() % 10000}"
-    }
+    private fun generateDeviceId(): String = "android_${android.os.Build.MODEL.replace(" ", "_")}_${System.currentTimeMillis() % 10000}"
 
-    private fun getBatteryLevel(): String {
-        return try {
+    private fun getBatteryLevel(): String =
+        try {
             val batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
             val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
             val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
@@ -302,10 +322,9 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
             Log.e(TAG, "Error getting battery level", e)
             "Unknown"
         }
-    }
 
-    private fun getStorageRemaining(): String {
-        return try {
+    private fun getStorageRemaining(): String =
+        try {
             val externalStorageDir = Environment.getExternalStorageDirectory()
             val stat = StatFs(externalStorageDir.path)
             val availableBytes = stat.availableBytes
@@ -318,7 +337,6 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
             Log.e(TAG, "Error getting storage info", e)
             "Unknown"
         }
-    }
 
     private fun getActiveStreams(): String {
         // This would be populated based on actual recording state
@@ -331,7 +349,10 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
      * @param gsrValue GSR value in microSiemens
      * @param timestamp Timestamp of the measurement
      */
-    fun streamGsrData(gsrValue: Float, timestamp: Long): Boolean {
+    fun streamGsrData(
+        gsrValue: Float,
+        timestamp: Long,
+    ): Boolean {
         val transport = this.transport
         if (transport == null || !isConnected.get()) {
             Log.w(TAG, "Cannot stream GSR data - not connected")
@@ -339,14 +360,15 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
         }
 
         try {
-            val message = CommandProtocol.CommandMessage(
-                CommandProtocol.CommandType.DATA_GSR,
-                deviceId,
-                "", // No session ID needed for data streaming
-                "value:$gsrValue",
-                "timestamp:$timestamp",
-                "unit:microSiemens"
-            )
+            val message =
+                CommandProtocol.CommandMessage(
+                    CommandProtocol.CommandType.DATA_GSR,
+                    deviceId,
+                    "", // No session ID needed for data streaming
+                    "value:$gsrValue",
+                    "timestamp:$timestamp",
+                    "unit:microSiemens",
+                )
 
             return transport.sendMessage(message, null)
         } catch (e: Exception) {
@@ -361,7 +383,10 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
      * @param heartRate Heart rate in BPM
      * @param timestamp Timestamp of the measurement
      */
-    fun streamHeartRateData(heartRate: Int, timestamp: Long): Boolean {
+    fun streamHeartRateData(
+        heartRate: Int,
+        timestamp: Long,
+    ): Boolean {
         val transport = this.transport
         if (transport == null || !isConnected.get()) {
             Log.w(TAG, "Cannot stream heart rate data - not connected")
@@ -369,14 +394,15 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
         }
 
         try {
-            val message = CommandProtocol.CommandMessage(
-                CommandProtocol.CommandType.DATA_HEART_RATE,
-                deviceId,
-                "", // No session ID needed for data streaming
-                "value:$heartRate",
-                "timestamp:$timestamp",
-                "unit:BPM"
-            )
+            val message =
+                CommandProtocol.CommandMessage(
+                    CommandProtocol.CommandType.DATA_HEART_RATE,
+                    deviceId,
+                    "", // No session ID needed for data streaming
+                    "value:$heartRate",
+                    "timestamp:$timestamp",
+                    "unit:BPM",
+                )
 
             return transport.sendMessage(message, null)
         } catch (e: Exception) {
@@ -392,7 +418,11 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
      * @param frameType Type of frame (rgb, thermal)
      * @param timestamp Frame timestamp
      */
-    fun sendVideoFrame(frameData: ByteArray, frameType: String = "thermal", timestamp: Long = System.currentTimeMillis()): Boolean {
+    fun sendVideoFrame(
+        frameData: ByteArray,
+        frameType: String = "thermal",
+        timestamp: Long = System.currentTimeMillis(),
+    ): Boolean {
         val transport = this.transport
         if (transport == null || !isConnected.get()) {
             Log.w(TAG, "Cannot send video frame - not connected")
@@ -400,15 +430,16 @@ class CommandProtocolClient(private val context: Context) : NetworkTransport.Lis
         }
 
         try {
-            val message = CommandProtocol.CommandMessage(
-                CommandProtocol.CommandType.DATA_VIDEO_FRAME,
-                deviceId,
-                "", // No session ID needed for data streaming
-                "frame_type:$frameType",
-                "timestamp:$timestamp",
-                "size:${frameData.size}",
-                "data:${android.util.Base64.encodeToString(frameData, android.util.Base64.DEFAULT)}"
-            )
+            val message =
+                CommandProtocol.CommandMessage(
+                    CommandProtocol.CommandType.DATA_VIDEO_FRAME,
+                    deviceId,
+                    "", // No session ID needed for data streaming
+                    "frame_type:$frameType",
+                    "timestamp:$timestamp",
+                    "size:${frameData.size}",
+                    "data:${android.util.Base64.encodeToString(frameData, android.util.Base64.DEFAULT)}",
+                )
 
             return transport.sendMessage(message, null)
         } catch (e: Exception) {

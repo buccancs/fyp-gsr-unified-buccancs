@@ -1,12 +1,12 @@
 package com.buccancs.gsrcapture.sensor
 
-import android.content.Context
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
+import android.content.Context
 import com.buccancs.gsrcapture.utils.TimeManager
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.*
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
@@ -15,7 +15,6 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class GsrSensorManagerTest {
-
     @Mock
     private lateinit var mockContext: Context
 
@@ -98,10 +97,11 @@ class GsrSensorManagerTest {
 
     @Test
     fun testRecordingStartStop() {
-        val outputDir = File.createTempFile("test", "dir").apply { 
-            delete()
-            mkdirs()
-        }
+        val outputDir =
+            File.createTempFile("test", "dir").apply {
+                delete()
+                mkdirs()
+            }
         val sessionId = "test_session_123"
 
         try {
@@ -113,7 +113,6 @@ class GsrSensorManagerTest {
             // Test stopping recording
             gsrSensorManager.stopRecording()
             assertFalse("Should not be recording after stop", gsrSensorManager.isRecording.get())
-
         } finally {
             outputDir.deleteRecursively()
         }
@@ -149,38 +148,41 @@ class GsrSensorManagerTest {
     @Test
     fun testHeartRateCalculation() {
         // Test heart rate calculation with various PPG values
-        val testCases = mapOf(
-            50.0f to 40..80,   // Low PPG should give lower heart rate range
-            100.0f to 60..120, // Medium PPG
-            150.0f to 80..160  // High PPG should give higher heart rate range
-        )
+        val testCases =
+            mapOf(
+                50.0f to 40..80, // Low PPG should give lower heart rate range
+                100.0f to 60..120, // Medium PPG
+                150.0f to 80..160, // High PPG should give higher heart rate range
+            )
 
         testCases.forEach { (ppgValue, expectedRange) ->
             val heartRate = gsrSensorManager.calculateHeartRate(ppgValue)
             assertTrue(
                 "Heart rate $heartRate for PPG $ppgValue should be in range $expectedRange",
-                heartRate in expectedRange
+                heartRate in expectedRange,
             )
         }
     }
 
     @Test
     fun testDataSaving() {
-        val outputDir = File.createTempFile("test", "dir").apply { 
-            delete()
-            mkdirs()
-        }
+        val outputDir =
+            File.createTempFile("test", "dir").apply {
+                delete()
+                mkdirs()
+            }
         val sessionId = "test_session_save"
 
         try {
             gsrSensorManager.startRecording(outputDir, sessionId)
 
             // Create test data
-            val testData = TimeManager.TimestampedData(
-                data = 12.5f,
-                timestampNanos = System.nanoTime(),
-                sessionOffsetNanos = System.nanoTime()
-            )
+            val testData =
+                TimeManager.TimestampedData(
+                    data = 12.5f,
+                    timestampNanos = System.nanoTime(),
+                    sessionOffsetNanos = System.nanoTime(),
+                )
 
             gsrSensorManager.saveGsrData(testData)
 
@@ -188,7 +190,6 @@ class GsrSensorManagerTest {
             val gsrFile = File(outputDir, "${sessionId}_gsr_data.csv")
             assertTrue("GSR data file should be created", gsrFile.exists())
             assertTrue("GSR data file should not be empty", gsrFile.length() > 0)
-
         } finally {
             outputDir.deleteRecursively()
         }
@@ -230,10 +231,11 @@ class GsrSensorManagerTest {
         assertFalse("Connection should fail with invalid address", result)
 
         // Test recording without connection
-        val outputDir = File.createTempFile("test", "dir").apply { 
-            delete()
-            mkdirs()
-        }
+        val outputDir =
+            File.createTempFile("test", "dir").apply {
+                delete()
+                mkdirs()
+            }
 
         try {
             val recordingResult = gsrSensorManager.startRecording(outputDir, "test")

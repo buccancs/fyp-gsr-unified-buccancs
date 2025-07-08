@@ -3,8 +3,6 @@ package com.buccancs.gsrcapture.export
 import android.util.Log
 import com.buccancs.gsrcapture.export.interfaces.DataExporter
 import java.io.*
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.util.zip.Deflater
 import java.util.zip.DeflaterOutputStream
 
@@ -13,7 +11,6 @@ import java.util.zip.DeflaterOutputStream
  * Creates MATLAB-compatible files for data analysis
  */
 class MatlabExporter : DataExporter {
-
     companion object {
         private const val TAG = "MatlabExporter"
 
@@ -59,36 +56,37 @@ class MatlabExporter : DataExporter {
 
     override fun getFileExtension(): String = ".mat"
 
-    override fun supportsDataType(dataType: String): Boolean {
-        return when (dataType.lowercase()) {
+    override fun supportsDataType(dataType: String): Boolean =
+        when (dataType.lowercase()) {
             "timeseries", "numeric", "matrix", "struct" -> true
             "video", "images" -> false // MATLAB files don't directly support video
             else -> false
         }
-    }
 
-    override fun getAvailableOptions(): Map<String, Map<String, Any>> {
-        return mapOf(
-            "compressionLevel" to mapOf(
-                "description" to "Compression level (0-9)",
-                "type" to "integer",
-                "min" to 0,
-                "max" to 9,
-                "default" to 6
-            ),
-            "includeMetadata" to mapOf(
-                "description" to "Include metadata in the output",
-                "type" to "boolean",
-                "default" to true
-            ),
-            "precision" to mapOf(
-                "description" to "Numeric precision",
-                "type" to "string",
-                "options" to listOf("single", "double"),
-                "default" to "double"
-            )
+    override fun getAvailableOptions(): Map<String, Map<String, Any>> =
+        mapOf(
+            "compressionLevel" to
+                mapOf(
+                    "description" to "Compression level (0-9)",
+                    "type" to "integer",
+                    "min" to 0,
+                    "max" to 9,
+                    "default" to 6,
+                ),
+            "includeMetadata" to
+                mapOf(
+                    "description" to "Include metadata in the output",
+                    "type" to "boolean",
+                    "default" to true,
+                ),
+            "precision" to
+                mapOf(
+                    "description" to "Numeric precision",
+                    "type" to "string",
+                    "options" to listOf("single", "double"),
+                    "default" to "double",
+                ),
         )
-    }
 
     override fun validateConfig(config: DataExporter.ExportConfig): List<String> {
         val errors = mutableListOf<String>()
@@ -108,7 +106,7 @@ class MatlabExporter : DataExporter {
     override fun exportData(
         dataset: DataExporter.ExportDataset,
         outputFile: File,
-        config: DataExporter.ExportConfig
+        config: DataExporter.ExportConfig,
     ): DataExporter.ExportResult {
         val startTime = System.currentTimeMillis()
 
@@ -119,7 +117,7 @@ class MatlabExporter : DataExporter {
                 return DataExporter.ExportResult(
                     success = false,
                     outputFile = null,
-                    errorMessage = "Configuration validation failed: ${validationErrors.joinToString(", ")}"
+                    errorMessage = "Configuration validation failed: ${validationErrors.joinToString(", ")}",
                 )
             }
 
@@ -141,17 +139,19 @@ class MatlabExporter : DataExporter {
                 outputFile = outputFile,
                 fileSize = fileSize,
                 exportDuration = endTime - startTime,
-                warnings = if (dataset.videoData.isNotEmpty()) {
-                    listOf("Video data was skipped - MATLAB format doesn't support embedded video")
-                } else emptyList()
+                warnings =
+                    if (dataset.videoData.isNotEmpty()) {
+                        listOf("Video data was skipped - MATLAB format doesn't support embedded video")
+                    } else {
+                        emptyList()
+                    },
             )
-
         } catch (e: Exception) {
             Log.e(TAG, "Error exporting to MATLAB format", e)
             DataExporter.ExportResult(
                 success = false,
                 outputFile = null,
-                errorMessage = "Export failed: ${e.message}"
+                errorMessage = "Export failed: ${e.message}",
             )
         }
     }
@@ -159,22 +159,23 @@ class MatlabExporter : DataExporter {
     override fun exportTimeSeries(
         dataSeries: List<DataExporter.DataSeries>,
         outputFile: File,
-        config: DataExporter.ExportConfig
+        config: DataExporter.ExportConfig,
     ): DataExporter.ExportResult {
-        val dataset = DataExporter.ExportDataset(
-            sessionId = "timeseries_export",
-            startTime = dataSeries.minOfOrNull { it.timestamps.minOrNull() ?: 0L } ?: 0L,
-            endTime = dataSeries.maxOfOrNull { it.timestamps.maxOrNull() ?: 0L } ?: 0L,
-            dataSeries = dataSeries,
-            videoData = emptyList()
-        )
+        val dataset =
+            DataExporter.ExportDataset(
+                sessionId = "timeseries_export",
+                startTime = dataSeries.minOfOrNull { it.timestamps.minOrNull() ?: 0L } ?: 0L,
+                endTime = dataSeries.maxOfOrNull { it.timestamps.maxOrNull() ?: 0L } ?: 0L,
+                dataSeries = dataSeries,
+                videoData = emptyList(),
+            )
 
         return exportData(dataset, outputFile, config)
     }
 
     override fun estimateOutputSize(
         dataset: DataExporter.ExportDataset,
-        config: DataExporter.ExportConfig
+        config: DataExporter.ExportConfig,
     ): Long {
         var estimatedSize = MAT_FILE_HEADER_SIZE.toLong()
 
@@ -189,13 +190,14 @@ class MatlabExporter : DataExporter {
         }
 
         // Apply compression factor
-        val compressionFactor = when (config.compressionLevel) {
-            0 -> 1.0
-            in 1..3 -> 0.8
-            in 4..6 -> 0.6
-            in 7..9 -> 0.4
-            else -> 0.6
-        }
+        val compressionFactor =
+            when (config.compressionLevel) {
+                0 -> 1.0
+                in 1..3 -> 0.8
+                in 4..6 -> 0.6
+                in 7..9 -> 0.4
+                else -> 0.6
+            }
 
         return (estimatedSize * compressionFactor).toLong()
     }
@@ -213,7 +215,7 @@ class MatlabExporter : DataExporter {
     private fun writeMatFile(
         outputStream: OutputStream,
         dataset: DataExporter.ExportDataset,
-        config: DataExporter.ExportConfig
+        config: DataExporter.ExportConfig,
     ) {
         val buffer = ByteArrayOutputStream()
         val dataStream = DataOutputStream(buffer)
@@ -250,7 +252,7 @@ class MatlabExporter : DataExporter {
 
     private fun createDataStructure(
         dataset: DataExporter.ExportDataset,
-        config: DataExporter.ExportConfig
+        config: DataExporter.ExportConfig,
     ): Map<String, Any> {
         val structData = mutableMapOf<String, Any>()
 
@@ -264,27 +266,29 @@ class MatlabExporter : DataExporter {
 
         // Add data series
         for (series in dataset.dataSeries) {
-            val seriesStruct = mapOf(
-                "timestamps" to series.timestamps.map { it.toDouble() },
-                "values" to series.values,
-                "unit" to series.unit,
-                "metadata" to series.metadata
-            )
+            val seriesStruct =
+                mapOf(
+                    "timestamps" to series.timestamps.map { it.toDouble() },
+                    "values" to series.values,
+                    "unit" to series.unit,
+                    "metadata" to series.metadata,
+                )
             structData[series.name] = seriesStruct
         }
 
         // Add video metadata (since we can't embed video in .mat files)
         if (dataset.videoData.isNotEmpty() && config.includeMetadata) {
-            val videoMetadata = dataset.videoData.map { video ->
-                mapOf(
-                    "name" to video.name,
-                    "filePath" to video.filePath,
-                    "frameRate" to video.frameRate,
-                    "duration" to video.duration,
-                    "resolution" to listOf(video.resolution.first, video.resolution.second),
-                    "metadata" to video.metadata
-                )
-            }
+            val videoMetadata =
+                dataset.videoData.map { video ->
+                    mapOf(
+                        "name" to video.name,
+                        "filePath" to video.filePath,
+                        "frameRate" to video.frameRate,
+                        "duration" to video.duration,
+                        "resolution" to listOf(video.resolution.first, video.resolution.second),
+                        "metadata" to video.metadata,
+                    )
+                }
             structData["videoMetadata"] = videoMetadata
         }
 
@@ -295,7 +299,7 @@ class MatlabExporter : DataExporter {
         dataStream: DataOutputStream,
         name: String,
         data: Any,
-        config: DataExporter.ExportConfig
+        config: DataExporter.ExportConfig,
     ) {
         val elementBuffer = ByteArrayOutputStream()
         val elementStream = DataOutputStream(elementBuffer)
@@ -320,14 +324,20 @@ class MatlabExporter : DataExporter {
         dataStream.write(elementData)
     }
 
-    private fun writeArrayFlags(dataStream: DataOutputStream, arrayClass: Int) {
+    private fun writeArrayFlags(
+        dataStream: DataOutputStream,
+        arrayClass: Int,
+    ) {
         dataStream.writeInt(miUINT32)
         dataStream.writeInt(8)
         dataStream.writeInt(arrayClass)
         dataStream.writeInt(0) // flags
     }
 
-    private fun writeDimensions(dataStream: DataOutputStream, dimensions: IntArray) {
+    private fun writeDimensions(
+        dataStream: DataOutputStream,
+        dimensions: IntArray,
+    ) {
         dataStream.writeInt(miINT32)
         dataStream.writeInt(dimensions.size * 4)
         for (dim in dimensions) {
@@ -335,7 +345,10 @@ class MatlabExporter : DataExporter {
         }
     }
 
-    private fun writeArrayName(dataStream: DataOutputStream, name: String) {
+    private fun writeArrayName(
+        dataStream: DataOutputStream,
+        name: String,
+    ) {
         val nameBytes = name.toByteArray()
         dataStream.writeInt(miINT8)
         dataStream.writeInt(nameBytes.size)
@@ -349,7 +362,7 @@ class MatlabExporter : DataExporter {
     private fun writeStructData(
         dataStream: DataOutputStream,
         data: Map<String, Any>,
-        config: DataExporter.ExportConfig
+        config: DataExporter.ExportConfig,
     ) {
         // This is a simplified implementation
         // In a full implementation, you would need to handle all MATLAB data types
@@ -366,7 +379,10 @@ class MatlabExporter : DataExporter {
         }
     }
 
-    private fun writeFieldNames(dataStream: DataOutputStream, fieldNames: List<String>) {
+    private fun writeFieldNames(
+        dataStream: DataOutputStream,
+        fieldNames: List<String>,
+    ) {
         val maxNameLength = fieldNames.maxOfOrNull { it.length } ?: 0
         val nameLength = ((maxNameLength + 7) / 8) * 8 // Round up to 8-byte boundary
 
@@ -383,7 +399,11 @@ class MatlabExporter : DataExporter {
         }
     }
 
-    private fun writeFieldData(dataStream: DataOutputStream, data: Any?, config: DataExporter.ExportConfig) {
+    private fun writeFieldData(
+        dataStream: DataOutputStream,
+        data: Any?,
+        config: DataExporter.ExportConfig,
+    ) {
         // Simplified field data writing
         // In a full implementation, this would handle all MATLAB data types properly
         when (data) {
@@ -403,7 +423,10 @@ class MatlabExporter : DataExporter {
         }
     }
 
-    private fun writeStringData(dataStream: DataOutputStream, text: String) {
+    private fun writeStringData(
+        dataStream: DataOutputStream,
+        text: String,
+    ) {
         val textBytes = text.toByteArray()
 
         // Write array flags for char array
@@ -425,7 +448,10 @@ class MatlabExporter : DataExporter {
         repeat(padding) { dataStream.writeByte(0) }
     }
 
-    private fun writeNumericData(dataStream: DataOutputStream, values: DoubleArray) {
+    private fun writeNumericData(
+        dataStream: DataOutputStream,
+        values: DoubleArray,
+    ) {
         // Write array flags for double array
         writeArrayFlags(dataStream, mxDOUBLE_CLASS)
 
@@ -446,7 +472,7 @@ class MatlabExporter : DataExporter {
     private fun writeCompressed(
         outputStream: OutputStream,
         data: ByteArray,
-        compressionLevel: Int
+        compressionLevel: Int,
     ) {
         val deflater = Deflater(compressionLevel)
         val compressedStream = DeflaterOutputStream(outputStream, deflater)

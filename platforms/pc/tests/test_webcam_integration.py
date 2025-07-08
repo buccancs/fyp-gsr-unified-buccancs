@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test script to verify the Webcam C++ integration.
+"""Test script to verify the Webcam C++ integration.
 
 This script tests that the updated WebcamPC class can use the C++ backend
 and that the integration maintains API compatibility.
@@ -13,7 +12,7 @@ import time
 # Add the src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-def test_webcam_integration():
+def test_webcam_integration() -> None:
     """Test the WebcamPC integration with C++ backend."""
     try:
         from hardware.webcam_pc import WebcamPC
@@ -48,7 +47,7 @@ def test_webcam_integration():
         traceback.print_exc()
         return False
 
-def test_backend_availability():
+def test_backend_availability() -> None:
     """Test which backends are available."""
     print("=== Backend Availability ===")
     
@@ -74,13 +73,14 @@ def test_backend_availability():
     except ImportError:
         print("✗ OpenCV library not available")
 
-def test_complete_hardware_integration():
+def test_complete_hardware_integration() -> None:
     """Test both Shimmer and Webcam integration together."""
     print("=== Complete Hardware Integration Test ===")
     
     try:
         from hardware.shimmer_pc import ShimmerPC
         from hardware.webcam_pc import WebcamPC
+from typing import Any, Dict, List, Optional, Union
         
         print("✓ Both hardware classes imported successfully")
         
@@ -106,7 +106,7 @@ def test_complete_hardware_integration():
         print(f"✗ Complete integration test failed: {e}")
         return False
 
-def main():
+def main() -> None:
     """Run all integration tests."""
     print("=== Webcam C++ Integration Test ===\n")
     

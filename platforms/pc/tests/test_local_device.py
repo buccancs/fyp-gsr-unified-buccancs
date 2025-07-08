@@ -1,5 +1,4 @@
-"""
-Test suite for LocalDevice class.
+"""Test suite for LocalDevice class.
 
 This module contains unit tests for the LocalDevice class that manages
 PC hardware as a unified device.
@@ -14,12 +13,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from local_device import LocalDevice
+from typing import Any, Dict, List, Optional, Union
 
 
 class TestLocalDevice(unittest.TestCase):
     """Test cases for LocalDevice class."""
     
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test fixtures."""
         # Mock the hardware drivers to avoid actual hardware dependencies
         with patch('local_device.ShimmerPC') as mock_shimmer, \
@@ -38,7 +38,7 @@ class TestLocalDevice(unittest.TestCase):
             
             self.local_device = LocalDevice()
     
-    def test_initialization(self):
+    def test_initialization(self) -> None:
         """Test LocalDevice initialization."""
         self.assertEqual(self.local_device.id, "Local-PC")
         self.assertEqual(self.local_device.name, "Local PC")
@@ -48,7 +48,7 @@ class TestLocalDevice(unittest.TestCase):
         self.assertFalse(self.local_device.is_connected)
         self.assertFalse(self.local_device.is_recording)
     
-    def test_connect_success(self):
+    def test_connect_success(self) -> None:
         """Test successful connection to hardware."""
         # Mock successful hardware connections
         self.mock_shimmer.is_connected = True
@@ -61,7 +61,7 @@ class TestLocalDevice(unittest.TestCase):
         self.mock_shimmer.connect.assert_called_once()
         self.mock_webcam.connect.assert_called_once()
     
-    def test_connect_partial_success(self):
+    def test_connect_partial_success(self) -> None:
         """Test connection with only one hardware device available."""
         # Mock partial success (only shimmer connects)
         self.mock_shimmer.is_connected = True
@@ -72,7 +72,7 @@ class TestLocalDevice(unittest.TestCase):
         # Should still be considered connected if at least one device works
         self.assertTrue(self.local_device.is_connected)
     
-    def test_connect_failure(self):
+    def test_connect_failure(self) -> None:
         """Test connection failure when no hardware is available."""
         # Mock connection failure
         self.mock_shimmer.is_connected = False
@@ -83,7 +83,7 @@ class TestLocalDevice(unittest.TestCase):
         # Should not be connected if no hardware is available
         self.assertFalse(self.local_device.is_connected)
     
-    def test_disconnect(self):
+    def test_disconnect(self) -> None:
         """Test disconnection from hardware."""
         # Set up connected state
         self.local_device._is_connected = True
@@ -97,7 +97,7 @@ class TestLocalDevice(unittest.TestCase):
     
     @patch('local_device.os.makedirs')
     @patch('local_device.os.path.join')
-    def test_start_recording_with_all_sensors(self, mock_join, mock_makedirs):
+    def test_start_recording_with_all_sensors(self, mock_join, mock_makedirs) -> None:
         """Test starting recording with all sensors enabled."""
         # Set up connected state
         self.local_device._is_connected = True
@@ -122,7 +122,7 @@ class TestLocalDevice(unittest.TestCase):
         self.assertEqual(self.local_device._session_id, session_id)
         self.assertEqual(self.local_device._enabled_sensors, enabled_sensors)
     
-    def test_start_recording_with_selected_sensors(self):
+    def test_start_recording_with_selected_sensors(self) -> None:
         """Test starting recording with only selected sensors."""
         # Set up connected state
         self.local_device._is_connected = True
@@ -143,7 +143,7 @@ class TestLocalDevice(unittest.TestCase):
         self.mock_webcam.start_recording.assert_not_called()
         self.mock_webcam.start_streaming.assert_not_called()
     
-    def test_start_recording_not_connected(self):
+    def test_start_recording_not_connected(self) -> None:
         """Test starting recording when not connected."""
         # Device not connected
         self.local_device._is_connected = False
@@ -157,7 +157,7 @@ class TestLocalDevice(unittest.TestCase):
         self.mock_shimmer.start_recording.assert_not_called()
         self.mock_webcam.start_recording.assert_not_called()
     
-    def test_stop_recording(self):
+    def test_stop_recording(self) -> None:
         """Test stopping recording."""
         # Set up recording state
         self.local_device._is_recording = True
@@ -179,7 +179,7 @@ class TestLocalDevice(unittest.TestCase):
     @patch('local_device.os.path.exists')
     @patch('local_device.os.listdir')
     @patch('local_device.os.path.isfile')
-    def test_collect_files(self, mock_isfile, mock_listdir, mock_exists):
+    def test_collect_files(self, mock_isfile, mock_listdir, mock_exists) -> None:
         """Test collecting files from local device."""
         # Mock file system
         mock_exists.return_value = True
@@ -195,7 +195,7 @@ class TestLocalDevice(unittest.TestCase):
         self.assertIn('test_gsr_data.csv', files[0])
         self.assertIn('test_brio_video.mp4', files[1])
     
-    def test_get_status(self):
+    def test_get_status(self) -> None:
         """Test getting device status."""
         # Set up some state
         self.local_device._is_connected = True
@@ -227,7 +227,7 @@ class TestLocalDevice(unittest.TestCase):
         self.assertFalse(status['hardware_status']['webcam']['connected'])
         self.assertFalse(status['hardware_status']['webcam']['streaming'])
     
-    def test_signal_connections(self):
+    def test_signal_connections(self) -> None:
         """Test that hardware signals are properly connected."""
         # This test verifies that the signal connections are set up
         # In a real test, we would verify signal emissions, but for now
@@ -241,7 +241,7 @@ class TestLocalDevice(unittest.TestCase):
         self.assertTrue(hasattr(self.local_device, '_on_webcam_frame'))
         self.assertTrue(hasattr(self.local_device, '_on_webcam_error'))
     
-    def test_string_representation(self):
+    def test_string_representation(self) -> None:
         """Test string representation of LocalDevice."""
         self.local_device._is_connected = True
         self.local_device._is_recording = False

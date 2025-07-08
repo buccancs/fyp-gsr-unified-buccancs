@@ -14,14 +14,11 @@ import com.shimmerresearch.android.Shimmer
 import com.shimmerresearch.android.manager.ShimmerBluetoothManagerAndroid
 import com.shimmerresearch.bluetooth.ShimmerBluetooth
 import com.shimmerresearch.driver.Configuration
-import com.shimmerresearch.driver.FormatCluster
 import com.shimmerresearch.driver.ObjectCluster
-import com.shimmerresearch.driver.ShimmerDevice
 import java.io.File
 import java.io.FileWriter
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.math.abs
 
 /**
  * Shimmer-specific implementation of PhysiologicalSensor interface
@@ -29,9 +26,8 @@ import kotlin.math.abs
  */
 class ShimmerPhysiologicalSensor(
     private val context: Context,
-    private val executor: ExecutorService
+    private val executor: ExecutorService,
 ) : PhysiologicalSensor {
-
     companion object {
         private const val TAG = "ShimmerPhysiologicalSensor"
         private const val DEFAULT_SAMPLING_RATE = 51.2 // Hz
@@ -56,27 +52,28 @@ class ShimmerPhysiologicalSensor(
     /**
      * Handler to receive messages from Shimmer device including sensor data
      */
-    private val handler = object : Handler(Looper.getMainLooper()) {
-        override fun handleMessage(msg: Message) {
-            when (msg.what) {
-                ShimmerBluetooth.MSG_IDENTIFIER_DATA_PACKET -> {
-                    if (msg.obj is ObjectCluster) {
-                        processShimmerData(msg.obj as ObjectCluster)
+    private val handler =
+        object : Handler(Looper.getMainLooper()) {
+            override fun handleMessage(msg: Message) {
+                when (msg.what) {
+                    ShimmerBluetooth.MSG_IDENTIFIER_DATA_PACKET -> {
+                        if (msg.obj is ObjectCluster) {
+                            processShimmerData(msg.obj as ObjectCluster)
+                        }
                     }
-                }
-                ShimmerBluetooth.MSG_IDENTIFIER_STATE_CHANGE -> {
-                    // Handle state changes if needed
-                    Log.d(TAG, "Shimmer state changed")
-                }
-                else -> {
-                    super.handleMessage(msg)
+                    ShimmerBluetooth.MSG_IDENTIFIER_STATE_CHANGE -> {
+                        // Handle state changes if needed
+                        Log.d(TAG, "Shimmer state changed")
+                    }
+                    else -> {
+                        super.handleMessage(msg)
+                    }
                 }
             }
         }
-    }
 
-    override fun initialize(): Boolean {
-        return try {
+    override fun initialize(): Boolean =
+        try {
             shimmerBluetoothManager = ShimmerBluetoothManagerAndroid(context, handler)
 
             // Initialize Bluetooth adapter
@@ -89,7 +86,6 @@ class ShimmerPhysiologicalSensor(
             Log.e(TAG, "Failed to initialize Shimmer Bluetooth Manager", e)
             false
         }
-    }
 
     override fun connect(deviceAddress: String?): Boolean {
         if (isConnected.get()) {
@@ -100,12 +96,13 @@ class ShimmerPhysiologicalSensor(
         return try {
             shimmerDevice = Shimmer(handler, context)
 
-            val connected = if (deviceAddress != null) {
-                shimmerDevice?.connect(deviceAddress, "default") != null
-            } else {
-                // Try to connect to any available Shimmer device
-                connectToAnyAvailableDevice()
-            }
+            val connected =
+                if (deviceAddress != null) {
+                    shimmerDevice?.connect(deviceAddress, "default") != null
+                } else {
+                    // Try to connect to any available Shimmer device
+                    connectToAnyAvailableDevice()
+                }
 
             if (connected) {
                 isConnected.set(true)
@@ -184,7 +181,10 @@ class ShimmerPhysiologicalSensor(
         }
     }
 
-    override fun startRecording(outputDir: File, sessionId: String): Boolean {
+    override fun startRecording(
+        outputDir: File,
+        sessionId: String,
+    ): Boolean {
         if (!isConnected.get()) {
             Log.w(TAG, "Cannot start recording - device not connected")
             return false
@@ -221,17 +221,16 @@ class ShimmerPhysiologicalSensor(
         }
     }
 
-    override fun getHardwareInfo(): Map<String, String> {
-        return mapOf(
+    override fun getHardwareInfo(): Map<String, String> =
+        mapOf(
             "manufacturer" to "Shimmer Research",
             "model" to "Shimmer3 GSR+",
             "type" to "Physiological Sensor",
             "capabilities" to "GSR, PPG, Heart Rate",
             "connectionType" to "Bluetooth",
             "firmwareVersion" to (shimmerDevice?.getFirmwareVersionParsed() ?: "Unknown"),
-            "deviceId" to (shimmerDevice?.getBluetoothAddress() ?: "Unknown")
+            "deviceId" to (shimmerDevice?.getBluetoothAddress() ?: "Unknown"),
         )
-    }
 
     override fun configure(settings: Map<String, Any>): Boolean {
         if (!isConnected.get()) {
@@ -272,15 +271,14 @@ class ShimmerPhysiologicalSensor(
         }
     }
 
-    override fun getAvailableSettings(): Map<String, List<Any>> {
-        return mapOf(
+    override fun getAvailableSettings(): Map<String, List<Any>> =
+        mapOf(
             "samplingRate" to listOf(1.0, 10.24, 51.2, 128.0, 256.0, 512.0, 1024.0),
             "enableGsr" to listOf(true, false),
             "enablePpg" to listOf(true, false),
             "gsrRange" to listOf("AUTO", "40kOhm to 10MOhm", "10kOhm to 1MOhm", "3.9kOhm to 100kOhm"),
-            "batteryMonitoring" to listOf(true, false)
+            "batteryMonitoring" to listOf(true, false),
         )
-    }
 
     override fun shutdown() {
         disconnect()
@@ -342,7 +340,8 @@ class ShimmerPhysiologicalSensor(
                 device.setSamplingRateShimmer(DEFAULT_SAMPLING_RATE)
 
                 // Enable GSR and PPG sensors
-                val enabledSensors = Configuration.Shimmer3.SensorBitmap.SENSOR_GSR or
+                val enabledSensors =
+                    Configuration.Shimmer3.SensorBitmap.SENSOR_GSR or
                         Configuration.Shimmer3.SensorBitmap.SENSOR_INT_A12
 
                 @Suppress("DEPRECATION")
@@ -386,16 +385,18 @@ class ShimmerPhysiologicalSensor(
                 }
 
                 // Create sensor reading
-                val reading = PhysiologicalSensor.SensorReading(
-                    timestamp = timestamp,
-                    gsrValue = gsrValue,
-                    ppgValue = ppgValue,
-                    heartRate = heartRate,
-                    additionalData = mapOf(
-                        "deviceId" to (shimmerDevice?.getBluetoothAddress() ?: "unknown"),
-                        "rawData" to objectCluster.toString()
+                val reading =
+                    PhysiologicalSensor.SensorReading(
+                        timestamp = timestamp,
+                        gsrValue = gsrValue,
+                        ppgValue = ppgValue,
+                        heartRate = heartRate,
+                        additionalData =
+                            mapOf(
+                                "deviceId" to (shimmerDevice?.getBluetoothAddress() ?: "unknown"),
+                                "rawData" to objectCluster.toString(),
+                            ),
                     )
-                )
 
                 // Send to callback
                 currentCallback?.onDataReceived(reading)
@@ -404,7 +405,6 @@ class ShimmerPhysiologicalSensor(
                 if (isRecording.get()) {
                     recordData(reading)
                 }
-
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing Shimmer data", e)
                 currentCallback?.onError("Data processing error", e)
@@ -441,7 +441,7 @@ class ShimmerPhysiologicalSensor(
             // Calculate average time between peaks
             val peakIntervals = mutableListOf<Float>()
             for (i in 1 until peaks.size) {
-                val interval = (peaks[i] - peaks[i-1]) / DEFAULT_SAMPLING_RATE // Convert to seconds
+                val interval = (peaks[i] - peaks[i - 1]) / DEFAULT_SAMPLING_RATE // Convert to seconds
                 if (interval > 0.4 && interval < 2.0) { // Filter reasonable heart rate intervals (30-150 BPM)
                     peakIntervals.add(interval.toFloat())
                 }
@@ -502,7 +502,7 @@ class ShimmerPhysiologicalSensor(
     private fun recordData(reading: PhysiologicalSensor.SensorReading) {
         try {
             recordingWriter?.write(
-                "${reading.timestamp},${reading.gsrValue ?: ""},${reading.ppgValue ?: ""},${reading.heartRate ?: ""}\n"
+                "${reading.timestamp},${reading.gsrValue ?: ""},${reading.ppgValue ?: ""},${reading.heartRate ?: ""}\n",
             )
             recordingWriter?.flush()
         } catch (e: Exception) {

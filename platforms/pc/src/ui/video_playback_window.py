@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Video Playback Window for the Windows PC Controller App.
+"""Video Playback Window for the Windows PC Controller App.
 This module implements a video playback window that displays a series of videos
 while recording is happening, with annotation capabilities when new videos are played.
 """
 
-import logging
 import os
 from typing import Dict, List, Optional
 
@@ -26,8 +24,7 @@ from utils.logger import get_logger
 
 
 class VideoPlaybackWindow(QWidget):
-    """
-    Video Playback Window class for displaying a series of videos with annotation capabilities.
+    """Video Playback Window class for displaying a series of videos with annotation capabilities.
     """
 
     # Signals
@@ -37,9 +34,8 @@ class VideoPlaybackWindow(QWidget):
     playback_started = Signal()
     playback_stopped = Signal()
 
-    def __init__(self, parent=None):
-        """
-        Initialize the video playback window.
+    def __init__(self, parent=None) -> None:
+        """Initialize the video playback window.
 
         Args:
             parent: The parent widget (default: None)
@@ -72,9 +68,8 @@ class VideoPlaybackWindow(QWidget):
 
         self.logger.info("Video playback window initialized")
 
-    def setup_ui(self):
-        """
-        Set up the UI for the video playback window.
+    def setup_ui(self) -> None:
+        """Set up the UI for the video playback window.
         """
         self.setWindowTitle("Video Playback & Annotation")
         self.setMinimumSize(1200, 800)
@@ -98,9 +93,8 @@ class VideoPlaybackWindow(QWidget):
 
         main_layout.addWidget(splitter)
 
-    def create_video_panel(self):
-        """
-        Create the video playback panel.
+    def create_video_panel(self) -> None:
+        """Create the video playback panel.
 
         Returns:
             QWidget: The video panel widget
@@ -206,9 +200,8 @@ class VideoPlaybackWindow(QWidget):
 
         return panel
 
-    def create_control_panel(self):
-        """
-        Create the control panel with playlist and annotations.
+    def create_control_panel(self) -> None:
+        """Create the control panel with playlist and annotations.
 
         Returns:
             QWidget: The control panel widget
@@ -296,9 +289,8 @@ class VideoPlaybackWindow(QWidget):
 
         return panel
 
-    def connect_signals(self):
-        """
-        Connect media player signals.
+    def connect_signals(self) -> None:
+        """Connect media player signals.
         """
         self.media_player.stateChanged.connect(self.on_media_state_changed)
         self.media_player.positionChanged.connect(self.on_position_changed)
@@ -306,9 +298,8 @@ class VideoPlaybackWindow(QWidget):
         self.media_player.mediaStatusChanged.connect(
             self.on_media_status_changed)
 
-    def add_videos(self):
-        """
-        Add videos to the playlist.
+    def add_videos(self) -> None:
+        """Add videos to the playlist.
         """
         file_dialog = QFileDialog()
         file_paths, _ = file_dialog.getOpenFileNames(
@@ -324,9 +315,8 @@ class VideoPlaybackWindow(QWidget):
 
             self.logger.info(f"Added {len(file_paths)} videos to playlist")
 
-    def add_video_to_playlist(self, file_path):
-        """
-        Add a single video to the playlist.
+    def add_video_to_playlist(self, file_path) -> None:
+        """Add a single video to the playlist.
 
         Args:
             file_path: Path to the video file
@@ -344,9 +334,8 @@ class VideoPlaybackWindow(QWidget):
             if file_path not in self.annotations:
                 self.annotations[file_path] = []
 
-    def remove_selected_video(self):
-        """
-        Remove the selected video from the playlist.
+    def remove_selected_video(self) -> None:
+        """Remove the selected video from the playlist.
         """
         current_row = self.playlist_widget.currentRow()
         if current_row >= 0:
@@ -361,9 +350,8 @@ class VideoPlaybackWindow(QWidget):
                     self.current_video_index = max(
                         0, self.current_video_index - 1)
 
-    def clear_playlist(self):
-        """
-        Clear the entire playlist.
+    def clear_playlist(self) -> None:
+        """Clear the entire playlist.
         """
         self.video_playlist.clear()
         self.playlist_widget.clear()
@@ -371,9 +359,8 @@ class VideoPlaybackWindow(QWidget):
         self.media_player.stop()
         self.video_info_label.setText("No video loaded")
 
-    def on_playlist_item_double_clicked(self, item):
-        """
-        Handle double-click on playlist item.
+    def on_playlist_item_double_clicked(self, item) -> None:
+        """Handle double-click on playlist item.
 
         Args:
             item: The clicked item
@@ -383,9 +370,8 @@ class VideoPlaybackWindow(QWidget):
             self.current_video_index = self.video_playlist.index(file_path)
             self.load_current_video()
 
-    def on_playlist_selection_changed(self, current_row):
-        """
-        Handle playlist selection change.
+    def on_playlist_selection_changed(self, current_row) -> None:
+        """Handle playlist selection change.
 
         Args:
             current_row: The currently selected row
@@ -393,9 +379,8 @@ class VideoPlaybackWindow(QWidget):
         if 0 <= current_row < len(self.video_playlist):
             self.current_video_index = current_row
 
-    def load_current_video(self):
-        """
-        Load the current video from the playlist.
+    def load_current_video(self) -> None:
+        """Load the current video from the playlist.
         """
         if not self.video_playlist or self.current_video_index >= len(
                 self.video_playlist):
@@ -429,9 +414,8 @@ class VideoPlaybackWindow(QWidget):
             QMessageBox.warning(
                 self, "Error", f"Video file not found: {video_path}")
 
-    def auto_annotate_video_change(self, video_path):
-        """
-        Automatically add annotation when video changes.
+    def auto_annotate_video_change(self, video_path) -> None:
+        """Automatically add annotation when video changes.
 
         Args:
             video_path: Path to the new video
@@ -450,9 +434,8 @@ class VideoPlaybackWindow(QWidget):
 
             self.add_annotation_to_video(video_path, annotation)
 
-    def toggle_playback(self):
-        """
-        Toggle video playback.
+    def toggle_playback(self) -> None:
+        """Toggle video playback.
         """
         if self.media_player.state() == QMediaPlayer.PlayingState:
             self.media_player.pause()
@@ -467,41 +450,36 @@ class VideoPlaybackWindow(QWidget):
 
             self.media_player.play()
 
-    def stop_playback(self):
-        """
-        Stop video playback.
+    def stop_playback(self) -> None:
+        """Stop video playback.
         """
         self.media_player.stop()
 
-    def previous_video(self):
-        """
-        Play the previous video in the playlist.
+    def previous_video(self) -> None:
+        """Play the previous video in the playlist.
         """
         if self.video_playlist and self.current_video_index > 0:
             self.current_video_index -= 1
             self.load_current_video()
 
-    def next_video(self):
-        """
-        Play the next video in the playlist.
+    def next_video(self) -> None:
+        """Play the next video in the playlist.
         """
         if self.video_playlist and self.current_video_index < len(
                 self.video_playlist) - 1:
             self.current_video_index += 1
             self.load_current_video()
 
-    def set_position(self, position):
-        """
-        Set the playback position.
+    def set_position(self, position) -> None:
+        """Set the playback position.
 
         Args:
             position: The new position
         """
         self.media_player.setPosition(position)
 
-    def add_annotation(self):
-        """
-        Add annotation for the current video.
+    def add_annotation(self) -> None:
+        """Add annotation for the current video.
         """
         if not self.video_playlist:
             QMessageBox.information(self, "Info", "No video loaded.")
@@ -522,9 +500,8 @@ class VideoPlaybackWindow(QWidget):
         self.add_annotation_to_video(video_path, annotation)
         self.annotation_text.clear()
 
-    def add_annotation_to_video(self, video_path, annotation):
-        """
-        Add annotation to a specific video.
+    def add_annotation_to_video(self, video_path, annotation) -> None:
+        """Add annotation to a specific video.
 
         Args:
             video_path: Path to the video
@@ -543,9 +520,8 @@ class VideoPlaybackWindow(QWidget):
         self.logger.info(
             f"Added annotation to {os.path.basename(video_path)}: {annotation['text']}")
 
-    def update_annotations_table(self):
-        """
-        Update the annotations table.
+    def update_annotations_table(self) -> None:
+        """Update the annotations table.
         """
         # Count total annotations
         total_annotations = sum(len(annotations)
@@ -580,9 +556,8 @@ class VideoPlaybackWindow(QWidget):
 
                 row += 1
 
-    def export_annotations(self):
-        """
-        Export annotations to a file.
+    def export_annotations(self) -> None:
+        """Export annotations to a file.
         """
         if not any(self.annotations.values()):
             QMessageBox.information(self, "Info", "No annotations to export.")
@@ -610,13 +585,11 @@ class VideoPlaybackWindow(QWidget):
                 QMessageBox.critical(
                     self,
                     "Error",
-                    f"Failed to export annotations: {
-                        str(e)}")
+                    f"Failed to export annotations: {str(e)}")
                 self.logger.error(f"Failed to export annotations: {str(e)}")
 
-    def export_annotations_csv(self, file_path):
-        """
-        Export annotations to CSV format.
+    def export_annotations_csv(self, file_path) -> None:
+        """Export annotations to CSV format.
 
         Args:
             file_path: Path to save the CSV file
@@ -643,9 +616,8 @@ class VideoPlaybackWindow(QWidget):
                         annotation.get('auto_generated', False)
                     ])
 
-    def export_annotations_json(self, file_path):
-        """
-        Export annotations to JSON format.
+    def export_annotations_json(self, file_path) -> None:
+        """Export annotations to JSON format.
 
         Args:
             file_path: Path to save the JSON file
@@ -659,9 +631,8 @@ class VideoPlaybackWindow(QWidget):
         with open(file_path, 'w', encoding='utf-8') as jsonfile:
             json.dump(export_data, jsonfile, indent=2, ensure_ascii=False)
 
-    def clear_annotations(self):
-        """
-        Clear all annotations.
+    def clear_annotations(self) -> None:
+        """Clear all annotations.
         """
         reply = QMessageBox.question(
             self,
@@ -676,9 +647,8 @@ class VideoPlaybackWindow(QWidget):
             self.update_annotations_table()
             self.logger.info("All annotations cleared")
 
-    def set_recording_status(self, is_recording, start_time=None):
-        """
-        Set the recording status.
+    def set_recording_status(self, is_recording, start_time=None) -> None:
+        """Set the recording status.
 
         Args:
             is_recording: Whether recording is active
@@ -697,21 +667,17 @@ class VideoPlaybackWindow(QWidget):
             self.recording_status_label.setStyleSheet("font-weight: bold;")
             self.playback_stopped.emit()
 
-    def update_position(self):
-        """
-        Update the position display and recording time.
+    def update_position(self) -> None:
+        """Update the position display and recording time.
         """
         if self.is_recording and self.recording_start_time:
             import time
             elapsed = time.time() - self.recording_start_time
             self.recording_time_label.setText(
-                f"Recording Time: {
-                    self.format_time(
-                        elapsed * 1000)}")
+                f"Recording Time: {self.format_time(elapsed * 1000)}")
 
-    def on_media_state_changed(self, state):
-        """
-        Handle media player state changes.
+    def on_media_state_changed(self, state) -> None:
+        """Handle media player state changes.
 
         Args:
             state: The new media player state
@@ -721,9 +687,8 @@ class VideoPlaybackWindow(QWidget):
         else:
             self.play_button.setText("Play")
 
-    def on_position_changed(self, position):
-        """
-        Handle position changes.
+    def on_position_changed(self, position) -> None:
+        """Handle position changes.
 
         Args:
             position: The new position
@@ -736,18 +701,16 @@ class VideoPlaybackWindow(QWidget):
             self.duration_label.setText(
                 f"{self.format_time(position)} / {self.format_time(duration)}")
 
-    def on_duration_changed(self, duration):
-        """
-        Handle duration changes.
+    def on_duration_changed(self, duration) -> None:
+        """Handle duration changes.
 
         Args:
             duration: The media duration
         """
         self.position_slider.setRange(0, duration)
 
-    def on_media_status_changed(self, status):
-        """
-        Handle media status changes.
+    def on_media_status_changed(self, status) -> None:
+        """Handle media status changes.
 
         Args:
             status: The new media status
@@ -758,9 +721,8 @@ class VideoPlaybackWindow(QWidget):
                 self.next_video()
                 self.media_player.play()
 
-    def format_time(self, milliseconds):
-        """
-        Format time in milliseconds to HH:MM:SS format.
+    def format_time(self, milliseconds) -> None:
+        """Format time in milliseconds to HH:MM:SS format.
 
         Args:
             milliseconds: Time in milliseconds
@@ -778,9 +740,8 @@ class VideoPlaybackWindow(QWidget):
         else:
             return f"{minutes:02d}:{seconds:02d}"
 
-    def closeEvent(self, event):
-        """
-        Handle window close event.
+    def closeEvent(self, event) -> None:
+        """Handle window close event.
 
         Args:
             event: The close event

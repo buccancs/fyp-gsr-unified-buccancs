@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Comprehensive unit tests for UI components.
+"""Comprehensive unit tests for UI components.
 """
 
 from src.utils.logger import get_logger
@@ -27,26 +26,22 @@ sys.modules['PySide6.QtGui'] = Mock()
 
 
 class TestStatusDashboard(unittest.TestCase):
-    """
-    Test case for the StatusDashboard class.
+    """Test case for the StatusDashboard class.
     """
 
-    def setUp(self):
-        """
-        Set up the test case.
+    def setUp(self) -> None:
+        """Set up the test case.
         """
         with patch('PySide6.QtWidgets.QWidget'):
             self.status_dashboard = StatusDashboard()
 
-    def test_initialization(self):
-        """
-        Test StatusDashboard initialization.
+    def test_initialization(self) -> None:
+        """Test StatusDashboard initialization.
         """
         self.assertIsNotNone(self.status_dashboard)
 
-    def test_update_device_count(self):
-        """
-        Test updating device count display.
+    def test_update_device_count(self) -> None:
+        """Test updating device count display.
         """
         # Test updating device count
         self.status_dashboard.update_device_count(5)
@@ -54,9 +49,8 @@ class TestStatusDashboard(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_update_recording_status(self):
-        """
-        Test updating recording status display.
+    def test_update_recording_status(self) -> None:
+        """Test updating recording status display.
         """
         # Test different recording statuses
         self.status_dashboard.update_recording_status(True)
@@ -65,9 +59,8 @@ class TestStatusDashboard(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_update_session_info(self):
-        """
-        Test updating session information display.
+    def test_update_session_info(self) -> None:
+        """Test updating session information display.
         """
         session_info = {
             "session_id": "test_session_123",
@@ -81,9 +74,8 @@ class TestStatusDashboard(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_update_system_status(self):
-        """
-        Test updating system status display.
+    def test_update_system_status(self) -> None:
+        """Test updating system status display.
         """
         system_status = {
             "cpu_usage": 45.2,
@@ -97,9 +89,8 @@ class TestStatusDashboard(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_add_status_message(self):
-        """
-        Test adding status messages.
+    def test_add_status_message(self) -> None:
+        """Test adding status messages.
         """
         # Test different types of status messages
         self.status_dashboard.add_status_message("INFO", "System initialized")
@@ -109,9 +100,8 @@ class TestStatusDashboard(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_clear_status_messages(self):
-        """
-        Test clearing status messages.
+    def test_clear_status_messages(self) -> None:
+        """Test clearing status messages.
         """
         # Add some messages first
         self.status_dashboard.add_status_message("INFO", "Test message 1")
@@ -125,26 +115,22 @@ class TestStatusDashboard(unittest.TestCase):
 
 
 class TestDevicePanel(unittest.TestCase):
-    """
-    Test case for the DevicePanel class.
+    """Test case for the DevicePanel class.
     """
 
-    def setUp(self):
-        """
-        Set up the test case.
+    def setUp(self) -> None:
+        """Set up the test case.
         """
         with patch('PySide6.QtWidgets.QWidget'):
             self.device_panel = DevicePanel()
 
-    def test_initialization(self):
-        """
-        Test DevicePanel initialization.
+    def test_initialization(self) -> None:
+        """Test DevicePanel initialization.
         """
         self.assertIsNotNone(self.device_panel)
 
-    def test_add_device(self):
-        """
-        Test adding a device to the panel.
+    def test_add_device(self) -> None:
+        """Test adding a device to the panel.
         """
         device_info = {
             "device_id": "device_001",
@@ -160,9 +146,8 @@ class TestDevicePanel(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_remove_device(self):
-        """
-        Test removing a device from the panel.
+    def test_remove_device(self) -> None:
+        """Test removing a device from the panel.
         """
         device_id = "device_001"
 
@@ -181,9 +166,8 @@ class TestDevicePanel(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_update_device_status(self):
-        """
-        Test updating device status in the panel.
+    def test_update_device_status(self) -> None:
+        """Test updating device status in the panel.
         """
         device_id = "device_001"
 
@@ -208,9 +192,8 @@ class TestDevicePanel(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_connect_device(self):
-        """
-        Test connecting to a device.
+    def test_connect_device(self) -> None:
+        """Test connecting to a device.
         """
         device_id = "device_001"
 
@@ -229,9 +212,8 @@ class TestDevicePanel(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_disconnect_device(self):
-        """
-        Test disconnecting from a device.
+    def test_disconnect_device(self) -> None:
+        """Test disconnecting from a device.
         """
         device_id = "device_001"
 
@@ -251,9 +233,8 @@ class TestDevicePanel(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_get_selected_devices(self):
-        """
-        Test getting selected devices.
+    def test_get_selected_devices(self) -> None:
+        """Test getting selected devices.
         """
         # Add some devices
         for i in range(3):
@@ -271,9 +252,8 @@ class TestDevicePanel(unittest.TestCase):
         # Should return a list
         self.assertIsInstance(selected, list)
 
-    def test_select_all_devices(self):
-        """
-        Test selecting all devices.
+    def test_select_all_devices(self) -> None:
+        """Test selecting all devices.
         """
         # Add some devices
         for i in range(3):
@@ -291,9 +271,8 @@ class TestDevicePanel(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_deselect_all_devices(self):
-        """
-        Test deselecting all devices.
+    def test_deselect_all_devices(self) -> None:
+        """Test deselecting all devices.
         """
         # Add some devices and select them
         for i in range(3):
@@ -315,26 +294,22 @@ class TestDevicePanel(unittest.TestCase):
 
 
 class TestLogViewer(unittest.TestCase):
-    """
-    Test case for the LogViewer class.
+    """Test case for the LogViewer class.
     """
 
-    def setUp(self):
-        """
-        Set up the test case.
+    def setUp(self) -> None:
+        """Set up the test case.
         """
         with patch('PySide6.QtWidgets.QWidget'):
             self.log_viewer = LogViewer()
 
-    def test_initialization(self):
-        """
-        Test LogViewer initialization.
+    def test_initialization(self) -> None:
+        """Test LogViewer initialization.
         """
         self.assertIsNotNone(self.log_viewer)
 
-    def test_add_log_entry(self):
-        """
-        Test adding log entries.
+    def test_add_log_entry(self) -> None:
+        """Test adding log entries.
         """
         # Test different log levels
         self.log_viewer.add_log_entry("INFO", "Application started")
@@ -346,9 +321,8 @@ class TestLogViewer(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_clear_logs(self):
-        """
-        Test clearing log entries.
+    def test_clear_logs(self) -> None:
+        """Test clearing log entries.
         """
         # Add some log entries first
         self.log_viewer.add_log_entry("INFO", "Test log 1")
@@ -361,9 +335,8 @@ class TestLogViewer(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_filter_logs_by_level(self):
-        """
-        Test filtering logs by level.
+    def test_filter_logs_by_level(self) -> None:
+        """Test filtering logs by level.
         """
         # Add logs of different levels
         self.log_viewer.add_log_entry("INFO", "Info message")
@@ -379,9 +352,8 @@ class TestLogViewer(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_search_logs(self):
-        """
-        Test searching through logs.
+    def test_search_logs(self) -> None:
+        """Test searching through logs.
         """
         # Add some log entries
         self.log_viewer.add_log_entry("INFO", "Device connected successfully")
@@ -397,9 +369,8 @@ class TestLogViewer(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_export_logs(self):
-        """
-        Test exporting logs to file.
+    def test_export_logs(self) -> None:
+        """Test exporting logs to file.
         """
         # Create temporary file
         temp_file = tempfile.NamedTemporaryFile(
@@ -423,9 +394,8 @@ class TestLogViewer(unittest.TestCase):
             if os.path.exists(temp_file.name):
                 os.unlink(temp_file.name)
 
-    def test_auto_scroll(self):
-        """
-        Test auto-scroll functionality.
+    def test_auto_scroll(self) -> None:
+        """Test auto-scroll functionality.
         """
         # Enable auto-scroll
         self.log_viewer.set_auto_scroll(True)
@@ -444,9 +414,8 @@ class TestLogViewer(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_log_level_colors(self):
-        """
-        Test that different log levels have different colors.
+    def test_log_level_colors(self) -> None:
+        """Test that different log levels have different colors.
         """
         # Add logs of different levels
         levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -457,12 +426,12 @@ class TestLogViewer(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_timestamp_formatting(self):
-        """
-        Test timestamp formatting in log entries.
+    def test_timestamp_formatting(self) -> None:
+        """Test timestamp formatting in log entries.
         """
         # Add log entry with custom timestamp
         import datetime
+from typing import Any, Dict, List, Optional, Union
         custom_time = datetime.datetime.now()
 
         self.log_viewer.add_log_entry(
@@ -471,9 +440,8 @@ class TestLogViewer(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_max_log_entries(self):
-        """
-        Test maximum log entries limit.
+    def test_max_log_entries(self) -> None:
+        """Test maximum log entries limit.
         """
         # Set maximum log entries
         max_entries = 50
@@ -488,22 +456,19 @@ class TestLogViewer(unittest.TestCase):
 
 
 class TestUIIntegration(unittest.TestCase):
-    """
-    Test case for UI component integration.
+    """Test case for UI component integration.
     """
 
-    def setUp(self):
-        """
-        Set up the test case.
+    def setUp(self) -> None:
+        """Set up the test case.
         """
         with patch('PySide6.QtWidgets.QWidget'):
             self.status_dashboard = StatusDashboard()
             self.device_panel = DevicePanel()
             self.log_viewer = LogViewer()
 
-    def test_device_status_integration(self):
-        """
-        Test integration between device panel and status dashboard.
+    def test_device_status_integration(self) -> None:
+        """Test integration between device panel and status dashboard.
         """
         # Add device to panel
         device_info = {
@@ -524,9 +489,8 @@ class TestUIIntegration(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_logging_integration(self):
-        """
-        Test integration between components and logging.
+    def test_logging_integration(self) -> None:
+        """Test integration between components and logging.
         """
         # Simulate device operations with logging
         self.log_viewer.add_log_entry("INFO", "Device discovery started")
@@ -540,14 +504,12 @@ class TestUIIntegration(unittest.TestCase):
         }
         self.device_panel.add_device(device_info)
         self.log_viewer.add_log_entry(
-            "INFO", f"Device {
-                device_info['device_name']} discovered")
+            "INFO", f"Device {device_info['device_name']} discovered")
 
         # Connect device
         self.device_panel.connect_device("device_001")
         self.log_viewer.add_log_entry(
-            "INFO", f"Connected to device {
-                device_info['device_name']}")
+            "INFO", f"Connected to device {device_info['device_name']}")
 
         # Update status
         self.status_dashboard.update_device_count(1)
@@ -557,9 +519,8 @@ class TestUIIntegration(unittest.TestCase):
         # Should complete without error
         self.assertTrue(True)
 
-    def test_error_handling_integration(self):
-        """
-        Test error handling across UI components.
+    def test_error_handling_integration(self) -> None:
+        """Test error handling across UI components.
         """
         # Simulate connection error
         self.log_viewer.add_log_entry("ERROR", "Failed to connect to device")

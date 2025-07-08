@@ -1,20 +1,17 @@
 package com.buccancs.gsrcapture.controller
 
-import android.content.Context
 import android.view.TextureView
 import androidx.camera.view.PreviewView
 import com.buccancs.gsrcapture.audio.AudioRecorder
 import com.buccancs.gsrcapture.camera.RgbCameraManager
 import com.buccancs.gsrcapture.camera.ThermalCameraManager
 import com.buccancs.gsrcapture.sensor.GsrSensorManager
-import com.buccancs.gsrcapture.utils.TimeManager
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -25,7 +22,6 @@ import java.util.concurrent.TimeUnit
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class RecordingControllerTest {
-
     @Mock
     private lateinit var mockGsrSensorManager: GsrSensorManager
 

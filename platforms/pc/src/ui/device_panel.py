@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Device Panel for the PC Controller App.
+"""Device Panel for the PC Controller App.
 Cross-platform support: Windows, macOS, Linux.
 """
 
@@ -15,19 +14,18 @@ from PySide6.QtWidgets import (QCheckBox, QGridLayout, QGroupBox, QHBoxLayout, Q
 
 from ui.video_preview import VideoPreview
 from utils.logger import get_logger
+from typing import Any, Dict, List, Optional, Union
 
 
 class DevicePanel(QWidget):
-    """
-    Device Panel class for displaying a connected device in the UI.
+    """Device Panel class for displaying a connected device in the UI.
     """
 
     # Define signals
     disconnect_requested = Signal(str)  # device_id
 
-    def __init__(self, device):
-        """
-        Initialize the device panel.
+    def __init__(self, device) -> None:
+        """Initialize the device panel.
 
         Args:
             device: The device to display
@@ -50,13 +48,10 @@ class DevicePanel(QWidget):
         self.update_ui()
 
         self.logger.info(
-            f"Device panel initialized for device: {
-                device.name} ({
-                device.id})")
+            f"Device panel initialized for device: {device.name} ({device.id})")
 
-    def setup_ui(self):
-        """
-        Set up the UI for the device panel.
+    def setup_ui(self) -> None:
+        """Set up the UI for the device panel.
         """
         # Create main layout
         self.main_layout = QVBoxLayout(self)
@@ -184,18 +179,16 @@ class DevicePanel(QWidget):
         self.sensor_selection_group.setLayout(self.sensor_selection_layout)
         self.main_layout.addWidget(self.sensor_selection_group)
 
-    def connect_signals(self):
-        """
-        Connect signals and slots.
+    def connect_signals(self) -> None:
+        """Connect signals and slots.
         """
         # Connect device signals
         self.device.status_updated.connect(self.on_device_status_updated)
         self.device.video_frame_received.connect(self.on_video_frame_received)
         self.device.video_frame_data_received.connect(self.on_video_frame_data_received)
 
-    def update_ui(self):
-        """
-        Update the UI with current device information.
+    def update_ui(self) -> None:
+        """Update the UI with current device information.
         """
         # Get device status
         status = self.device.get_status()
@@ -257,19 +250,16 @@ class DevicePanel(QWidget):
             self.error_label.setStyleSheet("")
 
     @Slot()
-    def on_disconnect_clicked(self):
-        """
-        Handle the disconnect button click.
+    def on_disconnect_clicked(self) -> None:
+        """Handle the disconnect button click.
         """
         self.logger.info(
-            f"Disconnect button clicked for device: {
-                self.device.id}")
+            f"Disconnect button clicked for device: {self.device.id}")
         self.disconnect_requested.emit(self.device.id)
 
     @Slot(object)
-    def on_device_status_updated(self, device):
-        """
-        Handle device status updates.
+    def on_device_status_updated(self, device) -> None:
+        """Handle device status updates.
 
         Args:
             device: The device that was updated
@@ -278,9 +268,8 @@ class DevicePanel(QWidget):
             self.update_ui()
 
     @Slot(object, str)
-    def on_video_frame_received(self, device, frame_type):
-        """
-        Handle video frame updates.
+    def on_video_frame_received(self, device, frame_type) -> None:
+        """Handle video frame updates.
 
         Args:
             device: The device that sent the frame
@@ -297,9 +286,8 @@ class DevicePanel(QWidget):
             self.thermal_preview.update_status("Receiving")
 
     @Slot(object, bytes, str, int)
-    def on_video_frame_data_received(self, device, frame_data, frame_type, timestamp):
-        """
-        Handle actual video frame data.
+    def on_video_frame_data_received(self, device, frame_data, frame_type, timestamp) -> None:
+        """Handle actual video frame data.
 
         Args:
             device: The device that sent the frame
@@ -327,21 +315,20 @@ class DevicePanel(QWidget):
         except Exception as e:
             self.logger.error(f"Error processing {frame_type} frame: {e}")
 
-    def on_select_all_sensors(self):
+    def on_select_all_sensors(self) -> None:
         """Select all sensors."""
         for checkbox in self.sensor_checkboxes.values():
             checkbox.setChecked(True)
         self.logger.info("All sensors selected")
 
-    def on_deselect_all_sensors(self):
+    def on_deselect_all_sensors(self) -> None:
         """Deselect all sensors."""
         for checkbox in self.sensor_checkboxes.values():
             checkbox.setChecked(False)
         self.logger.info("All sensors deselected")
 
-    def get_selected_sensors(self):
-        """
-        Get the list of selected sensors.
+    def get_selected_sensors(self) -> None:
+        """Get the list of selected sensors.
 
         Returns:
             list: List of selected sensor names
@@ -352,9 +339,8 @@ class DevicePanel(QWidget):
                 selected.append(sensor_name)
         return selected
 
-    def set_sensor_selection(self, sensors):
-        """
-        Set the sensor selection state.
+    def set_sensor_selection(self, sensors) -> None:
+        """Set the sensor selection state.
 
         Args:
             sensors (list): List of sensor names to enable

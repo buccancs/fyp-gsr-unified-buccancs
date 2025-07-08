@@ -1,5 +1,4 @@
-"""
-Logitech Brio 4K webcam driver for PC.
+"""Logitech Brio 4K webcam driver for PC.
 
 This module implements the concrete driver for Logitech Brio 4K webcam
 connected to the PC via USB using opencv-python.
@@ -7,8 +6,6 @@ connected to the PC via USB using opencv-python.
 
 import configparser
 import os
-import threading
-import time
 from typing import Optional
 
 import cv2
@@ -25,8 +22,7 @@ except ImportError:
 
 
 class WebcamCaptureThread(QThread):
-    """
-    Dedicated thread for capturing webcam frames.
+    """Dedicated thread for capturing webcam frames.
 
     This thread polls the C++ NativeWebcam backend's non-blocking getData() method
     to retrieve high-precision timestamped frames.
@@ -35,7 +31,7 @@ class WebcamCaptureThread(QThread):
     frame_received = Signal(object)  # NumPy array
     error_occurred = Signal(str)
 
-    def __init__(self, webcam_device, use_cpp_backend=True, parent=None):
+    def __init__(self, webcam_device, use_cpp_backend=True, parent=None) -> None:
         super().__init__(parent)
         self.webcam_device = webcam_device
         self.use_cpp_backend = use_cpp_backend
@@ -43,7 +39,7 @@ class WebcamCaptureThread(QThread):
         self.cap = None
         self.logger = get_logger(self.__class__.__name__)
 
-    def run(self):
+    def run(self) -> None:
         """Main thread loop for capturing frames."""
         self.running = True
         self.logger.info("Webcam capture thread started")
@@ -90,14 +86,13 @@ class WebcamCaptureThread(QThread):
                 self.error_occurred.emit(str(e))
                 self.msleep(1000)  # Wait 1 second before retrying
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the capture thread."""
         self.running = False
         self.logger.info("Stopping webcam capture thread")
 
-    def _parse_cpp_webcam_frame(self, timestamped_frame):
-        """
-        Parse C++ timestamped webcam frame into a NumPy array.
+    def _parse_cpp_webcam_frame(self, timestamped_frame) -> None:
+        """Parse C++ timestamped webcam frame into a NumPy array.
 
         Args:
             timestamped_frame: TimestampedFrame object from C++ backend
@@ -119,7 +114,7 @@ class WebcamCaptureThread(QThread):
             self.logger.error(f"Error parsing C++ webcam frame: {e}")
             return None
 
-    def set_resolution(self, width, height):
+    def set_resolution(self, width, height) -> None:
         """Set camera resolution."""
         if self.cap and self.cap.isOpened():
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -128,14 +123,13 @@ class WebcamCaptureThread(QThread):
 
 
 class WebcamPC(PCConnectedCamera):
-    """
-    Concrete implementation of Logitech Brio 4K webcam driver for PC.
+    """Concrete implementation of Logitech Brio 4K webcam driver for PC.
 
     This class uses the C++ NativeWebcam backend for high-precision timing,
     with fallback to opencv-python for compatibility.
     """
 
-    def __init__(self, camera_index=None, parent=None):
+    def __init__(self, camera_index=None, parent=None) -> None:
         super().__init__(parent)
         self.camera_index = camera_index or self._load_camera_index_from_config()
         self.webcam_device = None
@@ -155,7 +149,7 @@ class WebcamPC(PCConnectedCamera):
             except Exception as e:
                 self.logger.error(f"OpenCV not available: {e}")
 
-    def _load_camera_index_from_config(self):
+    def _load_camera_index_from_config(self) -> None:
         """Load camera index from configuration file."""
         try:
             config = configparser.ConfigParser()
@@ -171,7 +165,7 @@ class WebcamPC(PCConnectedCamera):
             self.logger.error(f"Error loading config: {e}")
             return 0
 
-    def connect(self):
+    def connect(self) -> None:
         """Connect to the webcam."""
         if self.use_cpp_backend and _hardware_backend:
             try:
@@ -208,7 +202,6 @@ class WebcamPC(PCConnectedCamera):
                     self.logger.info(f"Camera connected: {width}x{height} @ {fps}fps")
 
                     test_cap.release()
-                    self.webcam_device = test_cap  # Store for later use
                     self._is_connected = True
                     self.connected.emit()
                 else:
@@ -218,7 +211,7 @@ class WebcamPC(PCConnectedCamera):
                 self.logger.error(f"Error connecting to webcam: {e}")
                 self.error.emit(str(e))
 
-    def start_streaming(self):
+    def start_streaming(self) -> None:
         """Start streaming frames from the webcam."""
         if not self._is_connected or not self.webcam_device:
             self.error.emit("Webcam not connected")
@@ -267,7 +260,7 @@ class WebcamPC(PCConnectedCamera):
             self.logger.error(f"Error starting webcam streaming: {e}")
             self.error.emit(str(e))
 
-    def stop_streaming(self):
+    def stop_streaming(self) -> None:
         """Stop streaming frames from the webcam."""
         try:
             self._is_streaming = False
@@ -293,7 +286,7 @@ class WebcamPC(PCConnectedCamera):
             self.logger.error(f"Error stopping webcam streaming: {e}")
             self.error.emit(str(e))
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from the webcam."""
         try:
             # Stop streaming first
@@ -320,15 +313,14 @@ class WebcamPC(PCConnectedCamera):
             self.logger.error(f"Error disconnecting from webcam: {e}")
             self.error.emit(str(e))
 
-    def set_resolution(self, width, height):
+    def set_resolution(self, width, height) -> None:
         """Set the camera resolution."""
         if self.capture_thread:
             self.capture_thread.set_resolution(width, height)
         self.logger.info(f"Set webcam resolution to {width}x{height}")
 
-    def start_recording(self, output_file, fps=30):
-        """
-        Start recording video to a file.
+    def start_recording(self, output_file, fps=30) -> None:
+        """Start recording video to a file.
 
         Args:
             output_file (str): Path to the output video file
@@ -354,19 +346,19 @@ class WebcamPC(PCConnectedCamera):
             self.logger.error(f"Error starting recording: {e}")
             self.error.emit(str(e))
 
-    def stop_recording(self):
+    def stop_recording(self) -> None:
         """Stop recording video."""
         self._close_video_file()
         self.logger.info("Stopped recording")
 
-    def _close_video_file(self):
+    def _close_video_file(self) -> None:
         """Close the video file if open."""
         if self.video_writer:
             self.video_writer.release()
             self.video_writer = None
             self.recording_file = None
 
-    def _on_frame_received(self, frame):
+    def _on_frame_received(self, frame) -> None:
         """Handle frame received from the capture thread."""
         # Write to video file if recording
         if self.video_writer and self.video_writer.isOpened():
@@ -375,13 +367,12 @@ class WebcamPC(PCConnectedCamera):
         # Emit the frame signal
         self.frame_received.emit(frame)
 
-    def _on_thread_error(self, error_msg):
+    def _on_thread_error(self, error_msg) -> None:
         """Handle errors from the capture thread."""
         self.error.emit(error_msg)
 
-    def get_camera_info(self):
-        """
-        Get camera information.
+    def get_camera_info(self) -> None:
+        """Get camera information.
 
         Returns:
             dict: Camera information including resolution, fps, etc.

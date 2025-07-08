@@ -1,5 +1,4 @@
-"""
-Pytest configuration and fixtures for PC platform tests.
+"""Pytest configuration and fixtures for PC platform tests.
 """
 
 import os
@@ -8,24 +7,25 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 # Add the src directory to Python path for all tests
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 @pytest.fixture(scope="session")
-def test_data_dir():
+def test_data_dir() -> None:
     """Fixture providing path to test data directory."""
     return Path(__file__).parent / "test_data"
 
 @pytest.fixture
-def temp_dir():
+def temp_dir() -> None:
     """Fixture providing a temporary directory for tests."""
     temp_dir = tempfile.mkdtemp()
     yield temp_dir
     shutil.rmtree(temp_dir)
 
 @pytest.fixture
-def mock_config():
+def mock_config() -> None:
     """Fixture providing mock configuration for tests."""
     return {
         'hardware': {
@@ -44,7 +44,7 @@ def mock_config():
     }
 
 @pytest.fixture
-def sample_device_data():
+def sample_device_data() -> None:
     """Fixture providing sample device data for tests."""
     return {
         'device_id': 'test_device_001',

@@ -8,7 +8,6 @@ import java.io.File
  * support for multiple sensor types beyond just Shimmer devices.
  */
 interface PhysiologicalSensor {
-
     /**
      * Data class representing physiological sensor readings
      */
@@ -17,7 +16,7 @@ interface PhysiologicalSensor {
         val gsrValue: Float? = null,
         val ppgValue: Float? = null,
         val heartRate: Int? = null,
-        val additionalData: Map<String, Any> = emptyMap()
+        val additionalData: Map<String, Any> = emptyMap(),
     )
 
     /**
@@ -25,8 +24,13 @@ interface PhysiologicalSensor {
      */
     interface SensorCallback {
         fun onDataReceived(reading: SensorReading)
+
         fun onConnectionStateChanged(isConnected: Boolean)
-        fun onError(error: String, exception: Throwable?)
+
+        fun onError(
+            error: String,
+            exception: Throwable?,
+        )
     }
 
     /**
@@ -71,7 +75,10 @@ interface PhysiologicalSensor {
      * @param sessionId Unique session identifier
      * @return true if recording started successfully
      */
-    fun startRecording(outputDir: File, sessionId: String): Boolean
+    fun startRecording(
+        outputDir: File,
+        sessionId: String,
+    ): Boolean
 
     /**
      * Stop recording sensor data

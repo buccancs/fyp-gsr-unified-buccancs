@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Device class for the PC Controller App.
+"""Device class for the PC Controller App.
+
 Cross-platform support: Windows, macOS, Linux.
 """
 
@@ -12,6 +12,7 @@ import os
 import socket
 import threading
 import time
+from typing import Any, Dict, List, Optional, Union
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -19,9 +20,7 @@ from utils.logger import get_logger
 
 
 class Device(QObject):
-    """
-    Device class for representing a connected device and handling communication with it.
-    """
+    """Device class for representing a connected device and handling communication with it."""
 
     # Define signals
     status_updated = Signal(object)
@@ -36,22 +35,21 @@ class Device(QObject):
 
     def __init__(
             self,
-            id,
-            name,
-            address,
-            port,
-            device_type="phone",
-            capabilities=None):
-        """
-        Initialize the device.
+            id: str,
+            name: str,
+            address: str,
+            port: int,
+            device_type: str = "phone",
+            capabilities: Optional[List[str]] = None) -> None:
+        """Initialize the device.
 
         Args:
-            id: The unique ID of the device
-            name: The name of the device
-            address: The IP address of the device
-            port: The port to connect to
-            device_type: The type of device (e.g. "phone")
-            capabilities: A list of capabilities the device has (e.g. ["rgb", "thermal", "gsr"])
+            id: The unique ID of the device.
+            name: The name of the device.
+            address: The IP address of the device.
+            port: The port to connect to.
+            device_type: The type of device (e.g. "phone").
+            capabilities: A list of capabilities the device has (e.g. ["rgb", "thermal", "gsr"]).
         """
         super().__init__()
 
@@ -91,9 +89,8 @@ class Device(QObject):
 
         self.logger.info(f"Device initialized: {self.name} ({self.id})")
 
-    def connect(self):
-        """
-        Connect to the device.
+    def connect(self) -> None:
+        """Connect to the device.
 
         Returns:
             True if the connection was successful, False otherwise
@@ -132,16 +129,13 @@ class Device(QObject):
             return True
         except Exception as e:
             self.logger.error(
-                f"Failed to connect to device {
-                    self.id}: {
-                    str(e)}")
+                f"Failed to connect to device {self.id}: {str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
 
-    def disconnect(self):
-        """
-        Disconnect from the device.
+    def disconnect(self) -> None:
+        """Disconnect from the device.
 
         Returns:
             True if the disconnection was successful, False otherwise
@@ -181,22 +175,17 @@ class Device(QObject):
             self.status_updated.emit(self)
 
             self.logger.info(
-                f"Disconnected from device: {
-                    self.name} ({
-                    self.id})")
+                f"Disconnected from device: {self.name} ({self.id})")
             return True
         except Exception as e:
             self.logger.error(
-                f"Failed to disconnect from device {
-                    self.id}: {
-                    str(e)}")
+                f"Failed to disconnect from device {self.id}: {str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
 
-    def send_command(self, command, data=None, timeout=5.0):
-        """
-        Send a command to the device and wait for acknowledgment.
+    def send_command(self, command, data=None, timeout=5.0) -> None:
+        """Send a command to the device and wait for acknowledgment.
 
         Args:
             command: The command to send
@@ -208,8 +197,7 @@ class Device(QObject):
         """
         if not self.connected or not self.socket:
             self.logger.error(
-                f"Cannot send command to device {
-                    self.id}: not connected")
+                f"Cannot send command to device {self.id}: not connected")
             return False
 
         try:
@@ -235,14 +223,11 @@ class Device(QObject):
 
         except Exception as e:
             self.logger.error(
-                f"Failed to send command to device {
-                    self.id}: {
-                    str(e)}")
+                f"Failed to send command to device {self.id}: {str(e)}")
             return False
 
-    def start_recording(self, session_id):
-        """
-        Start recording on the device.
+    def start_recording(self, session_id) -> None:
+        """Start recording on the device.
 
         Args:
             session_id: The ID of the session to start
@@ -251,15 +236,12 @@ class Device(QObject):
             True if recording was started successfully, False otherwise
         """
         self.logger.info(
-            f"Starting recording on device: {
-                self.name} ({
-                self.id}) with session ID: {session_id}")
+            f"Starting recording on device: {self.name} ({self.id}) with session ID: {session_id}")
 
         # Check if connected
         if not self.connected:
             self.logger.error(
-                f"Cannot start recording on device {
-                    self.id}: not connected")
+                f"Cannot start recording on device {self.id}: not connected")
             return False
 
         # Check if already recording
@@ -287,42 +269,33 @@ class Device(QObject):
                 self.status_updated.emit(self)
 
                 self.logger.info(
-                    f"Recording started on device: {
-                        self.name} ({
-                        self.id})")
+                    f"Recording started on device: {self.name} ({self.id})")
                 return True
             else:
                 self.logger.error(
-                    f"Failed to send start recording command to device {
-                        self.id}")
+                    f"Failed to send start recording command to device {self.id}")
                 return False
 
         except Exception as e:
             self.logger.error(
-                f"Failed to start recording on device {
-                    self.id}: {
-                    str(e)}")
+                f"Failed to start recording on device {self.id}: {str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
 
-    def stop_recording(self):
-        """
-        Stop recording on the device.
+    def stop_recording(self) -> None:
+        """Stop recording on the device.
 
         Returns:
             True if recording was stopped successfully, False otherwise
         """
         self.logger.info(
-            f"Stopping recording on device: {
-                self.name} ({
-                self.id})")
+            f"Stopping recording on device: {self.name} ({self.id})")
 
         # Check if connected
         if not self.connected:
             self.logger.error(
-                f"Cannot stop recording on device {
-                    self.id}: not connected")
+                f"Cannot stop recording on device {self.id}: not connected")
             return False
 
         # Check if not recording
@@ -347,28 +320,22 @@ class Device(QObject):
                 self.status_updated.emit(self)
 
                 self.logger.info(
-                    f"Recording stopped on device: {
-                        self.name} ({
-                        self.id})")
+                    f"Recording stopped on device: {self.name} ({self.id})")
                 return True
             else:
                 self.logger.error(
-                    f"Failed to send stop recording command to device {
-                        self.id}")
+                    f"Failed to send stop recording command to device {self.id}")
                 return False
 
         except Exception as e:
             self.logger.error(
-                f"Failed to stop recording on device {
-                    self.id}: {
-                    str(e)}")
+                f"Failed to stop recording on device {self.id}: {str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
 
-    def collect_files(self, destination_dir):
-        """
-        Collect files from the device.
+    def collect_files(self, destination_dir) -> None:
+        """Collect files from the device.
 
         Args:
             destination_dir: The directory to save the files to
@@ -377,15 +344,12 @@ class Device(QObject):
             True if files were collected successfully, False otherwise
         """
         self.logger.info(
-            f"Collecting files from device: {
-                self.name} ({
-                self.id}) to: {destination_dir}")
+            f"Collecting files from device: {self.name} ({self.id}) to: {destination_dir}")
 
         # Check if connected
         if not self.connected:
             self.logger.error(
-                f"Cannot collect files from device {
-                    self.id}: not connected")
+                f"Cannot collect files from device {self.id}: not connected")
             return False
 
         try:
@@ -404,22 +368,18 @@ class Device(QObject):
                 return self._handle_file_transfer(device_dir)
             else:
                 self.logger.error(
-                    f"Failed to send file collection command to device {
-                        self.id}")
+                    f"Failed to send file collection command to device {self.id}")
                 return False
 
         except Exception as e:
             self.logger.error(
-                f"Failed to collect files from device {
-                    self.id}: {
-                    str(e)}")
+                f"Failed to collect files from device {self.id}: {str(e)}")
             self.status["error"] = str(e)
             self.status_updated.emit(self)
             return False
 
-    def _handle_file_transfer(self, device_dir):
-        """
-        Handle file transfer from the device.
+    def _handle_file_transfer(self, device_dir) -> None:
+        """Handle file transfer from the device.
 
         Args:
             device_dir: Directory to save files to
@@ -454,8 +414,7 @@ class Device(QObject):
                             total_files = data.get("count", 0)
                             files_info = data.get("files", [])
                             self.logger.info(
-                                f"Expecting {total_files} files from device {
-                                    self.id}")
+                                f"Expecting {total_files} files from device {self.id}")
 
                             for file_info in files_info:
                                 self.logger.info(
@@ -494,8 +453,7 @@ class Device(QObject):
             # Check if we received all expected files
             if total_files > 0 and files_received == total_files:
                 self.logger.info(
-                    f"Successfully received all {files_received} files from device {
-                        self.id}")
+                    f"Successfully received all {files_received} files from device {self.id}")
                 return True
             else:
                 self.logger.warning(
@@ -504,13 +462,11 @@ class Device(QObject):
 
         except Exception as e:
             self.logger.error(
-                f"Error handling file transfer from device {
-                    self.id}: {e}")
+                f"Error handling file transfer from device {self.id}: {e}")
             return False
 
-    def _receive_file(self, device_dir, filename, file_size):
-        """
-        Receive a single file from the device.
+    def _receive_file(self, device_dir, filename, file_size) -> None:
+        """Receive a single file from the device.
 
         Args:
             device_dir: Directory to save the file
@@ -551,9 +507,8 @@ class Device(QObject):
             self.logger.error(f"Error receiving file {filename}: {e}")
             return False
 
-    def get_status(self):
-        """
-        Get the status of the device.
+    def get_status(self) -> None:
+        """Get the status of the device.
 
         Returns:
             A dictionary with the device status
@@ -562,9 +517,8 @@ class Device(QObject):
         # For now, just return the current status
         return self.status
 
-    def _reader_thread(self):
-        """
-        Thread for reading data from the device.
+    def _reader_thread(self) -> None:
+        """Thread for reading data from the device.
         """
         self.logger.info(f"Reader thread started for device: {self.name} ({self.id})")
 
@@ -655,14 +609,11 @@ class Device(QObject):
 
         self.logger.info(f"Reader thread stopped for device: {self.name} ({self.id})")
 
-    def _writer_thread(self):
-        """
-        Thread for writing data to the device.
+    def _writer_thread(self) -> None:
+        """Thread for writing data to the device.
         """
         self.logger.info(
-            f"Writer thread started for device: {
-                self.name} ({
-                self.id})")
+            f"Writer thread started for device: {self.name} ({self.id})")
 
         while self.running:
             try:
@@ -671,9 +622,7 @@ class Device(QObject):
                 time.sleep(1.0)
             except Exception as e:
                 self.logger.error(
-                    f"Error in writer thread for device {
-                        self.id}: {
-                        str(e)}")
+                    f"Error in writer thread for device {self.id}: {str(e)}")
                 self.status["error"] = str(e)
                 self.status_updated.emit(self)
 
@@ -681,13 +630,10 @@ class Device(QObject):
                 time.sleep(1.0)
 
         self.logger.info(
-            f"Writer thread stopped for device: {
-                self.name} ({
-                self.id})")
+            f"Writer thread stopped for device: {self.name} ({self.id})")
 
-    def __str__(self):
-        """
-        Get a string representation of the device.
+    def __str__(self) -> None:
+        """Get a string representation of the device.
 
         Returns:
             A string representation of the device
