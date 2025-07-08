@@ -46,6 +46,29 @@ tasks.register<Exec>("installPythonDeps") {
     }
 }
 
+// Task to install Python test dependencies
+tasks.register<Exec>("installPythonTestDeps") {
+    group = "python"
+    description = "Install Python test dependencies from requirements-test.txt"
+    dependsOn("installPythonDeps")
+
+    val pipExecutable = if (System.getProperty("os.name").lowercase().contains("windows")) {
+        "${projectDir}/venv/Scripts/pip"
+    } else {
+        "${projectDir}/venv/bin/pip"
+    }
+
+    commandLine(pipExecutable, "install", "-r", "requirements-test.txt")
+    workingDir = projectDir
+
+    inputs.file("requirements-test.txt")
+    outputs.dir("venv/lib")
+
+    doLast {
+        println("Python test dependencies installed (including pytest)")
+    }
+}
+
 // Task to configure CMake build
 tasks.register<Exec>("configureCMake") {
     group = "cpp"
@@ -107,7 +130,7 @@ tasks.register<Exec>("installCppExtension") {
 tasks.register<Exec>("testPython") {
     group = "verification"
     description = "Run Python tests"
-    dependsOn("installPythonDeps", "installCppExtension")
+    dependsOn("installPythonTestDeps", "installCppExtension")
 
     val pythonExecutableInVenv = if (System.getProperty("os.name").lowercase().contains("windows")) {
         "${projectDir}/venv/Scripts/python"

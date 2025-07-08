@@ -541,9 +541,7 @@ class VideoPlaybackWindow(QWidget):
         self.annotation_added.emit(video_path, timestamp_str, annotation)
 
         self.logger.info(
-            f"Added annotation to {
-                os.path.basename(video_path)}: {
-                annotation['text']}")
+            f"Added annotation to {os.path.basename(video_path)}: {annotation['text']}")
 
     def update_annotations_table(self):
         """
