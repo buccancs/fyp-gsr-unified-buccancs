@@ -190,33 +190,49 @@ class RecordingController(
         var success = true
 
         // Start RGB video recording
-        if (!rgbCameraManager.startRecording(sessionDir, currentSessionId!!)) {
-            Log.e(TAG, "Failed to start RGB video recording")
-            success = false
-        }
+        if (::rgbCameraManager.isInitialized) {
+            if (!rgbCameraManager.startRecording(sessionDir, currentSessionId!!)) {
+                Log.e(TAG, "Failed to start RGB video recording")
+                success = false
+            }
 
-        // Start RGB raw image capture
-        if (!rgbCameraManager.startRawImageCapture(sessionDir, currentSessionId!!)) {
-            Log.e(TAG, "Failed to start RGB raw image capture")
-            success = false
+            // Start RGB raw image capture
+            if (!rgbCameraManager.startRawImageCapture(sessionDir, currentSessionId!!)) {
+                Log.e(TAG, "Failed to start RGB raw image capture")
+                success = false
+            }
+        } else {
+            Log.w(TAG, "RGB camera manager not initialized, skipping RGB recording")
         }
 
         // Start thermal video recording
-        if (!thermalCameraManager.startRecording(sessionDir, currentSessionId!!)) {
-            Log.e(TAG, "Failed to start thermal video recording")
-            success = false
+        if (::thermalCameraManager.isInitialized) {
+            if (!thermalCameraManager.startRecording(sessionDir, currentSessionId!!)) {
+                Log.e(TAG, "Failed to start thermal video recording")
+                success = false
+            }
+        } else {
+            Log.w(TAG, "Thermal camera manager not initialized, skipping thermal recording")
         }
 
         // Start GSR recording
-        if (!gsrSensorManager.startRecording(sessionDir, currentSessionId!!)) {
-            Log.e(TAG, "Failed to start GSR recording")
-            success = false
+        if (::gsrSensorManager.isInitialized) {
+            if (!gsrSensorManager.startRecording(sessionDir, currentSessionId!!)) {
+                Log.e(TAG, "Failed to start GSR recording")
+                success = false
+            }
+        } else {
+            Log.w(TAG, "GSR sensor manager not initialized, skipping GSR recording")
         }
 
         // Start audio recording
-        if (!audioRecorder.startRecording(sessionDir, currentSessionId!!)) {
-            Log.e(TAG, "Failed to start audio recording")
-            success = false
+        if (::audioRecorder.isInitialized) {
+            if (!audioRecorder.startRecording(sessionDir, currentSessionId!!)) {
+                Log.e(TAG, "Failed to start audio recording")
+                success = false
+            }
+        } else {
+            Log.w(TAG, "Audio recorder not initialized, skipping audio recording")
         }
 
         // Create session metadata file
@@ -246,11 +262,19 @@ class RecordingController(
         Log.d(TAG, "Stopping recording session: $currentSessionId")
 
         // Stop all recordings
-        rgbCameraManager.stopRecording()
-        rgbCameraManager.stopRawImageCapture()
-        thermalCameraManager.stopRecording()
-        gsrSensorManager.stopRecording()
-        audioRecorder.stopRecording()
+        if (::rgbCameraManager.isInitialized) {
+            rgbCameraManager.stopRecording()
+            rgbCameraManager.stopRawImageCapture()
+        }
+        if (::thermalCameraManager.isInitialized) {
+            thermalCameraManager.stopRecording()
+        }
+        if (::gsrSensorManager.isInitialized) {
+            gsrSensorManager.stopRecording()
+        }
+        if (::audioRecorder.isInitialized) {
+            audioRecorder.stopRecording()
+        }
 
         recordingStateCallback?.invoke(false)
         Log.d(TAG, "Recording stopped")
@@ -290,8 +314,8 @@ class RecordingController(
                     },
                     "components": {
                         "rgbCamera": true,
-                        "thermalCamera": ${thermalCameraManager.isConnected()},
-                        "gsrSensor": ${gsrSensorManager.isConnected()},
+                        "thermalCamera": ${if (::thermalCameraManager.isInitialized) thermalCameraManager.isConnected() else false},
+                        "gsrSensor": ${if (::gsrSensorManager.isInitialized) gsrSensorManager.isConnected() else false},
                         "audio": true
                     },
                     "settings": {
@@ -349,10 +373,19 @@ class RecordingController(
     fun shutdown() {
         stopRecording()
 
-        rgbCameraManager.shutdown()
-        thermalCameraManager.shutdown()
-        gsrSensorManager.shutdown()
-        audioRecorder.shutdown()
+        // Only shutdown components that have been initialized
+        if (::rgbCameraManager.isInitialized) {
+            rgbCameraManager.shutdown()
+        }
+        if (::thermalCameraManager.isInitialized) {
+            thermalCameraManager.shutdown()
+        }
+        if (::gsrSensorManager.isInitialized) {
+            gsrSensorManager.shutdown()
+        }
+        if (::audioRecorder.isInitialized) {
+            audioRecorder.shutdown()
+        }
 
         cameraExecutor.shutdown()
         sensorExecutor.shutdown()

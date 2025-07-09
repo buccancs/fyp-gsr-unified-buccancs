@@ -130,8 +130,13 @@ class GsrSensorManager(
             // Note: connect() method signature may be different
             val connected: Boolean =
                 try {
-                    val result = shimmerDevice?.connect(deviceAddress ?: "", "default")
-                    result != null
+                    if (deviceAddress.isNullOrEmpty()) {
+                        Log.e(TAG, "Device address is null or empty. Cannot connect to GSR sensor.")
+                        false
+                    } else {
+                        val result = shimmerDevice?.connect(deviceAddress, "default")
+                        result != null
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error during connection", e)
                     false

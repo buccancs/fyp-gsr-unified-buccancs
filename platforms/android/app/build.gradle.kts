@@ -28,8 +28,8 @@ android {
 
     // Set Java version compatibility for AGP 8.x
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     buildFeatures {
@@ -68,6 +68,15 @@ dependencies {
     // Coroutines for asynchronous operations
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Apache Commons Math (required by Shimmer library)
+    implementation("org.apache.commons:commons-math3:3.6.1")
+    implementation("org.apache.commons:commons-math:2.2")
+    implementation("java3d:vecmath:1.3.1") // For Shimmer library compatibility
+    implementation("org.apache.commons:commons-lang3:3.12.0") // For ArrayUtils and other utilities
+    implementation("com.google.guava:guava:32.1.3-jre")
+    implementation("org.slf4j:slf4j-api:1.7.32")
+    implementation("org.slf4j:slf4j-android:1.7.32")
 
     // Local libraries from libs directory - selective inclusion to avoid duplicates
     implementation(files("libs/shimmerandroidinstrumentdriver-3.2.2_beta.aar"))

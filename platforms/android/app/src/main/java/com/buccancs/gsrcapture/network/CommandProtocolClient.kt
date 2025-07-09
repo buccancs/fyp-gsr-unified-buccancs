@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.os.StatFs
 import android.util.Log
 import com.buccancs.gsr.android.network.TcpClientTransport
@@ -43,6 +45,9 @@ class CommandProtocolClient(
     private val executorService: ExecutorService = Executors.newCachedThreadPool()
     private val scheduledExecutor: ScheduledExecutorService = Executors.newScheduledThreadPool(2)
 
+    // Main thread handler for UI callbacks
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     // Status reporting
     private var statusReportingTask: java.util.concurrent.ScheduledFuture<*>? = null
 
@@ -61,19 +66,27 @@ class CommandProtocolClient(
         Log.d(TAG, "Starting CommandProtocol client...")
         isRunning.set(true)
 
-        try {
-            // Create and initialize transport
-            transport = TcpClientTransport(serverAddress, serverPort)
-            transport?.initialize(deviceId, this)
+        // Run network operations on background thread to avoid NetworkOnMainThreadException
+        executorService.execute {
+            try {
+                // Create and initialize transport
+                transport = TcpClientTransport(serverAddress, serverPort)
+                transport?.initialize(deviceId, this)
 
-            // Start transport
-            transport?.start()
+                // Start transport (this performs blocking network operations)
+                transport?.start()
 
-            Log.d(TAG, "CommandProtocol client started successfully")
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to start client", e)
-            errorCallback?.invoke("Failed to start client: ${e.message}", e)
-            isRunning.set(false)
+                Log.d(TAG, "CommandProtocol client started successfully")
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to start client", e)
+
+                // Post UI callback to main thread
+                mainHandler.post {
+                    errorCallback?.invoke("Failed to start client: ${e.message}", e)
+                }
+
+                isRunning.set(false)
+            }
         }
     }
 
@@ -219,7 +232,11 @@ class CommandProtocolClient(
     override fun onConnected(deviceId: String) {
         Log.d(TAG, "Connected to server: $deviceId")
         isConnected.set(true)
-        connectionStateCallback?.invoke(true)
+
+        // Post UI callback to main thread
+        mainHandler.post {
+            connectionStateCallback?.invoke(true)
+        }
 
         // Start status reporting when connected
         startStatusReporting()
@@ -231,7 +248,10 @@ class CommandProtocolClient(
     ) {
         Log.d(TAG, "Disconnected from server: $deviceId, reason: $reason")
         if (isConnected.getAndSet(false)) {
-            connectionStateCallback?.invoke(false)
+            // Post UI callback to main thread
+            mainHandler.post {
+                connectionStateCallback?.invoke(false)
+            }
         }
 
         // Stop status reporting when disconnected
@@ -254,7 +274,11 @@ class CommandProtocolClient(
         exception: Exception?,
     ) {
         Log.e(TAG, "Network error for device $deviceId: $error", exception)
-        errorCallback?.invoke("Network error: $error", exception)
+
+        // Post UI callback to main thread
+        mainHandler.post {
+            errorCallback?.invoke("Network error: $error", exception)
+        }
     }
 
     // Private helper methods
@@ -270,8 +294,10 @@ class CommandProtocolClient(
             "Command received: $commandType",
         )
 
-        // Forward to callback
-        commandCallback?.invoke(commandType)
+        // Forward to callback on main thread
+        mainHandler.post {
+            commandCallback?.invoke(commandType)
+        }
     }
 
     private fun handleResponseMessage(message: CommandProtocol.ResponseMessage) {

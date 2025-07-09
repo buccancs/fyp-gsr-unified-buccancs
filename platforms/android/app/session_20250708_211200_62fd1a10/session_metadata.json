@@ -1,0 +1,22 @@
+{
+    "sessionId": "session_20250708_211200_62fd1a10",
+    "timestamp": "20250708_211200",
+    "timestampEpochMillis": 1752005520829,
+    "sessionStartTimeNanos": 0,
+    "device": {
+        "manufacturer": "unknown",
+        "model": "robolectric",
+        "androidVersion": "9"
+    },
+    "components": {
+        "rgbCamera": true,
+        "thermalCamera": false,
+        "gsrSensor": false,
+        "audio": true
+    },
+    "settings": {
+        "rgbVideoQuality": "1080p",
+        "audioSampleRate": 44100,
+        "gsrSampleRate": 128
+    }
+}

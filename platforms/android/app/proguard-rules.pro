@@ -36,3 +36,11 @@
 
 # Keep your model classes (adjust package name as needed)
 #-keep class com.yourcompany.yourappname.data.model.** { *; }
+
+# Google Guava - Keep all classes to prevent NoClassDefFoundError
+-keep class com.google.common.** { *; }
+-dontwarn com.google.common.**
+
+# Shimmer SDK - Keep all classes and methods
+-keep class com.shimmerresearch.** { *; }
+-dontwarn com.shimmerresearch.**
