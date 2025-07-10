@@ -29,7 +29,8 @@ pyshimmer==0.7.0  # Pin to the latest known working version
 pyobjc==7.3
 
 # PsychoPy - A large scientific software package for experiment control
-psychopy>=2023.2.3
+# Note: Using 2023.1.3 for Python 3.11 compatibility
+psychopy==2023.1.3
 
 # Utilities
 pyyaml>=6.0.1

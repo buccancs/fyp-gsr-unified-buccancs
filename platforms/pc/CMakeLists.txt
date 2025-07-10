@@ -6,14 +6,43 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find required packages
-find_package(OpenCV REQUIRED)
+find_package(OpenCV QUIET)
+if(NOT OpenCV_FOUND)
+    message(WARNING "OpenCV not found. Building without OpenCV support.")
+    set(OPENCV_AVAILABLE FALSE)
+else()
+    message(STATUS "OpenCV found: ${OpenCV_VERSION}")
+    set(OPENCV_AVAILABLE TRUE)
+endif()
 
-# Add pybind11 subdirectory
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/pybind11 pybind11)
+# Find pybind11 (installed via pip)
+find_package(pybind11 QUIET)
+if(NOT pybind11_FOUND)
+    message(WARNING "pybind11 not found via find_package. Trying to use pybind11 from Python installation.")
+    # Try to find pybind11 using Python
+    set(PYTHON_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/../../environments/pc/windows/python/python.exe")
+    execute_process(
+        COMMAND "${PYTHON_EXECUTABLE}" -c "import pybind11; print(pybind11.get_cmake_dir())"
+        OUTPUT_VARIABLE PYBIND11_CMAKE_DIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE PYBIND11_RESULT
+    )
+    if(PYBIND11_RESULT EQUAL 0)
+        set(pybind11_DIR ${PYBIND11_CMAKE_DIR})
+        find_package(pybind11 REQUIRED)
+        message(STATUS "Found pybind11 via Python: ${PYBIND11_CMAKE_DIR}")
+    else()
+        message(FATAL_ERROR "pybind11 not found. Please install pybind11.")
+    endif()
+else()
+    message(STATUS "Found pybind11: ${pybind11_VERSION}")
+endif()
 
 # Include directories
 include_directories(src/cpp/include)
-include_directories(${OpenCV_INCLUDE_DIRS})
+if(OPENCV_AVAILABLE)
+    include_directories(${OpenCV_INCLUDE_DIRS})
+endif()
 
 # Define source files
 set(SHIMMER_SOURCES
@@ -36,7 +65,9 @@ pybind11_add_module(_hardware_backend
 )
 
 # Link libraries
-target_link_libraries(_hardware_backend PRIVATE ${OpenCV_LIBS})
+if(OPENCV_AVAILABLE)
+    target_link_libraries(_hardware_backend PRIVATE ${OpenCV_LIBS})
+endif()
 
 # Platform-specific libraries for serial communication
 if(WIN32)

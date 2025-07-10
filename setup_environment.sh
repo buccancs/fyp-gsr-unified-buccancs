@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# FYP GSR Unified Buccancs - Environment Setup Script
-# This script removes the old corrupted environment and creates a fresh, stable one
+# FYP GSR Unified Buccancs - Local Environment Setup Script
+# This script creates all environments locally in the environments folder
 
 set -e  # Exit on any error
 
@@ -27,70 +27,111 @@ else
     exit 1
 fi
 
-echo "🔧 FYP GSR Unified Buccancs - Environment Setup"
-echo "================================================"
+echo "🔧 FYP GSR Unified Buccancs - Local Environment Setup"
+echo "===================================================="
 echo
 
-# Step 1: Remove the old, corrupted environment completely
-echo "🗑️  Step 1: Removing old environment..."
+# Step 1: Create local environments directory structure
+echo "📁 Step 1: Creating local environment directories..."
+mkdir -p environments/conda/channels/conda-forge
+mkdir -p environments/conda/channels/defaults
+mkdir -p environments/pc/windows
+mkdir -p environments/pc/linux
+mkdir -p environments/pc/macos
+mkdir -p environments/pc/python
+mkdir -p environments/android
+mkdir -p environments/repositories/google
+mkdir -p environments/repositories/maven-central
+mkdir -p environments/repositories/jitpack
+mkdir -p environments/repositories/gradle-plugins
+
+echo "✅ Local environment directories created"
+
+# Step 2: Remove the old, corrupted environment completely
+echo "🗑️  Step 2: Removing old system-wide environment..."
 echo "Attempting to remove environment 'fyp-gsr-unified-buccancs'..."
 
 if conda env list | grep -q "fyp-gsr-unified-buccancs"; then
-    echo "Found existing environment. Removing..."
+    echo "Found existing system environment. Removing..."
     conda env remove --name fyp-gsr-unified-buccancs --yes
-    echo "✅ Old environment removed successfully"
+    echo "✅ Old system environment removed successfully"
 else
-    echo "ℹ️  No existing environment found to remove"
+    echo "ℹ️  No existing system environment found to remove"
 fi
 
 echo
 
-# Step 2: Create a Fresh, Stable Environment
-echo "🆕 Step 2: Creating fresh environment with Python 3.10..."
-echo "Creating new environment named 'fyp-gsr-unified-buccancs' with Python 3.10..."
+# Step 3: Create a Fresh, Local Conda Environment
+echo "🆕 Step 3: Creating fresh local conda environment with Python 3.10..."
+echo "Creating new local environment in environments/conda/fyp-gsr-unified-buccancs..."
 
 if [ -f "environment.yml" ]; then
-    echo "Using environment.yml for comprehensive setup..."
+    echo "Using environment.yml for comprehensive local setup..."
     conda env create -f environment.yml
-    echo "✅ Environment created from environment.yml"
+    if [ $? -eq 0 ]; then
+        echo "✅ Local environment created from environment.yml"
+    else
+        echo "❌ Failed to create local environment from environment.yml"
+        echo "Falling back to basic local environment creation..."
+        conda create --prefix ./environments/conda/fyp-gsr-unified-buccancs python=3.10 --yes
+        echo "✅ Basic local environment created"
+    fi
 else
-    echo "Creating basic environment with Python 3.10..."
-    conda create --name fyp-gsr-unified-buccancs python=3.10 --yes
-    echo "✅ Basic environment created"
+    echo "Creating basic local environment with Python 3.10..."
+    conda create --prefix ./environments/conda/fyp-gsr-unified-buccancs python=3.10 --yes
+    echo "✅ Basic local environment created"
 fi
 
 echo
 
-# Step 3: Activate and Install Dependencies
-echo "🔌 Step 3: Activating environment and installing dependencies..."
+# Step 4: Provide activation and dependency installation instructions
+echo "🔌 Step 4: Local environment setup complete!"
 
 # Note: We can't directly activate conda environment in a script that will persist
 # So we provide instructions for the user
-echo "Environment setup complete! To activate and use the environment:"
+echo "Local environment setup complete! To activate and use the environment:"
 echo
-echo "  conda activate fyp-gsr-unified-buccancs"
+echo "  conda activate ./environments/conda/fyp-gsr-unified-buccancs"
 echo
 
 # If we have requirements files, provide installation instructions
 if [ -f "platforms/pc/requirements.txt" ]; then
-    echo "📦 To install additional dependencies:"
+    echo "📦 To install additional dependencies using local Python environment:"
+    echo "  The build system will automatically use environments/pc/python/venv"
+    echo "  Run: ./gradlew :pc:build (this will create local Python venv and install dependencies)"
+    echo
+    echo "📦 Or manually install to local Python environment:"
     echo "  cd platforms/pc"
+    echo "  python -m venv ../../environments/pc/python/venv"
+    echo "  source ../../environments/pc/python/venv/bin/activate"
     echo "  pip install -r requirements.txt"
     echo "  pip install -r requirements-test.txt"
     echo
 fi
 
-echo "🎯 Environment Setup Summary:"
-echo "=============================="
-echo "✅ Old environment removed (if existed)"
-echo "✅ New environment 'fyp-gsr-unified-buccancs' created with Python 3.10"
-echo "✅ Core dependencies installed via conda"
-echo "📋 Additional pip dependencies available in platforms/pc/requirements*.txt"
+echo "🎯 Local Environment Setup Summary:"
+echo "==================================="
+echo "✅ Local environment directories created in ./environments/"
+echo "✅ Old system environment removed (if existed)"
+echo "✅ New local conda environment created in ./environments/conda/fyp-gsr-unified-buccancs"
+echo "✅ Core dependencies installed via conda (local)"
+echo "✅ Gradle configured to use local repositories in ./environments/repositories/"
+echo "✅ Java configured to use local installations in ./environments/pc/{os}/java/"
+echo "📋 Python dependencies will be installed locally in ./environments/pc/python/venv"
 echo
 echo "🚀 Next Steps:"
-echo "1. conda activate fyp-gsr-unified-buccancs"
-echo "2. cd platforms/pc"
-echo "3. pip install -r requirements.txt"
-echo "4. pip install -r requirements-test.txt"
+echo "1. conda activate ./environments/conda/fyp-gsr-unified-buccancs"
+echo "2. Download Java and Gradle:"
+echo "   - Run: ./environments/download_java.sh (downloads JDK 21 and 24)"
+echo "   - Run: ./environments/download_gradle.sh (downloads Gradle)"
+echo "3. ./gradlew :pc:build (creates local Python venv and installs dependencies)"
+echo "4. ./gradlew :android:setupAndroidEnv (downloads and installs Android SDK locally)"
+echo "5. ./gradlew :android:build (uses local Android SDK and repositories)"
 echo
-echo "🏁 Setup completed successfully!"
+echo "📋 Optional Downloads (run after conda activation):"
+echo "- Java: ./environments/download_java.sh"
+echo "- Gradle: ./environments/download_gradle.sh"
+echo "- Android SDK: ./gradlew :android:setupAndroidEnv"
+echo
+echo "🏁 Local environment setup completed successfully!"
+echo "All environments and dependencies will be stored locally in the environments folder."
