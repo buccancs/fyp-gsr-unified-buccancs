@@ -7,11 +7,15 @@ import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
 import android.view.TextureView
 import com.hoho.android.usbserial.driver.UsbSerialDriver
+import com.hoho.android.usbserial.driver.UsbSerialPort
+import com.hoho.android.usbserial.driver.UsbSerialProber
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.MockedStatic
+import org.mockito.Mockito.mockStatic
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.*
 import java.io.File
@@ -38,11 +42,20 @@ class ThermalCameraManagerTest {
     @Mock
     private lateinit var mockDriver: UsbSerialDriver
 
+    @Mock
+    private lateinit var mockUsbSerialPort: UsbSerialPort
+
+    @Mock
+    private lateinit var mockUsbSerialProber: UsbSerialProber
+
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var thermalCameraManager: ThermalCameraManager
 
     // A temporary directory for test artifacts
     private lateinit var tempDir: File
+
+    // Static mock for UsbSerialProber
+    private lateinit var mockedUsbSerialProber: MockedStatic<UsbSerialProber>
 
     @Before
     fun setUp() {
@@ -53,6 +66,11 @@ class ThermalCameraManagerTest {
                 delete()
                 mkdirs()
             }
+
+        // Mock the static UsbSerialProber.getDefaultProber() method
+        mockedUsbSerialProber = mockStatic(UsbSerialProber::class.java)
+        mockedUsbSerialProber.`when`<UsbSerialProber> { UsbSerialProber.getDefaultProber() }
+            .thenReturn(mockUsbSerialProber)
 
         // CORRECTED: Use java.util.HashMap to match the expected type from the Android SDK
         val mockDeviceMap = HashMap<String, UsbDevice>()
@@ -67,6 +85,13 @@ class ThermalCameraManagerTest {
         whenever(mockUsbDevice.vendorId).thenReturn(0x1A86) // Real Topdon Vendor ID
         whenever(mockUsbDevice.productId).thenReturn(0x5512) // Real Topdon Product ID
 
+        // Mock the USB serial driver behavior
+        whenever(mockDriver.device).thenReturn(mockUsbDevice)
+        whenever(mockDriver.ports).thenReturn(listOf(mockUsbSerialPort))
+
+        // Mock the USB serial prober to return our mock driver
+        whenever(mockUsbSerialProber.findAllDrivers(any())).thenReturn(listOf(mockDriver))
+
         thermalCameraManager = ThermalCameraManager(mockContext, cameraExecutor)
     }
 
@@ -75,6 +100,8 @@ class ThermalCameraManagerTest {
         // Shut down the executor and clean up the temp directory
         cameraExecutor.shutdownNow()
         tempDir.deleteRecursively()
+        // Close the static mock
+        mockedUsbSerialProber.close()
     }
 
     @Test
@@ -242,5 +269,61 @@ class ThermalCameraManagerTest {
 
         // Assert
         assertNull("Should return null for empty driver list", result)
+    }
+
+    @Test
+    fun `startStreaming returns true when connected and network client is set`() {
+        // Arrange
+        thermalCameraManager.initialize()
+        thermalCameraManager.connectToCamera()
+        thermalCameraManager.setNetworkClient(mock())
+        assertTrue("Precondition: should be connected", thermalCameraManager.isConnectedValue)
+
+        // Act
+        val result = thermalCameraManager.startStreaming()
+
+        // Assert
+        assertTrue("Streaming should start successfully when connected and network client is set", result)
+    }
+
+    @Test
+    fun `startStreaming returns false when not connected`() {
+        // Arrange
+        thermalCameraManager.initialize()
+        thermalCameraManager.setNetworkClient(mock())
+        assertFalse("Precondition: should not be connected", thermalCameraManager.isConnectedValue)
+
+        // Act
+        val result = thermalCameraManager.startStreaming()
+
+        // Assert
+        assertFalse("Streaming should fail when not connected", result)
+    }
+
+    @Test
+    fun `startStreaming returns false when network client is not set`() {
+        // Arrange
+        thermalCameraManager.initialize()
+        thermalCameraManager.connectToCamera()
+        assertTrue("Precondition: should be connected", thermalCameraManager.isConnectedValue)
+
+        // Act
+        val result = thermalCameraManager.startStreaming()
+
+        // Assert
+        assertFalse("Streaming should fail when network client is not set", result)
+    }
+
+    @Test
+    fun `stopStreaming completes without error`() {
+        // Arrange
+        thermalCameraManager.initialize()
+        thermalCameraManager.connectToCamera()
+        thermalCameraManager.setNetworkClient(mock())
+        thermalCameraManager.startStreaming()
+
+        // Act & Assert - should not throw any exceptions
+        thermalCameraManager.stopStreaming()
+        assertTrue("stopStreaming should complete successfully", true)
     }
 }

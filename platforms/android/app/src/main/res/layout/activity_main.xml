@@ -57,6 +57,43 @@
             android:textSize="14sp"
             android:layout_marginTop="4dp" />
 
+        <!-- Capture Stage Selection -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Capture Stage:"
+            android:textColor="@color/colorWhite"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp" />
+
+        <RadioGroup
+            android:id="@+id/captureStageRadioGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="4dp">
+
+            <RadioButton
+                android:id="@+id/stage1RadioButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stage 1 - RAW"
+                android:textColor="@color/colorWhite"
+                android:textSize="11sp"
+                android:buttonTint="@color/colorWhite" />
+
+            <RadioButton
+                android:id="@+id/stage3RadioButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stage 3 - YUV"
+                android:textColor="@color/colorWhite"
+                android:textSize="11sp"
+                android:buttonTint="@color/colorWhite"
+                android:checked="true" />
+
+        </RadioGroup>
+
         <!-- Recording Status -->
         <TextView
             android:id="@+id/recordingStatusText"
@@ -66,6 +103,64 @@
             android:textColor="@color/colorSuccess"
             android:textSize="14sp"
             android:layout_marginTop="4dp" />
+
+        <!-- Sensor Toggle Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sensors:"
+            android:textColor="@color/colorWhite"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp" />
+
+        <!-- RGB Video Toggle -->
+        <CheckBox
+            android:id="@+id/rgbVideoCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RGB Video"
+            android:textColor="@color/colorWhite"
+            android:textSize="11sp"
+            android:buttonTint="@color/colorWhite"
+            android:checked="true"
+            android:layout_marginTop="2dp" />
+
+        <!-- Thermal Video Toggle -->
+        <CheckBox
+            android:id="@+id/thermalVideoCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thermal Video"
+            android:textColor="@color/colorWhite"
+            android:textSize="11sp"
+            android:buttonTint="@color/colorWhite"
+            android:checked="true"
+            android:layout_marginTop="2dp" />
+
+        <!-- GSR Sensor Toggle -->
+        <CheckBox
+            android:id="@+id/gsrSensorCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GSR Sensor"
+            android:textColor="@color/colorWhite"
+            android:textSize="11sp"
+            android:buttonTint="@color/colorWhite"
+            android:checked="true"
+            android:layout_marginTop="2dp" />
+
+        <!-- Audio Recording Toggle -->
+        <CheckBox
+            android:id="@+id/audioRecordingCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Audio Recording"
+            android:textColor="@color/colorWhite"
+            android:textSize="11sp"
+            android:buttonTint="@color/colorWhite"
+            android:checked="true"
+            android:layout_marginTop="2dp" />
+
     </LinearLayout>
 
     <!-- Controls Layout -->
@@ -81,6 +176,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Settings Button -->
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Settings"
+            android:layout_marginEnd="4dp" />
+
         <!-- Camera Switch Button -->
         <Button
             android:id="@+id/cameraSwitchButton"
@@ -88,7 +192,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/switch_camera"
-            android:layout_marginEnd="8dp" />
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp" />
 
         <!-- Record Button -->
         <Button
@@ -97,7 +202,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/start_recording"
-            android:layout_marginStart="8dp" />
+            android:layout_marginStart="4dp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

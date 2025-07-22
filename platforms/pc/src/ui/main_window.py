@@ -12,18 +12,19 @@ import time
 
 from PySide6.QtCore import Qt, QTimer, Signal, Slot
 from PySide6.QtGui import QAction, QIcon, QPixmap
-from PySide6.QtWidgets import (QFileDialog, QGridLayout, QGroupBox,
+from PySide6.QtWidgets import (QDialog, QFileDialog, QGridLayout, QGroupBox,
                                QHBoxLayout, QLabel, QMainWindow, QMenu,
                                QMessageBox, QPushButton, QSplitter, QStatusBar,
                                QTabWidget, QVBoxLayout, QWidget)
 
+# Import our modules
 from network.device_manager import DeviceManager
 from ui.calibration_dialog import CalibrationDialog
-# Import our modules
 from ui.device_panel import DevicePanel
 from ui.live_calibration_dialog import LiveCalibrationDialog
 from ui.log_viewer import LogViewer
 from ui.real_time_plot_widget import RealTimePlotWidget
+from ui.settings_dialog import SettingsDialog
 from ui.status_dashboard import StatusDashboard
 from ui.video_playback_window import VideoPlaybackWindow
 from ui.video_preview import VideoPreview
@@ -433,10 +434,107 @@ class MainWindow(QMainWindow):
     def on_settings(self) -> None:
         """Handle the Settings action.
         """
-        self.logger.info("Opening settings")
-        # In a real implementation, we would show a settings dialog
-        QMessageBox.information(
-            self, "Settings", "Settings dialog not implemented yet")
+        self.logger.info("Opening settings dialog")
+        try:
+            # Create and show the settings dialog
+            settings_dialog = SettingsDialog(self)
+
+            # Connect the settings applied signal to handle changes
+            settings_dialog.settings_applied.connect(self.on_settings_applied)
+
+            # Show the dialog
+            result = settings_dialog.exec_()
+
+            if result == QDialog.Accepted:
+                self.logger.info("Settings dialog accepted")
+            else:
+                self.logger.info("Settings dialog cancelled")
+
+        except Exception as e:
+            self.logger.error(f"Failed to open settings dialog: {str(e)}")
+            QMessageBox.critical(
+                self, "Error",
+                f"Failed to open settings dialog:\n\n{str(e)}"
+            )
+
+    @Slot()
+    def on_settings_applied(self, settings_dict: dict) -> None:
+        """Handle when settings are applied from the settings dialog.
+
+        Args:
+            settings_dict: Dictionary containing all the applied settings
+        """
+        self.logger.info("Settings applied, updating system configuration")
+
+        try:
+            # Update network settings if device manager exists
+            if hasattr(self, 'device_manager') and self.device_manager:
+                network_settings = settings_dict.get('network', {})
+                if network_settings:
+                    # Update server port if changed
+                    if 'server_port' in network_settings:
+                        self.logger.info(f"Server port updated to: {network_settings['server_port']}")
+
+                    # Update connection timeout if changed
+                    if 'connection_timeout' in network_settings:
+                        self.logger.info(f"Connection timeout updated to: {network_settings['connection_timeout']}")
+
+            # Update UI settings
+            ui_settings = settings_dict.get('ui', {})
+            if ui_settings:
+                # Update refresh interval for dashboard
+                if 'refresh_interval' in ui_settings and hasattr(self, 'status_dashboard'):
+                    refresh_interval = ui_settings['refresh_interval']
+                    self.logger.info(f"Dashboard refresh interval updated to: {refresh_interval}ms")
+                    # Update the dashboard refresh timer if it exists
+                    if hasattr(self.status_dashboard, 'set_refresh_interval'):
+                        self.status_dashboard.set_refresh_interval(refresh_interval)
+
+                # Update font size if changed
+                if 'font_size' in ui_settings:
+                    font_size = ui_settings['font_size']
+                    self.logger.info(f"Font size updated to: {font_size}pt")
+                    # Apply font size changes to the application
+                    font = self.font()
+                    font.setPointSize(font_size)
+                    self.setFont(font)
+
+            # Update recording settings
+            recording_settings = settings_dict.get('recording', {})
+            if recording_settings:
+                if 'output_dir' in recording_settings:
+                    self.logger.info(f"Output directory updated to: {recording_settings['output_dir']}")
+                if 'max_duration' in recording_settings:
+                    self.logger.info(f"Max recording duration updated to: {recording_settings['max_duration']} minutes")
+
+            # Update security settings
+            security_settings = settings_dict.get('security', {})
+            if security_settings:
+                if 'enable_auth' in security_settings:
+                    auth_enabled = security_settings['enable_auth']
+                    self.logger.info(f"Authentication {'enabled' if auth_enabled else 'disabled'}")
+                if 'enable_encryption' in security_settings:
+                    encryption_enabled = security_settings['enable_encryption']
+                    self.logger.info(f"Encryption {'enabled' if encryption_enabled else 'disabled'}")
+
+            # Update advanced settings
+            advanced_settings = settings_dict.get('advanced', {})
+            if advanced_settings:
+                if 'log_level' in advanced_settings:
+                    log_level = advanced_settings['log_level']
+                    self.logger.info(f"Log level updated to: {log_level}")
+                    # Update the logger level
+                    logging.getLogger().setLevel(getattr(logging, log_level))
+
+            # Show confirmation message
+            self.statusBar().showMessage("Settings applied successfully", 3000)
+
+        except Exception as e:
+            self.logger.error(f"Error applying settings: {e}")
+            QMessageBox.warning(
+                self, "Settings Error", 
+                f"Some settings could not be applied:\n\n{str(e)}"
+            )
 
     @Slot()
     def on_camera_calibration(self) -> None:

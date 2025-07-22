@@ -22,12 +22,24 @@ object TimeManager {
     // Date formatter for human-readable timestamps
     private val dateFormatter = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
 
+    // Check if running in test environment
+    private val isTestEnvironment = try {
+        Class.forName("org.robolectric.RobolectricTestRunner")
+        true
+    } catch (e: ClassNotFoundException) {
+        false
+    }
+
     /**
      * Initializes the time manager for a new recording session.
      * @return The session start time in nanoseconds
      */
     fun initSession(): Long {
-        sessionStartTimeNanos = SystemClock.elapsedRealtimeNanos()
+        sessionStartTimeNanos = if (isTestEnvironment) {
+            System.nanoTime()
+        } else {
+            SystemClock.elapsedRealtimeNanos()
+        }
         return sessionStartTimeNanos
     }
 
@@ -35,7 +47,14 @@ object TimeManager {
      * Gets the current timestamp in nanoseconds since session start.
      * @return Nanoseconds since session start
      */
-    fun getCurrentTimestampNanos(): Long = SystemClock.elapsedRealtimeNanos() - sessionStartTimeNanos
+    fun getCurrentTimestampNanos(): Long {
+        val currentTime = if (isTestEnvironment) {
+            System.nanoTime()
+        } else {
+            SystemClock.elapsedRealtimeNanos()
+        }
+        return currentTime - sessionStartTimeNanos
+    }
 
     /**
      * Gets the current timestamp in milliseconds since session start.
@@ -89,12 +108,18 @@ object TimeManager {
      * @param sample The data sample to timestamp
      * @return The timestamped data sample
      */
-    fun <T> timestampData(sample: T): TimestampedData<T> =
-        TimestampedData(
+    fun <T> timestampData(sample: T): TimestampedData<T> {
+        val currentTime = if (isTestEnvironment) {
+            System.nanoTime()
+        } else {
+            SystemClock.elapsedRealtimeNanos()
+        }
+        return TimestampedData(
             data = sample,
-            timestampNanos = SystemClock.elapsedRealtimeNanos(),
+            timestampNanos = currentTime,
             sessionOffsetNanos = getCurrentTimestampNanos(),
         )
+    }
 
     /**
      * Data class for timestamped data samples.

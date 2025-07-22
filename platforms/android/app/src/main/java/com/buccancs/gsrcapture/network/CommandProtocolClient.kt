@@ -68,7 +68,20 @@ class CommandProtocolClient(
 
         // Run network operations on background thread to avoid NetworkOnMainThreadException
         executorService.execute {
+            startWithRetry(serverAddress, serverPort, maxRetries = 3, retryDelayMs = 5000)
+        }
+    }
+
+    /**
+     * Attempts to start the client with retry logic for better connection reliability.
+     */
+    private fun startWithRetry(serverAddress: String, serverPort: Int, maxRetries: Int, retryDelayMs: Long) {
+        var attempt = 0
+
+        while (attempt < maxRetries && isRunning.get()) {
             try {
+                Log.d(TAG, "Connection attempt ${attempt + 1}/$maxRetries to $serverAddress:$serverPort")
+
                 // Create and initialize transport
                 transport = TcpClientTransport(serverAddress, serverPort)
                 transport?.initialize(deviceId, this)
@@ -77,15 +90,43 @@ class CommandProtocolClient(
                 transport?.start()
 
                 Log.d(TAG, "CommandProtocol client started successfully")
+                return // Success, exit retry loop
+
             } catch (e: IOException) {
-                Log.e(TAG, "Failed to start client", e)
+                attempt++
+                Log.e(TAG, "Connection attempt $attempt failed: ${e.message}")
+
+                if (attempt >= maxRetries) {
+                    Log.e(TAG, "All connection attempts failed. Giving up.")
+
+                    // Post UI callback to main thread
+                    mainHandler.post {
+                        errorCallback?.invoke("Network error for device ${deviceId}: Error connecting to server", e)
+                    }
+
+                    isRunning.set(false)
+                    return
+                }
+
+                // Wait before retrying
+                try {
+                    Thread.sleep(retryDelayMs)
+                } catch (ie: InterruptedException) {
+                    Log.w(TAG, "Retry sleep interrupted")
+                    Thread.currentThread().interrupt()
+                    isRunning.set(false)
+                    return
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error during connection attempt $attempt", e)
 
                 // Post UI callback to main thread
                 mainHandler.post {
-                    errorCallback?.invoke("Failed to start client: ${e.message}", e)
+                    errorCallback?.invoke("Unexpected connection error: ${e.message}", e)
                 }
 
                 isRunning.set(false)
+                return
             }
         }
     }

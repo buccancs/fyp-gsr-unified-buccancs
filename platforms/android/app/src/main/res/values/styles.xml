@@ -11,4 +11,11 @@
         <item name="android:textColorSecondary">@color/colorGray</item>
         <item name="android:windowBackground">@color/colorWhite</item>
     </style>
+
+    <!-- CardView style -->
+    <style name="CardView">
+        <item name="cardElevation">4dp</item>
+        <item name="cardBackgroundColor">@color/colorWhite</item>
+        <item name="cardCornerRadius">8dp</item>
+    </style>
 </resources>

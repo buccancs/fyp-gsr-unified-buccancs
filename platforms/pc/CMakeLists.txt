@@ -20,7 +20,7 @@ find_package(pybind11 QUIET)
 if(NOT pybind11_FOUND)
     message(WARNING "pybind11 not found via find_package. Trying to use pybind11 from Python installation.")
     # Try to find pybind11 using Python
-    set(PYTHON_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/../../environments/pc/windows/python/python.exe")
+    set(PYTHON_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/../../environments/windows-x86_64/python/python.exe")
     execute_process(
         COMMAND "${PYTHON_EXECUTABLE}" -c "import pybind11; print(pybind11.get_cmake_dir())"
         OUTPUT_VARIABLE PYBIND11_CMAKE_DIR

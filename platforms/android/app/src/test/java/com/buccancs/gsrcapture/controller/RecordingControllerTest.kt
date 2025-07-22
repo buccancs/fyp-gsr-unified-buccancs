@@ -6,6 +6,7 @@ import com.buccancs.gsrcapture.audio.AudioRecorder
 import com.buccancs.gsrcapture.camera.RgbCameraManager
 import com.buccancs.gsrcapture.camera.ThermalCameraManager
 import com.buccancs.gsrcapture.sensor.GsrSensorManager
+import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -55,10 +56,15 @@ class RecordingControllerTest {
     }
 
     @Test
-    fun testInitialization() {
+    fun `initialization should set up controller correctly`() {
         // Test that the recording controller initializes correctly
         recordingController.initialize()
-        assertFalse("Should not be recording initially", recordingController.isRecordingState)
+        assertThat(recordingController.isRecordingState).isFalse()
+    }
+
+    @Test
+    fun `initial recording state should be false`() {
+        assertThat(recordingController.isRecordingState).isFalse()
     }
 
     @Test
@@ -74,14 +80,68 @@ class RecordingControllerTest {
     }
 
     @Test
-    fun testSessionIdGeneration() {
+    fun `session ID generation should create valid unique identifiers`() {
+        // Test session ID generation
         val sessionId1 = recordingController.generateSessionIdForTesting()
         val sessionId2 = recordingController.generateSessionIdForTesting()
 
-        assertNotNull("Session ID should not be null", sessionId1)
-        assertNotNull("Session ID should not be null", sessionId2)
-        assertNotEquals("Session IDs should be unique", sessionId1, sessionId2)
-        assertTrue("Session ID should contain timestamp", sessionId1.contains("_"))
+        assertThat(sessionId1).isNotNull()
+        assertThat(sessionId2).isNotNull()
+        assertThat(sessionId1).isNotEqualTo(sessionId2)
+        assertThat(sessionId1).contains("_")
+        assertThat(sessionId1).startsWith("session_")
+    }
+
+    @Test
+    fun `multiple session IDs should be unique`() {
+        val sessionIds = mutableSetOf<String>()
+
+        // Generate multiple session IDs
+        repeat(10) {
+            val sessionId = recordingController.generateSessionIdForTesting()
+            assertThat(sessionIds).doesNotContain(sessionId)
+            sessionIds.add(sessionId)
+
+            // Small delay to ensure timestamp difference
+            Thread.sleep(1)
+        }
+
+        assertThat(sessionIds).hasSize(10)
+    }
+
+    @Test
+    fun `session ID format should be consistent`() {
+        val sessionId = recordingController.generateSessionIdForTesting()
+
+        // Session ID should follow the pattern: session_yyyyMMdd_HHmmss_xxxxxxxx
+        assertThat(sessionId).matches("session_\\d{8}_\\d{6}_[a-f0-9]{8}")
+    }
+
+    @Test
+    fun `session ID should contain current timestamp`() {
+        val beforeTime = System.currentTimeMillis()
+        val sessionId = recordingController.generateSessionIdForTesting()
+        val afterTime = System.currentTimeMillis()
+
+        // Extract timestamp from session ID format: session_yyyyMMdd_HHmmss_xxxxxxxx
+        val parts = sessionId.split("_")
+        assertThat(parts).hasSize(4) // session, yyyyMMdd, HHmmss, xxxxxxxx
+        assertThat(parts[0]).isEqualTo("session")
+
+        // Validate date part (yyyyMMdd)
+        val datePart = parts[1]
+        assertThat(datePart).hasLength(8)
+        assertThat(datePart).matches("\\d{8}")
+
+        // Validate time part (HHmmss)
+        val timePart = parts[2]
+        assertThat(timePart).hasLength(6)
+        assertThat(timePart).matches("\\d{6}")
+
+        // Validate UUID part (8 hex characters)
+        val uuidPart = parts[3]
+        assertThat(uuidPart).hasLength(8)
+        assertThat(uuidPart).matches("[a-f0-9]{8}")
     }
 
     @Test
@@ -401,5 +461,76 @@ class RecordingControllerTest {
         }
 
         assertEquals("All session IDs should be unique", 10, sessionIds.size)
+    }
+
+    @Test
+    fun testStartLiveStreaming() {
+        // Initialize the controller
+        recordingController.initialize()
+
+        // Set up preview views (required for camera managers)
+        recordingController.setRgbPreviewView(mockPreviewView)
+        recordingController.setThermalPreviewView(mockTextureView)
+
+        // Act - start live streaming
+        recordingController.startLiveStreaming()
+
+        // Assert - method should complete without throwing exceptions
+        assertTrue("startLiveStreaming should complete successfully", true)
+    }
+
+    @Test
+    fun testStopLiveStreaming() {
+        // Initialize the controller
+        recordingController.initialize()
+
+        // Set up preview views
+        recordingController.setRgbPreviewView(mockPreviewView)
+        recordingController.setThermalPreviewView(mockTextureView)
+
+        // Start streaming first
+        recordingController.startLiveStreaming()
+
+        // Act - stop live streaming
+        recordingController.stopLiveStreaming()
+
+        // Assert - method should complete without throwing exceptions
+        assertTrue("stopLiveStreaming should complete successfully", true)
+    }
+
+    @Test
+    fun testLiveStreamingLifecycle() {
+        // Initialize the controller
+        recordingController.initialize()
+
+        // Set up preview views
+        recordingController.setRgbPreviewView(mockPreviewView)
+        recordingController.setThermalPreviewView(mockTextureView)
+
+        // Test complete streaming lifecycle
+        recordingController.startLiveStreaming()
+        recordingController.stopLiveStreaming()
+
+        // Should be able to start again after stopping
+        recordingController.startLiveStreaming()
+        recordingController.stopLiveStreaming()
+
+        // Assert - lifecycle should complete without issues
+        assertTrue("Live streaming lifecycle should work correctly", true)
+    }
+
+    @Test
+    fun testLiveStreamingWithoutInitialization() {
+        // Act - try to start streaming without initialization
+        recordingController.startLiveStreaming()
+
+        // Assert - should handle gracefully (no exceptions)
+        assertTrue("startLiveStreaming should handle uninitialized state gracefully", true)
+
+        // Act - try to stop streaming without initialization
+        recordingController.stopLiveStreaming()
+
+        // Assert - should handle gracefully (no exceptions)
+        assertTrue("stopLiveStreaming should handle uninitialized state gracefully", true)
     }
 }

@@ -334,6 +334,181 @@ class Device(QObject):
             self.status_updated.emit(self)
             return False
 
+    def switch_to_front_camera(self) -> bool:
+        """Switch device to front camera.
+
+        Returns:
+            True if camera was switched successfully, False otherwise
+        """
+        self.logger.info(f"Switching to front camera on device: {self.name} ({self.id})")
+
+        # Check if connected
+        if not self.connected:
+            self.logger.error(f"Cannot switch camera on device {self.id}: not connected")
+            return False
+
+        try:
+            success = self.send_command("CMD_SWITCH_FRONT_CAMERA")
+            if success:
+                self.logger.info(f"Successfully switched to front camera on device {self.id}")
+                return True
+            else:
+                self.logger.error(f"Failed to switch to front camera on device {self.id}")
+                return False
+        except Exception as e:
+            self.logger.error(f"Error switching to front camera on device {self.id}: {str(e)}")
+            return False
+
+    def switch_to_rear_camera(self) -> bool:
+        """Switch device to rear camera.
+
+        Returns:
+            True if camera was switched successfully, False otherwise
+        """
+        self.logger.info(f"Switching to rear camera on device: {self.name} ({self.id})")
+
+        # Check if connected
+        if not self.connected:
+            self.logger.error(f"Cannot switch camera on device {self.id}: not connected")
+            return False
+
+        try:
+            success = self.send_command("CMD_SWITCH_REAR_CAMERA")
+            if success:
+                self.logger.info(f"Successfully switched to rear camera on device {self.id}")
+                return True
+            else:
+                self.logger.error(f"Failed to switch to rear camera on device {self.id}")
+                return False
+        except Exception as e:
+            self.logger.error(f"Error switching to rear camera on device {self.id}: {str(e)}")
+            return False
+
+    def toggle_rgb_sensor(self) -> bool:
+        """Toggle RGB video sensor on/off.
+
+        Returns:
+            True if sensor was toggled successfully, False otherwise
+        """
+        self.logger.info(f"Toggling RGB sensor on device: {self.name} ({self.id})")
+
+        # Check if connected
+        if not self.connected:
+            self.logger.error(f"Cannot toggle RGB sensor on device {self.id}: not connected")
+            return False
+
+        try:
+            success = self.send_command("CMD_TOGGLE_RGB_SENSOR")
+            if success:
+                self.logger.info(f"Successfully toggled RGB sensor on device {self.id}")
+                return True
+            else:
+                self.logger.error(f"Failed to toggle RGB sensor on device {self.id}")
+                return False
+        except Exception as e:
+            self.logger.error(f"Error toggling RGB sensor on device {self.id}: {str(e)}")
+            return False
+
+    def toggle_thermal_sensor(self) -> bool:
+        """Toggle thermal video sensor on/off.
+
+        Returns:
+            True if sensor was toggled successfully, False otherwise
+        """
+        self.logger.info(f"Toggling thermal sensor on device: {self.name} ({self.id})")
+
+        # Check if connected
+        if not self.connected:
+            self.logger.error(f"Cannot toggle thermal sensor on device {self.id}: not connected")
+            return False
+
+        try:
+            success = self.send_command("CMD_TOGGLE_THERMAL_SENSOR")
+            if success:
+                self.logger.info(f"Successfully toggled thermal sensor on device {self.id}")
+                return True
+            else:
+                self.logger.error(f"Failed to toggle thermal sensor on device {self.id}")
+                return False
+        except Exception as e:
+            self.logger.error(f"Error toggling thermal sensor on device {self.id}: {str(e)}")
+            return False
+
+    def toggle_gsr_sensor(self) -> bool:
+        """Toggle GSR sensor on/off.
+
+        Returns:
+            True if sensor was toggled successfully, False otherwise
+        """
+        self.logger.info(f"Toggling GSR sensor on device: {self.name} ({self.id})")
+
+        # Check if connected
+        if not self.connected:
+            self.logger.error(f"Cannot toggle GSR sensor on device {self.id}: not connected")
+            return False
+
+        try:
+            success = self.send_command("CMD_TOGGLE_GSR_SENSOR")
+            if success:
+                self.logger.info(f"Successfully toggled GSR sensor on device {self.id}")
+                return True
+            else:
+                self.logger.error(f"Failed to toggle GSR sensor on device {self.id}")
+                return False
+        except Exception as e:
+            self.logger.error(f"Error toggling GSR sensor on device {self.id}: {str(e)}")
+            return False
+
+    def toggle_audio_recording(self) -> bool:
+        """Toggle audio recording on/off.
+
+        Returns:
+            True if audio recording was toggled successfully, False otherwise
+        """
+        self.logger.info(f"Toggling audio recording on device: {self.name} ({self.id})")
+
+        # Check if connected
+        if not self.connected:
+            self.logger.error(f"Cannot toggle audio recording on device {self.id}: not connected")
+            return False
+
+        try:
+            success = self.send_command("CMD_TOGGLE_AUDIO_RECORDING")
+            if success:
+                self.logger.info(f"Successfully toggled audio recording on device {self.id}")
+                return True
+            else:
+                self.logger.error(f"Failed to toggle audio recording on device {self.id}")
+                return False
+        except Exception as e:
+            self.logger.error(f"Error toggling audio recording on device {self.id}: {str(e)}")
+            return False
+
+    def get_sensor_status(self) -> bool:
+        """Get current sensor status from device.
+
+        Returns:
+            True if status was requested successfully, False otherwise
+        """
+        self.logger.info(f"Getting sensor status from device: {self.name} ({self.id})")
+
+        # Check if connected
+        if not self.connected:
+            self.logger.error(f"Cannot get sensor status from device {self.id}: not connected")
+            return False
+
+        try:
+            success = self.send_command("CMD_GET_SENSOR_STATUS")
+            if success:
+                self.logger.info(f"Successfully requested sensor status from device {self.id}")
+                return True
+            else:
+                self.logger.error(f"Failed to get sensor status from device {self.id}")
+                return False
+        except Exception as e:
+            self.logger.error(f"Error getting sensor status from device {self.id}: {str(e)}")
+            return False
+
     def collect_files(self, destination_dir) -> None:
         """Collect files from the device.
 

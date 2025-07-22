@@ -18,7 +18,9 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.buccancs.gsrcapture.utils.TimeManager
+import com.buccancs.gsrcapture.network.CommandProtocolClient
 import java.io.File
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -38,11 +40,20 @@ class RgbCameraManager(
     private var imageCapture: ImageCapture? = null
     private var recording: Recording? = null
 
+    // Camera selection state
+    private var currentCameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+    private var isUsingFrontCamera: Boolean = false
+
     // Raw image capture state
     private val isCapturingRawImages = AtomicBoolean(false)
     private var rawImageOutputDirectory: File? = null
     private var rawImageSessionId: String? = null
     private var rawImageFrameCount: Int = 0
+
+    // Network streaming state
+    private var networkClient: CommandProtocolClient? = null
+    private val isStreaming = AtomicBoolean(false)
+    private var streamingFrameCount: Long = 0
 
     /**
      * Starts the camera and sets up the preview.
@@ -67,7 +78,7 @@ class RgbCameraManager(
             val recorder =
                 Recorder
                     .Builder()
-                    .setQualitySelector(QualitySelector.from(Quality.FHD))
+                    .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
                     .build()
             videoCapture = VideoCapture.withOutput(recorder)
 
@@ -78,9 +89,6 @@ class RgbCameraManager(
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                     .build()
 
-            // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
             try {
                 // Unbind use cases before rebinding
                 cameraProvider?.unbindAll()
@@ -88,7 +96,7 @@ class RgbCameraManager(
                 // Bind use cases to camera
                 cameraProvider?.bindToLifecycle(
                     lifecycleOwner,
-                    cameraSelector,
+                    currentCameraSelector,
                     preview,
                     videoCapture,
                     imageCapture,
@@ -96,7 +104,7 @@ class RgbCameraManager(
             } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
-        }, ContextCompat.getMainExecutor(context))
+        }, cameraExecutor)
     }
 
     /**
@@ -125,7 +133,7 @@ class RgbCameraManager(
                 .apply {
                     // Enable audio recording
                     withAudioEnabled()
-                }.start(ContextCompat.getMainExecutor(context)) { recordEvent ->
+                }.start(cameraExecutor) { recordEvent ->
                     when (recordEvent) {
                         is VideoRecordEvent.Start -> {
                             Log.d(TAG, "Recording started")
@@ -232,7 +240,7 @@ class RgbCameraManager(
 
             imageCapture.takePicture(
                 outputFileOptions,
-                ContextCompat.getMainExecutor(context),
+                cameraExecutor,
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                         rawImageFrameCount++
@@ -250,10 +258,170 @@ class RgbCameraManager(
     }
 
     /**
+     * Switches between front and rear camera.
+     * @param previewView The preview view to update
+     * @return True if camera was switched successfully, false otherwise
+     */
+    fun switchCamera(previewView: PreviewView): Boolean {
+        return try {
+            // Toggle camera selector
+            currentCameraSelector = if (isUsingFrontCamera) {
+                CameraSelector.DEFAULT_BACK_CAMERA
+            } else {
+                CameraSelector.DEFAULT_FRONT_CAMERA
+            }
+            isUsingFrontCamera = !isUsingFrontCamera
+
+            // Restart camera with new selector
+            startCamera(previewView)
+
+            Log.d(TAG, "Switched to ${if (isUsingFrontCamera) "front" else "rear"} camera")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to switch camera", e)
+            false
+        }
+    }
+
+    /**
+     * Sets the camera to use front camera.
+     * @param previewView The preview view to update
+     * @return True if camera was set successfully, false otherwise
+     */
+    fun setFrontCamera(previewView: PreviewView): Boolean {
+        return if (!isUsingFrontCamera) {
+            switchCamera(previewView)
+        } else {
+            true // Already using front camera
+        }
+    }
+
+    /**
+     * Sets the camera to use rear camera.
+     * @param previewView The preview view to update
+     * @return True if camera was set successfully, false otherwise
+     */
+    fun setRearCamera(previewView: PreviewView): Boolean {
+        return if (isUsingFrontCamera) {
+            switchCamera(previewView)
+        } else {
+            true // Already using rear camera
+        }
+    }
+
+    /**
+     * Gets the current camera type.
+     * @return True if using front camera, false if using rear camera
+     */
+    fun isUsingFrontCamera(): Boolean = isUsingFrontCamera
+
+    /**
+     * Sets the network client for streaming video frames.
+     * @param client CommandProtocolClient instance for sending frames
+     */
+    fun setNetworkClient(client: CommandProtocolClient?) {
+        networkClient = client
+    }
+
+    /**
+     * Starts live video streaming to the network client.
+     * @return True if streaming started successfully, false otherwise
+     */
+    fun startStreaming(): Boolean {
+        if (networkClient == null) {
+            Log.w(TAG, "Cannot start streaming: no network client set")
+            return false
+        }
+
+        if (isStreaming.get()) {
+            Log.d(TAG, "Already streaming")
+            return true
+        }
+
+        isStreaming.set(true)
+        streamingFrameCount = 0
+        startStreamingCapture()
+        Log.d(TAG, "RGB video streaming started")
+        return true
+    }
+
+    /**
+     * Stops live video streaming.
+     */
+    fun stopStreaming() {
+        if (isStreaming.getAndSet(false)) {
+            Log.d(TAG, "RGB video streaming stopped")
+        }
+    }
+
+    /**
+     * Starts continuous frame capture for streaming in a background thread.
+     */
+    private fun startStreamingCapture() {
+        cameraExecutor.execute {
+            while (isStreaming.get()) {
+                captureStreamingFrame()
+                try {
+                    // Stream at approximately 15 FPS (67ms interval) to reduce bandwidth
+                    Thread.sleep(67)
+                } catch (e: InterruptedException) {
+                    break
+                }
+            }
+        }
+    }
+
+    /**
+     * Captures a single frame for streaming and sends it to the network client.
+     */
+    private fun captureStreamingFrame() {
+        val imageCapture = imageCapture ?: return
+        val client = networkClient ?: return
+
+        try {
+            val timestamp = TimeManager.getCurrentTimestampNanos()
+
+            // Create a temporary file for the frame
+            val tempFile = File.createTempFile("rgb_stream_frame", ".jpg", context.cacheDir)
+            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(tempFile).build()
+
+            imageCapture.takePicture(
+                outputFileOptions,
+                cameraExecutor,
+                object : ImageCapture.OnImageSavedCallback {
+                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                        try {
+                            // Read the captured frame and send it
+                            val frameData = tempFile.readBytes()
+                            client.sendVideoFrame(frameData, "rgb", timestamp)
+                            streamingFrameCount++
+
+                            // Clean up temp file
+                            tempFile.delete()
+
+                            Log.v(TAG, "Streamed RGB frame #$streamingFrameCount (${frameData.size} bytes)")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error sending streaming frame", e)
+                            tempFile.delete()
+                        }
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        Log.e(TAG, "Error capturing streaming frame", exception)
+                    }
+                }
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in captureStreamingFrame", e)
+        }
+    }
+
+    /**
      * Releases all camera resources.
      */
     fun shutdown() {
         stopRawImageCapture()
+        stopStreaming()
         recording?.stop()
         recording = null
         cameraProvider?.unbindAll()

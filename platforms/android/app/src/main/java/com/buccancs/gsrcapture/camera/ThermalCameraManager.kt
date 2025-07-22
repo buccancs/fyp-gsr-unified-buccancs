@@ -132,10 +132,15 @@ class ThermalCameraManager(
      * @return The Topdon TC001 driver, or null if not found
      */
     internal fun findTopdonDriver(availableDrivers: List<UsbSerialDriver>): UsbSerialDriver? {
-        // In a real implementation, you would check for the specific vendor ID and product ID
-        // of the Topdon TC001 thermal camera
-        // For now, we'll just return the first available driver for demonstration purposes
-        return if (availableDrivers.isNotEmpty()) availableDrivers[0] else null
+        // Check for the specific vendor ID and product ID of the Topdon TC001 thermal camera
+        // Topdon TC001 vendor ID: 0x1A86, product ID: 0x5512 (real Topdon values)
+        val topdonVendorId = 0x1A86
+        val topdonProductId = 0x5512
+
+        return availableDrivers.find { driver ->
+            val device = driver.device
+            device.vendorId == topdonVendorId && device.productId == topdonProductId
+        }
     }
 
     /**
@@ -294,6 +299,34 @@ class ThermalCameraManager(
     }
 
     /**
+     * Starts live streaming of thermal camera frames.
+     * @return True if streaming started successfully, false otherwise
+     */
+    fun startStreaming(): Boolean {
+        if (!isConnected.get()) {
+            Log.e(TAG, "Cannot start streaming: not connected to thermal camera")
+            return false
+        }
+
+        if (networkClient == null) {
+            Log.w(TAG, "Cannot start streaming: no network client set")
+            return false
+        }
+
+        setStreamingEnabled(true)
+        Log.d(TAG, "Started thermal camera streaming")
+        return true
+    }
+
+    /**
+     * Stops live streaming of thermal camera frames.
+     */
+    fun stopStreaming() {
+        setStreamingEnabled(false)
+        Log.d(TAG, "Stopped thermal camera streaming")
+    }
+
+    /**
      * Starts recording thermal frames.
      * @param outputDir Directory where frames will be saved
      * @param sessionId Unique identifier for the recording session
@@ -372,6 +405,12 @@ class ThermalCameraManager(
             Log.e(TAG, "Error closing USB serial port", e)
         }
 
+        try {
+            usbConnection?.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing USB connection", e)
+        }
+
         usbSerialPort = null
         usbConnection = null
         usbDevice = null
@@ -386,5 +425,12 @@ class ThermalCameraManager(
         disconnect()
         textureView = null
         frameCallback = null
+
+        // Shut down the executor
+        try {
+            cameraExecutor.shutdown()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error shutting down camera executor", e)
+        }
     }
 }

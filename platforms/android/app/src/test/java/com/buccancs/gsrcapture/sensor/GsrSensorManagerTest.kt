@@ -90,9 +90,12 @@ class GsrSensorManagerTest {
 
         gsrSensorManager.setConnectionStateCallback(callback)
 
-        // Test connection state changes would be tested with actual Shimmer device
-        // For unit test, we verify callback registration works
-        assertNotNull("Connection state callback should be registered", connectionState)
+        // Simulate a connection state change by calling disconnect which triggers the callback
+        gsrSensorManager.disconnect()
+
+        // Verify callback was triggered
+        assertNotNull("Connection state callback should be triggered", connectionState)
+        assertFalse("Connection state should be false after disconnect", connectionState!!)
     }
 
     @Test

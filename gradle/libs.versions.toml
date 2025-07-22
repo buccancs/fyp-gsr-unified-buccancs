@@ -1,7 +1,7 @@
 [versions]
 # Build Tools & Plugins
 agp = "8+"
-kotlin = "2+"
+kotlin = "2.0.0"
 
 # Android SDK versions
 compileSdk = "35"
@@ -11,10 +11,19 @@ buildTools = "33.0+"
 
 # AndroidX Libraries
 androidxCore = "1.13+"
-androidxAppcompat = "1.7+"
+androidxAppcompat = "1.6.1"
 androidxLifecycle = "2.8+"
-androidxConstraintlayout = "2.2+"
-cameraX = "1.3+"
+androidxConstraintlayout = "2.1.4"
+androidxCardview = "1.0.0"
+androidxDrawerlayout = "1.1.1"
+androidxCoordinatorlayout = "1.2.0"
+androidxFragment = "1.8.2"
+androidxArchCore = "2.2.0"
+androidxTestCore = "1.5.0"
+androidxExifInterface = "1.3.7"
+androidxTestRules = "1.5.0"
+androidxTestRunner = "1.5.0"
+cameraX = "1.3.4"
 
 # Material Design
 material = "1.11+"
@@ -29,12 +38,25 @@ okhttp = "4.12+"
 
 # Coroutines
 coroutines = "1.7+"
+coroutinesTest = "1.7.3"
+
+# JetBrains
+jetbrainsAnnotations = "24.1.0"
+
+# Apache Commons & Other Libraries
+commonsMath3 = "3.6.1"
+commonsMath = "2.2"
+commonsLang3 = "3.12.0"
+vecmath = "1.3.1"
+guava = "32.1.3-jre"
+slf4j = "1.7.32"
+truth = "1.1.5"
 
 # Testing
 junit = "4.13+"
-mockito = "5.2+"
-mockitoKotlin = "5.1+"
-robolectric = "4.11+"
+mockito = "5.1.0"
+mockitoKotlin = "5.1.0"
+robolectric = "4.15+"
 androidxTestExt = "1.1+"
 espresso = "3.5+"
 
@@ -43,6 +65,13 @@ espresso = "3.5+"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppcompat" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidxConstraintlayout" }
+# AndroidX UI Components
+androidx-cardview = { group = "androidx.cardview", name = "cardview", version.ref = "androidxCardview" }
+androidx-drawerlayout = { group = "androidx.drawerlayout", name = "drawerlayout", version.ref = "androidxDrawerlayout" }
+androidx-coordinatorlayout = { group = "androidx.coordinatorlayout", name = "coordinatorlayout", version.ref = "androidxCoordinatorlayout" }
+androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "androidxFragment" }
+# AndroidX ExifInterface
+androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "androidxExifInterface" }
 # AndroidX Lifecycle
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "androidxLifecycle" }
@@ -65,6 +94,24 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 # Coroutines
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+# JetBrains
+jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
+# Apache Commons & Other Libraries
+commons-math3 = { group = "org.apache.commons", name = "commons-math3", version.ref = "commonsMath3" }
+commons-math = { group = "org.apache.commons", name = "commons-math", version.ref = "commonsMath" }
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commonsLang3" }
+vecmath = { group = "java3d", name = "vecmath", version.ref = "vecmath" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+slf4j-android = { group = "org.slf4j", name = "slf4j-android", version.ref = "slf4j" }
+truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
+# AndroidX Test
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
+androidx-test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "androidxTestCore" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTestRules" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "androidxArchCore" }
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }

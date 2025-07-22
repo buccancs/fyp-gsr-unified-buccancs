@@ -399,7 +399,7 @@ class WebcamPC(PCConnectedCamera):
 
 ### Documentation
 - **[Technical Implementation](FINAL_IMPLEMENTATION_SUMMARY.md)** - Detailed specifications
-- **[OS Configuration Guide](../../OS_CONFIGURATION_GUIDE.md)** - Platform setup
+- **[OS Configuration Guide](../../docs/OS_CONFIGURATION_GUIDE.md)** - Platform setup
 - **[Main Project README](../../README.md)** - System overview
 
 ### Maintenance

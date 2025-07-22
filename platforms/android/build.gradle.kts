@@ -6,7 +6,7 @@ plugins {
 }
 
 // Define Android environment properties
-val androidHome = "${rootProject.projectDir}/environments/android"
+val androidHome = "${rootProject.projectDir}/environments/android-sdk"
 val isWindows = System.getProperty("os.name").lowercase().contains("windows")
 val setupScript = if (isWindows) "setup_android.bat" else "setup_android.sh"
 

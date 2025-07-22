@@ -21,7 +21,7 @@ This system provides multiple levels of documentation to serve different user ty
 
 ### 📖 Reference Documentation
 - **[Main README](../README.md)** - System overview, features, and technical specifications
-- **[OS Configuration Guide](../OS_CONFIGURATION_GUIDE.md)** - Platform-specific setup instructions
+- **[OS Configuration Guide](OS_CONFIGURATION_GUIDE.md)** - Platform-specific setup instructions
 - **[Changelog](CHANGELOG.md)** - Version history and major changes
 
 ## 🎯 Choose Your Path
@@ -61,7 +61,7 @@ Then explore:
 - [PC Platform Guide](../platforms/pc/PC_PLATFORM_GUIDE.md) - Complete PC platform implementation and usage
 - [Final Implementation Summary](../platforms/pc/FINAL_IMPLEMENTATION_SUMMARY.md) - Technical implementation details
 - [Networking and Synchronization](Networking_and_Synchronization_Layer.md) - Network layer documentation
-- [OS Configuration Guide](../OS_CONFIGURATION_GUIDE.md) - Platform-specific setup instructions
+- [OS Configuration Guide](OS_CONFIGURATION_GUIDE.md) - Platform-specific setup instructions
 - Source code in `platforms/android/` and `platforms/pc/` directories
 
 ## 📋 Quick Reference

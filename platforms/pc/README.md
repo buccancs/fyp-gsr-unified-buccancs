@@ -53,7 +53,7 @@ The C++ backend delivers significant performance improvements:
 
 ## 🔗 Related Documentation
 
-- **[OS Configuration Guide](../../OS_CONFIGURATION_GUIDE.md)** - Platform-specific setup
+- **[OS Configuration Guide](../../docs/OS_CONFIGURATION_GUIDE.md)** - Platform-specific setup
 - **[Main Project README](../../README.md)** - Complete system overview
 
 ---

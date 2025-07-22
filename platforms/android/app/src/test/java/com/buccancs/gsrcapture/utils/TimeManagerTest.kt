@@ -1,12 +1,20 @@
 package com.buccancs.gsrcapture.utils
 
+import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+/**
+ * Modern unit tests for TimeManager using Truth assertions and improved test structure.
+ */
+@RunWith(RobolectricTestRunner::class)
 class TimeManagerTest {
+
     @Before
     fun setUp() {
         // Initialize TimeManager session before each test
@@ -14,41 +22,41 @@ class TimeManagerTest {
     }
 
     @Test
-    fun testInitialization() {
+    fun `TimeManager should initialize correctly`() {
         // Test that TimeManager initializes correctly
-        assertNotNull("TimeManager should be available", TimeManager)
-        assertTrue("TimeManager should have valid initial time", TimeManager.getCurrentTimestamp().isNotEmpty())
+        assertThat(TimeManager).isNotNull()
+        assertThat(TimeManager.getCurrentTimestamp()).isNotEmpty()
     }
 
     @Test
-    fun testTimestampGeneration() {
+    fun `timestamp generation should produce increasing values`() {
         val timestamp1 = TimeManager.getCurrentTimestampMillis()
-        Thread.sleep(1) // Small delay
+        Thread.sleep(10) // Longer delay to ensure time difference in test environment
         val timestamp2 = TimeManager.getCurrentTimestampMillis()
 
-        assertTrue("Timestamps should be increasing", timestamp2 > timestamp1)
-        assertTrue("Timestamps should be reasonable", timestamp1 >= 0)
+        assertThat(timestamp2).isGreaterThan(timestamp1)
+        assertThat(timestamp1).isAtLeast(0L)
     }
 
     @Test
-    fun testDeviceTimeGeneration() {
+    fun `device time generation should produce increasing nanosecond values`() {
         val deviceTime1 = TimeManager.getCurrentTimestampNanos()
-        Thread.sleep(1) // Small delay
+        Thread.sleep(10) // Longer delay to ensure time difference in test environment
         val deviceTime2 = TimeManager.getCurrentTimestampNanos()
 
-        assertTrue("Device times should be increasing", deviceTime2 > deviceTime1)
-        assertTrue("Device time should be in nanoseconds", deviceTime1 >= 0)
+        assertThat(deviceTime2).isGreaterThan(deviceTime1)
+        assertThat(deviceTime1).isAtLeast(0L)
     }
 
     @Test
-    fun testTimestampedDataCreation() {
+    fun `timestamped data creation should preserve data and add valid timestamps`() {
         val testData = "test_data"
         val timestampedData = TimeManager.timestampData(testData)
 
-        assertNotNull("Timestamped data should not be null", timestampedData)
-        assertEquals("Data should match", testData, timestampedData.data)
-        assertTrue("Timestamp should be valid", timestampedData.timestampNanos > 0)
-        assertTrue("Session offset should be valid", timestampedData.sessionOffsetNanos >= 0)
+        assertThat(timestampedData).isNotNull()
+        assertThat(timestampedData.data).isEqualTo(testData)
+        assertThat(timestampedData.timestampNanos).isGreaterThan(0L)
+        assertThat(timestampedData.sessionOffsetNanos).isAtLeast(0L)
     }
 
     @Test
@@ -256,7 +264,7 @@ class TimeManagerTest {
     fun testSessionInitialization() {
         // Test that session initialization works
         val sessionStart1 = TimeManager.initSession()
-        Thread.sleep(1)
+        Thread.sleep(10) // Longer delay to ensure time difference in test environment
         val sessionStart2 = TimeManager.initSession()
 
         // Session start times should be different
@@ -281,7 +289,7 @@ class TimeManagerTest {
     fun testTimestampNanosAccuracy() {
         // Test that timestamp nanos are reasonable relative to session start
         val timestamp1 = TimeManager.getCurrentTimestampNanos()
-        Thread.sleep(1)
+        Thread.sleep(10) // Longer delay to ensure time difference in test environment
         val timestamp2 = TimeManager.getCurrentTimestampNanos()
 
         // Should be increasing and reasonable

@@ -35,10 +35,9 @@ echo
 echo "📁 Step 1: Creating local environment directories..."
 mkdir -p environments/conda/channels/conda-forge
 mkdir -p environments/conda/channels/defaults
-mkdir -p environments/pc/windows
-mkdir -p environments/pc/linux
-mkdir -p environments/pc/macos
-mkdir -p environments/pc/python
+mkdir -p environments/windows-x86_64
+mkdir -p environments/linux-x86_64
+mkdir -p environments/macos-arm64
 mkdir -p environments/android
 mkdir -p environments/repositories/google
 mkdir -p environments/repositories/maven-central
@@ -97,13 +96,12 @@ echo
 # If we have requirements files, provide installation instructions
 if [ -f "platforms/pc/requirements.txt" ]; then
     echo "📦 To install additional dependencies using local Python environment:"
-    echo "  The build system will automatically use environments/pc/python/venv"
-    echo "  Run: ./gradlew :pc:build (this will create local Python venv and install dependencies)"
+    echo "  The build system will automatically detect your OS and use the appropriate Python installation"
+    echo "  Run: ./gradlew :pc:build (this will use embedded Python and install dependencies)"
     echo
     echo "📦 Or manually install to local Python environment:"
     echo "  cd platforms/pc"
-    echo "  python -m venv ../../environments/pc/python/venv"
-    echo "  source ../../environments/pc/python/venv/bin/activate"
+    echo "  # The build system will automatically use the correct OS-specific Python path"
     echo "  pip install -r requirements.txt"
     echo "  pip install -r requirements-test.txt"
     echo
@@ -116,8 +114,8 @@ echo "✅ Old system environment removed (if existed)"
 echo "✅ New local conda environment created in ./environments/conda/fyp-gsr-unified-buccancs"
 echo "✅ Core dependencies installed via conda (local)"
 echo "✅ Gradle configured to use local repositories in ./environments/repositories/"
-echo "✅ Java configured to use local installations in ./environments/pc/{os}/java/"
-echo "📋 Python dependencies will be installed locally in ./environments/pc/python/venv"
+echo "✅ Java configured to use local installations in ./environments/{os-architecture}/java/"
+echo "📋 Python dependencies will be installed using OS-specific embedded Python installations"
 echo
 echo "🚀 Next Steps:"
 echo "1. conda activate ./environments/conda/fyp-gsr-unified-buccancs"

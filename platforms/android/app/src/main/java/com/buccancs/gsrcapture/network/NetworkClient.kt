@@ -33,8 +33,8 @@ class NetworkClient(
     private val TAG = "NetworkClient"
 
     // Network components
-    private val networkExecutor: ExecutorService = Executors.newCachedThreadPool()
-    private val statusExecutor: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
+    private var networkExecutor: ExecutorService = Executors.newCachedThreadPool()
+    private var statusExecutor: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
     private var statusReportingTask: java.util.concurrent.ScheduledFuture<*>? = null
     private var serverSocket: ServerSocket? = null
     private var clientSocket: Socket? = null
@@ -74,6 +74,14 @@ class NetworkClient(
         }
 
         Log.d(TAG, "Starting network client")
+
+        // Recreate executors if they have been shut down
+        if (networkExecutor.isShutdown) {
+            networkExecutor = Executors.newCachedThreadPool()
+        }
+        if (statusExecutor.isShutdown) {
+            statusExecutor = Executors.newScheduledThreadPool(1)
+        }
 
         // Start server socket
         startServer()
@@ -169,38 +177,67 @@ class NetworkClient(
      */
     internal fun handleCommand(commandJson: String) {
         try {
-            val json = JSONObject(commandJson)
-            val command = json.getString("command")
+            // Try simple string parsing first as a fallback
+            val command = extractCommandFromJson(commandJson)
 
-            Log.d(TAG, "Received command: $command")
+            if (command != null) {
+                Log.d(TAG, "Received command: $command")
 
-            // Handle time sync command
-            if (command == "SYNC_TIME") {
-                val remoteTime = json.getLong("timestamp")
-                val roundTripStart = json.getLong("roundTripStart")
-                val roundTripTime = System.currentTimeMillis() - roundTripStart
+                // Handle time sync command
+                if (command == "SYNC_TIME") {
+                    try {
+                        val json = JSONObject(commandJson)
+                        val remoteTime = json.getLong("timestamp")
+                        val roundTripStart = json.optLong("roundTripStart", System.currentTimeMillis())
+                        val roundTripTime = System.currentTimeMillis() - roundTripStart
 
-                // Synchronize time
-                TimeManager.synchronizeWithNetwork(remoteTime, roundTripTime)
+                        // Synchronize time
+                        TimeManager.synchronizeWithNetwork(remoteTime, roundTripTime)
+
+                        // Send acknowledgment
+                        sendTimeSync(remoteTime, roundTripTime)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error processing SYNC_TIME command", e)
+                    }
+                }
+
+                // Handle file collection command
+                if (command == "COLLECT_FILES") {
+                    try {
+                        val json = JSONObject(commandJson)
+                        handleFileCollection(json)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error processing COLLECT_FILES command", e)
+                    }
+                    return
+                }
+
+                // Forward command to callback
+                commandCallback?.invoke(command)
 
                 // Send acknowledgment
-                sendTimeSync(remoteTime, roundTripTime)
-                return
+                sendAcknowledgment(command)
+            } else {
+                Log.w(TAG, "Could not extract command from JSON: $commandJson")
             }
-
-            // Handle file collection command
-            if (command == "COLLECT_FILES") {
-                handleFileCollection(json)
-                return
-            }
-
-            // Forward command to callback
-            commandCallback?.invoke(command)
-
-            // Send acknowledgment
-            sendAcknowledgment(command)
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing command: $commandJson", e)
+        }
+    }
+
+    /**
+     * Extract command from JSON string using simple string parsing
+     * This is a fallback method when JSONObject parsing fails
+     */
+    private fun extractCommandFromJson(jsonString: String): String? {
+        return try {
+            // Look for "command":"value" pattern
+            val commandRegex = "\"command\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+            val matchResult = commandRegex.find(jsonString)
+            matchResult?.groupValues?.get(1)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting command from JSON", e)
+            null
         }
     }
 

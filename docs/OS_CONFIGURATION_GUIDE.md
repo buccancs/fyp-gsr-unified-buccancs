@@ -297,3 +297,4 @@ ls ~/Android/Sdk
 - Environment variables take precedence over local.properties settings
 - Both root and Android platform configuration files should be updated consistently
 - The current configuration is set up for macOS - modify as needed for your OS
+

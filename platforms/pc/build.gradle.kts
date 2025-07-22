@@ -5,12 +5,26 @@ plugins {
     base
 }
 
-// Define project properties
+// Define OS detection and project properties
+val osName = System.getProperty("os.name").lowercase()
+val isWindows = osName.contains("windows")
+val isMacOS = osName.contains("mac")
+val isLinux = osName.contains("linux")
+
+val osDir = when {
+    isWindows -> "windows"
+    isMacOS -> "macos"
+    isLinux -> "linux"
+    else -> throw GradleException("Unsupported operating system: $osName")
+}
+
 val pythonExecutable = findProperty("python.executable")?.toString() ?: 
-    if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "${rootProject.projectDir}/environments/pc/windows/python/python.exe"
+    if (isWindows) {
+        "${rootProject.projectDir}/environments/windows-x86_64/python/python.exe"
+    } else if (isMacOS) {
+        "${rootProject.projectDir}/environments/macos-arm64/python/bin/python3"
     } else {
-        "python3"
+        "${rootProject.projectDir}/environments/linux-x86_64/python/bin/python3"
     }
 val cmakeBuildType = findProperty("cmake.build.type")?.toString() ?: "Release"
 val buildDir = layout.buildDirectory.get().asFile
@@ -21,10 +35,12 @@ tasks.register<DefaultTask>("setupPythonEnv") {
     description = "Set up Python environment and verify installation"
 
     doLast {
-        val pythonPath = if (System.getProperty("os.name").lowercase().contains("windows")) {
-            "${project.rootProject.projectDir}/environments/pc/windows/python/python.exe"
+        val pythonPath = if (isWindows) {
+            "${project.rootProject.projectDir}/environments/windows-x86_64/python/python.exe"
+        } else if (isMacOS) {
+            "${project.rootProject.projectDir}/environments/macos-arm64/python/bin/python3"
         } else {
-            "python3"
+            "${project.rootProject.projectDir}/environments/linux-x86_64/python/bin/python3"
         }
         val pythonFile = File(pythonPath)
         if (pythonFile.exists()) {
@@ -41,18 +57,26 @@ tasks.register<Exec>("installPythonDeps") {
     description = "Install Python dependencies from requirements.txt"
     dependsOn("setupPythonEnv")
 
-    val pipExecutable =
-        if (System.getProperty("os.name").lowercase().contains("windows")) {
-            "${rootProject.projectDir}/environments/pc/windows/python/Scripts/pip.exe"
-        } else {
-            "pip3"
-        }
+    val pipExecutable = if (isWindows) {
+        "${rootProject.projectDir}/environments/windows-x86_64/python/Scripts/pip.exe"
+    } else if (isMacOS) {
+        "${rootProject.projectDir}/environments/macos-arm64/python/bin/pip3"
+    } else {
+        "${rootProject.projectDir}/environments/linux-x86_64/python/bin/pip3"
+    }
 
     commandLine(pipExecutable, "install", "-r", "requirements.txt")
     workingDir = projectDir
 
     inputs.file("requirements.txt")
-    outputs.dir("${rootProject.projectDir}/environments/pc/windows/python/Lib/site-packages")
+    val sitePackagesDir = if (isWindows) {
+        "${rootProject.projectDir}/environments/windows-x86_64/python/Lib/site-packages"
+    } else if (isMacOS) {
+        "${rootProject.projectDir}/environments/macos-arm64/python/lib/python*/site-packages"
+    } else {
+        "${rootProject.projectDir}/environments/linux-x86_64/python/lib/python*/site-packages"
+    }
+    outputs.dir(sitePackagesDir)
 
     doLast {
         println("Python dependencies installed to embedded Python")
@@ -65,18 +89,26 @@ tasks.register<Exec>("installPythonTestDeps") {
     description = "Install Python test dependencies from requirements-test.txt"
     dependsOn("installPythonDeps")
 
-    val pipExecutable =
-        if (System.getProperty("os.name").lowercase().contains("windows")) {
-            "${rootProject.projectDir}/environments/pc/windows/python/Scripts/pip.exe"
-        } else {
-            "pip3"
-        }
+    val pipExecutable = if (isWindows) {
+        "${rootProject.projectDir}/environments/windows-x86_64/python/Scripts/pip.exe"
+    } else if (isMacOS) {
+        "${rootProject.projectDir}/environments/macos-arm64/python/bin/pip3"
+    } else {
+        "${rootProject.projectDir}/environments/linux-x86_64/python/bin/pip3"
+    }
 
     commandLine(pipExecutable, "install", "-r", "requirements-test.txt")
     workingDir = projectDir
 
     inputs.file("requirements-test.txt")
-    outputs.dir("${rootProject.projectDir}/environments/pc/windows/python/Lib/site-packages")
+    val sitePackagesDir = if (isWindows) {
+        "${rootProject.projectDir}/environments/windows-x86_64/python/Lib/site-packages"
+    } else if (isMacOS) {
+        "${rootProject.projectDir}/environments/macos-arm64/python/lib/python*/site-packages"
+    } else {
+        "${rootProject.projectDir}/environments/linux-x86_64/python/lib/python*/site-packages"
+    }
+    outputs.dir(sitePackagesDir)
 
     doLast {
         println("Python test dependencies installed to embedded Python (including pytest)")

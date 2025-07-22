@@ -10,6 +10,7 @@ import android.os.Environment
 import android.provider.Settings
 import android.view.TextureView
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.buccancs.gsrcapture.controller.RecordingController
 import com.buccancs.gsrcapture.network.CommandProtocolClient
+import com.buccancs.gsr.common.network.CommandProtocol
 
 /**
  * MainActivity for the GSR Capture app.
@@ -28,10 +30,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var thermalView: TextureView
     private lateinit var recordButton: Button
     private lateinit var cameraSwitchButton: Button
+    private lateinit var settingsButton: Button
     private lateinit var gsrStatusText: TextView
     private lateinit var heartRateText: TextView
     private lateinit var cameraTypeText: TextView
     private lateinit var recordingStatusText: TextView
+
+    // Sensor toggle checkboxes
+    private lateinit var rgbVideoCheckBox: CheckBox
+    private lateinit var thermalVideoCheckBox: CheckBox
+    private lateinit var gsrSensorCheckBox: CheckBox
+    private lateinit var audioRecordingCheckBox: CheckBox
 
     private var isRgbMode = true // true for RGB, false for Thermal
 
@@ -45,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private const val REQUEST_CODE_MANAGE_EXTERNAL_STORAGE = 11
+        private const val REQUEST_CODE_SETTINGS = 12
 
         private fun getRequiredPermissions(): Array<String> {
             val permissions = mutableListOf<String>()
@@ -54,7 +64,7 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.CAMERA,
                 Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.INTERNET,
-                Manifest.permission.ACCESS_NETWORK_STATE,
+                Manifest.permission.ACCESS_NETWORK_STATE
             ))
 
             // Storage permissions based on API level
@@ -68,7 +78,7 @@ class MainActivity : AppCompatActivity() {
                 // Pre-API 30 - Legacy storage permissions
                 permissions.addAll(listOf(
                     Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
                 ))
             }
 
@@ -78,20 +88,20 @@ class MainActivity : AppCompatActivity() {
                 permissions.addAll(listOf(
                     Manifest.permission.BLUETOOTH_SCAN,
                     Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.BLUETOOTH_ADVERTISE,
+                    Manifest.permission.BLUETOOTH_ADVERTISE
                 ))
             } else {
                 // Pre-API 31 - Legacy Bluetooth permissions
                 permissions.addAll(listOf(
                     Manifest.permission.BLUETOOTH,
-                    Manifest.permission.BLUETOOTH_ADMIN,
+                    Manifest.permission.BLUETOOTH_ADMIN
                 ))
             }
 
             // Location permissions (needed for Bluetooth scanning on older devices)
             permissions.addAll(listOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ))
 
             // Notification permission for API 33+
@@ -112,10 +122,17 @@ class MainActivity : AppCompatActivity() {
         // thermalView = findViewById(R.id.thermalView) // Uncomment when thermal view is added to layout
         recordButton = findViewById(R.id.recordButton)
         cameraSwitchButton = findViewById(R.id.cameraSwitchButton)
+        settingsButton = findViewById(R.id.settingsButton)
         gsrStatusText = findViewById(R.id.gsrStatusText)
         heartRateText = findViewById(R.id.heartRateText)
         cameraTypeText = findViewById(R.id.cameraTypeText)
         recordingStatusText = findViewById(R.id.recordingStatusText)
+
+        // Initialize sensor toggle checkboxes
+        rgbVideoCheckBox = findViewById(R.id.rgbVideoCheckBox)
+        thermalVideoCheckBox = findViewById(R.id.thermalVideoCheckBox)
+        gsrSensorCheckBox = findViewById(R.id.gsrSensorCheckBox)
+        audioRecordingCheckBox = findViewById(R.id.audioRecordingCheckBox)
 
         // Initialize recording controller
         recordingController = RecordingController(this)
@@ -142,6 +159,14 @@ class MainActivity : AppCompatActivity() {
         cameraSwitchButton.setOnClickListener {
             toggleCameraMode()
         }
+
+        settingsButton.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivityForResult(intent, REQUEST_CODE_SETTINGS)
+        }
+
+        // Set up sensor toggle listeners
+        setupSensorToggles()
 
         // Set up callbacks
         setupCallbacks()
@@ -230,6 +255,76 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupSensorToggles() {
+        // Set up RGB video checkbox listener
+        rgbVideoCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            recordingController.setSensorEnabled("rgb_video", isChecked)
+
+            // Update visual feedback
+            updateSensorToggleUI()
+
+            // If recording is active, show warning that changes will take effect on next recording
+            if (recordingStatusText.text == getString(R.string.status_recording)) {
+                Toast.makeText(this, "Sensor changes will take effect on next recording", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Set up thermal video checkbox listener
+        thermalVideoCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            recordingController.setSensorEnabled("thermal_video", isChecked)
+
+            // Update visual feedback
+            updateSensorToggleUI()
+
+            // If recording is active, show warning that changes will take effect on next recording
+            if (recordingStatusText.text == getString(R.string.status_recording)) {
+                Toast.makeText(this, "Sensor changes will take effect on next recording", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Set up GSR sensor checkbox listener
+        gsrSensorCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            recordingController.setSensorEnabled("gsr_sensor", isChecked)
+
+            // Update visual feedback
+            updateSensorToggleUI()
+
+            // If recording is active, show warning that changes will take effect on next recording
+            if (recordingStatusText.text == getString(R.string.status_recording)) {
+                Toast.makeText(this, "Sensor changes will take effect on next recording", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Set up audio recording checkbox listener
+        audioRecordingCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            recordingController.setSensorEnabled("audio_recording", isChecked)
+
+            // Update visual feedback
+            updateSensorToggleUI()
+
+            // If recording is active, show warning that changes will take effect on next recording
+            if (recordingStatusText.text == getString(R.string.status_recording)) {
+                Toast.makeText(this, "Sensor changes will take effect on next recording", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Initial UI update
+        updateSensorToggleUI()
+    }
+
+    private fun updateSensorToggleUI() {
+        // Disable checkboxes during recording to prevent confusion
+        val isRecording = recordingStatusText.text == getString(R.string.status_recording)
+
+        rgbVideoCheckBox.isEnabled = !isRecording
+        thermalVideoCheckBox.isEnabled = !isRecording
+        gsrSensorCheckBox.isEnabled = !isRecording
+        audioRecordingCheckBox.isEnabled = !isRecording
+
+        // Update visual feedback based on checkbox states
+        // You could add visual indicators here (e.g., change text colors, add icons)
+    }
+
     private fun toggleRecording() {
         if (recordingStatusText.text == getString(R.string.status_recording)) {
             // Stop recording
@@ -314,6 +409,64 @@ class MainActivity : AppCompatActivity() {
             "CMD_STATUS" -> {
                 // Send device status back to the PC controller
                 commandProtocolClient.sendDeviceStatus()
+            }
+            "CMD_SWITCH_FRONT_CAMERA" -> {
+                if (::recordingController.isInitialized) {
+                    // Switch to front camera if not already using it
+                    if (recordingController.setFrontCamera(viewFinder)) {
+                        Toast.makeText(this, "Switched to front camera", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this, "Failed to switch to front camera", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            "CMD_SWITCH_REAR_CAMERA" -> {
+                if (::recordingController.isInitialized) {
+                    // Switch to rear camera if not already using it
+                    if (recordingController.setRearCamera(viewFinder)) {
+                        Toast.makeText(this, "Switched to rear camera", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this, "Failed to switch to rear camera", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            "CMD_TOGGLE_RGB_SENSOR" -> {
+                val currentState = recordingController.isSensorEnabled("rgb_video")
+                recordingController.setSensorEnabled("rgb_video", !currentState)
+                rgbVideoCheckBox.isChecked = !currentState
+                Toast.makeText(this, "RGB video ${if (!currentState) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+            }
+            "CMD_TOGGLE_THERMAL_SENSOR" -> {
+                val currentState = recordingController.isSensorEnabled("thermal_video")
+                recordingController.setSensorEnabled("thermal_video", !currentState)
+                thermalVideoCheckBox.isChecked = !currentState
+                Toast.makeText(this, "Thermal video ${if (!currentState) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+            }
+            "CMD_TOGGLE_GSR_SENSOR" -> {
+                val currentState = recordingController.isSensorEnabled("gsr_sensor")
+                recordingController.setSensorEnabled("gsr_sensor", !currentState)
+                gsrSensorCheckBox.isChecked = !currentState
+                Toast.makeText(this, "GSR sensor ${if (!currentState) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+            }
+            "CMD_TOGGLE_AUDIO_RECORDING" -> {
+                val currentState = recordingController.isSensorEnabled("audio_recording")
+                recordingController.setSensorEnabled("audio_recording", !currentState)
+                audioRecordingCheckBox.isChecked = !currentState
+                Toast.makeText(this, "Audio recording ${if (!currentState) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+            }
+            "CMD_GET_SENSOR_STATUS" -> {
+                // Send current sensor status back to PC
+                val enabledSensors = recordingController.getEnabledSensors()
+                val statusMessage = "Enabled sensors: ${enabledSensors.joinToString(", ")}"
+                Toast.makeText(this, statusMessage, Toast.LENGTH_LONG).show()
+
+                // Send sensor status back to PC via network
+                commandProtocolClient.sendResponse(
+                    CommandProtocol.CommandType.CMD_STATUS,
+                    CommandProtocol.StatusCode.OK,
+                    "Sensor status response",
+                    "enabled_sensors:${enabledSensors.joinToString(",")}"
+                )
             }
 
             else -> {
@@ -409,6 +562,15 @@ class MainActivity : AppCompatActivity() {
                     // Permission denied
                     Toast.makeText(this, "All files access permission is required for the app to work properly", Toast.LENGTH_LONG).show()
                     finish()
+                }
+            }
+        } else if (requestCode == REQUEST_CODE_SETTINGS && resultCode == RESULT_OK) {
+            // Settings were changed, update UI if needed
+            data?.let {
+                val settingsChanged = it.getBooleanExtra("settings_changed", false)
+                if (settingsChanged) {
+                    Toast.makeText(this, "Settings updated", Toast.LENGTH_SHORT).show()
+                    // You can add more specific UI updates here if needed
                 }
             }
         }

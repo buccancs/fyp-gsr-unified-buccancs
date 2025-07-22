@@ -44,7 +44,7 @@
     },
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": true
+        "source.organizeImports": "explicit"
     },
     "kotlin.languageServer.enabled": true,
     "android.home": "${env:ANDROID_HOME}",

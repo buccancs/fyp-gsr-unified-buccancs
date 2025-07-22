@@ -1,0 +1,19 @@
+<resources>
+    <!-- Individual attribute declarations for global use -->
+    <attr name="drawerLayoutStyle" format="reference" />
+    <attr name="cardElevation" format="dimension" />
+    <attr name="cardBackgroundColor" format="color" />
+    <attr name="cardCornerRadius" format="dimension" />
+
+    <!-- Drawer Layout Attributes -->
+    <declare-styleable name="DrawerLayout">
+        <attr name="drawerLayoutStyle" />
+    </declare-styleable>
+
+    <!-- CardView Attributes -->
+    <declare-styleable name="CardView">
+        <attr name="cardElevation" />
+        <attr name="cardBackgroundColor" />
+        <attr name="cardCornerRadius" />
+    </declare-styleable>
+</resources>
